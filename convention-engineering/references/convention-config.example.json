@@ -1,0 +1,37 @@
+{
+  "contract_version": 1,
+  "mode": "tracked",
+  "profiles": ["go", "typescript-react"],
+  "docs_root": "docs",
+  "ownership_policy": {
+    "portable_skill_authoring_owner": "skill-author",
+    "domain_knowledge_owner": "domain-skills",
+    "repo_local_skills": {
+      "allowed": false,
+      "placement_roots": [".claude/skills", ".codex/skills"],
+      "authoring_owner": "skill-author",
+      "requires_justification": true
+    }
+  },
+  "required_files": ["Taskfile.yml", "CLAUDE.md"],
+  "taskfile_checks": {
+    "Taskfile.yml": ["verify:", "lint:", "test:"]
+  },
+  "mirror_policy": {
+    "mode": "mirrored",
+    "files": ["CLAUDE.md", "AGENTS.md"]
+  },
+  "canonical_pointers": [],
+  "content_checks": [],
+  "git_exclude_checks": [],
+  "invariant_contract": {
+    "required": false
+  },
+  "evaluation_inputs": {
+    "repo_risk": "standard"
+  },
+  "chunk_plan": {
+    "enabled": false,
+    "chunks": []
+  }
+}

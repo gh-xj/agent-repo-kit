@@ -1,0 +1,9 @@
+version: "3"
+
+includes:
+  wiki:
+    taskfile: .wiki/Taskfile.yml
+    dir: .wiki
+  tickets:
+    taskfile: .tickets/Taskfile.yml
+    dir: .tickets

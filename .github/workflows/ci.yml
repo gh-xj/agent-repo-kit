@@ -1,0 +1,26 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  demo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install go-task
+        run: |
+          sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
+          task --version
+
+      - name: tickets — state-machine tests (expect 10/10)
+        working-directory: examples/demo-repo/.tickets
+        run: task test
+
+      - name: wiki — lint (expect OK)
+        working-directory: examples/demo-repo/.wiki
+        run: task lint
