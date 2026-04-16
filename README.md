@@ -30,6 +30,27 @@ cd agent-repo-kit
 ./install.sh --dry-run             # preview without changes
 ```
 
+## Bootstrap A Repo
+
+Use the convention-engineering CLI to scaffold the kit-owned repo surface in
+one pass:
+
+```bash
+GO111MODULE=off go run ./convention-engineering/scripts \
+  --repo-root /path/to/your-repo \
+  --init \
+  --profiles go,typescript-react
+```
+
+This writes a tracked `.convention-engineering.json`, `docs/` taxonomy
+READMEs, `.tickets/`, `.wiki/`, repo-local convention task wiring under
+`.convention-engineering/`, and mirrored `AGENTS.md` / `CLAUDE.md`
+convention blocks. The generated repo then supports:
+
+```bash
+task verify
+```
+
 ## What you get
 
 - **`contract/`** — repo conventions: agent docs, docs taxonomy, stack
@@ -45,15 +66,16 @@ cd agent-repo-kit
 ## Quick example
 
 ```bash
-# After installing the Claude Code adapter, in any repo:
-cp -R .../agent-repo-kit/examples/demo-repo/.tickets ./
-cp -R .../agent-repo-kit/examples/demo-repo/.wiki ./
+# In any repo you want to adopt:
+GO111MODULE=off go run /path/to/agent-repo-kit/convention-engineering/scripts \
+  --repo-root . \
+  --init \
+  --profiles go
+
+task verify               # conventions + tickets + wiki
 task -d .tickets test     # 10/10 scenarios pass
 task -d .wiki lint        # OK
 ```
-
-Then paste the `## Conventions` block from
-`examples/demo-repo/AGENTS.md` into your repo's `AGENTS.md` and `CLAUDE.md`.
 
 ## Architecture
 

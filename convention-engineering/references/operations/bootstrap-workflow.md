@@ -2,6 +2,16 @@
 
 Use this workflow to scaffold convention files for a new repo.
 
+Preferred path: run the initializer and then treat the steps below as the
+reference for what it generated.
+
+```bash
+GO111MODULE=off go run ./convention-engineering/scripts \
+  --repo-root /path/to/your-repo \
+  --init \
+  --profiles go,typescript-react
+```
+
 If the repo is an external/open-source project and you do not want to commit local convention files, use `references/operations/open-source-git-exclude-workflow.md` instead.
 
 ## Prerequisites

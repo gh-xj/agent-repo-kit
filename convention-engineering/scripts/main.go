@@ -152,6 +152,10 @@ func main() {
 	repoRoot := flag.String("repo-root", ".", "Path to repository root")
 	configPath := flag.String("config", "", "Path to contract checker config JSON (defaults to required tracked contract .convention-engineering.json)")
 	jsonMode := flag.Bool("json", false, "Output machine-readable JSON")
+	initMode := flag.Bool("init", false, "Scaffold tracked convention files into the target repo before validating")
+	initProfiles := flag.String("profiles", "", "Comma-separated repo profiles for --init (auto-detect if omitted)")
+	initOps := flag.String("ops", "tickets,wiki", "Comma-separated operational conventions for --init (tickets,wiki)")
+	initRepoRisk := flag.String("repo-risk", "standard", "Repository risk classification for --init")
 	orchestrate := flag.Bool("orchestrate", false, "Write convention handoff artifacts and launch convention evaluation")
 	topic := flag.String("topic", "convention-run", "Stable topic label for orchestration artifacts")
 	scope := flag.String("scope", orchestrationScopeFinal, "Evaluation scope for orchestration: final or chunk")
@@ -164,6 +168,18 @@ func main() {
 	// into the portable name signal standalone-kit intent.
 	evaluatorScript := flag.String("evaluator-script", "", "Alias for --evaluator-path (portable standalone name)")
 	flag.Parse()
+
+	if *initMode {
+		if *orchestrate {
+			fmt.Fprintln(os.Stderr, "cannot combine --init with --orchestrate")
+			os.Exit(2)
+		}
+		os.Exit(runInit(*repoRoot, initOptions{
+			Profiles:   []string{*initProfiles},
+			Operations: []string{*initOps},
+			RepoRisk:   *initRepoRisk,
+		}, os.Stdout, os.Stderr))
+	}
 
 	if *orchestrate {
 		request := orchestrationRequest{

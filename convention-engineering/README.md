@@ -8,6 +8,21 @@ Unified repo convention knowledge with multi-stack profiles.
 2. Target reference for your question
 3. Stack profiles for your repo's tech stack
 
+## Run Init
+
+Scaffold the tracked convention surface into a target repo:
+
+```bash
+GO111MODULE=off go run ./convention-engineering/scripts \
+  --repo-root /path/to/your-repo \
+  --init \
+  --profiles go,typescript-react
+```
+
+If `--profiles` is omitted, the initializer auto-detects common Go,
+TypeScript/React, and Python signals. By default it adopts both operational
+conventions (`tickets,wiki`) and validates the generated repo immediately.
+
 ## Run Contract Checker
 
 ```bash

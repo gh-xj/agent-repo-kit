@@ -1,7 +1,9 @@
 # .tickets — flat-file ticket tracker
 
-Lightweight task tracker for `private-config`. Tickets are YAML-frontmatter
-markdown files under `all/`. State lives in the `status:` frontmatter field.
+Lightweight task tracker for `demo-repo`. Tickets are YAML-frontmatter
+markdown files under `all/`. This repo keeps the tracker initialized as a
+concrete `agent-repo-kit` example, while state still lives in the `status:`
+frontmatter field.
 
 ## Per-repo edits allowed
 
@@ -31,7 +33,7 @@ markdown files under `all/`. State lives in the `status:` frontmatter field.
 ```bash
 task -d .tickets init
 task -d .tickets list
-task -d .tickets new -- "fix karabiner profile drift" --priority P1 --category config --estimated 1h
+task -d .tickets new -- "refresh demo repo pointer block" --priority P1 --category contract --estimated 1h
 task -d .tickets transition -- T-01 --to IN_PROGRESS
 task -d .tickets transition -- T-01 --to DONE --note "merged to main"
 task -d .tickets close -- T-06 T-08 --reason "superseded"

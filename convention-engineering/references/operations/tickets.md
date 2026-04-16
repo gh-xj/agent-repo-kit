@@ -3,6 +3,9 @@
 Flat-file ticket tracker. One of the standard operational conventions that
 convention-engineering scaffolds into a repo.
 
+Preferred path: use `--init` for full repo bootstrap. The manual steps below
+remain the fallback when you only want `.tickets/`.
+
 ## Adopt this convention in 3 steps
 
 1. **Copy the template and initialize.**
@@ -29,7 +32,8 @@ convention-engineering scaffolds into a repo.
    Commit `.tickets/` **except** `.tickets/.lock/` (already gitignored). The
    rest of the template is universal and should not be edited per repo.
 
-Manual copy-paste, by design — no automatic text surgery on agent contract files.
+Manual copy/paste remains supported when you want the tickets convention
+without the rest of the repo scaffold.
 
 ## When to adopt
 

@@ -1,16 +1,16 @@
 ---
-# Project-specific ticket taxonomy for private-config.
+# Project-specific ticket taxonomy for demo-repo.
 
-project: private-config
+project: demo-repo
 
 categories:
-  bug: Functional defect or regression
-  config: App, shell, editor, or OS configuration work
-  automation: Scripts, Taskfiles, CLIs, and workflow automation
-  docs: Documentation, instructions, and reference material
-  infra: Local services, containers, CI, and environment plumbing
-  plugin: Codex/Claude plugins, skills, prompts, and agent tooling
-  data: Knowledge files, templates, indexes, and generated artifacts
+  bug: Functional defect or regression in the example scaffolding
+  docs: Documentation, onboarding text, and reference material
+  automation: Taskfiles, helper scripts, and verification automation
+  contract: Convention contract, agent-doc, or pointer-block changes
+  tickets: Ticket workflow, schema, taxonomy, and audit trail changes
+  wiki: Wiki rules, linting, and source-page workflow changes
+  examples: Demo repo scaffolding and adoption example maintenance
   refactor: Behavior-preserving structural change
   research: Investigation, diagnosis, or spike work
   chore: Routine maintenance with no intended behavior change
@@ -25,6 +25,7 @@ phases:
 
 terms:
   AGENTS.md: Workspace operating contract
-  OMX: oh-my-codex orchestration layer
+  CLAUDE.md: Mirror of AGENTS.md for alternate harness discovery
   Taskfile: go-task task runner entrypoint
-  private-config: Personal configuration monorepo
+  agent-repo-kit: Harness-agnostic convention kit that owns this example
+  demo-repo: Example downstream-style repo bundled with agent-repo-kit

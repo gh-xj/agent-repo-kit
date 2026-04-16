@@ -3,6 +3,9 @@
 Minimal LLM-maintained knowledge base. Two page types, one lint script,
 no schema-surgery or repo-root patching.
 
+Preferred path: use `--init` for full repo bootstrap. The manual steps below
+remain the fallback when you only want `.wiki/`.
+
 ## Adopt this convention in 3 steps
 
 1. **Copy the template and initialize.**
@@ -33,8 +36,8 @@ no schema-surgery or repo-root patching.
    ```
    Then commit `.wiki/`. Raw sources under `.wiki/raw/` are immutable once committed.
 
-Manual copy-paste, by design — replaces the 1358-line bootstrap that used to
-do `awk`-based text surgery on CLAUDE.md / AGENTS.md / Taskfile.yml.
+Manual copy/paste remains supported when you want the wiki convention without
+the rest of the repo scaffold.
 
 ## When to adopt
 

@@ -3,8 +3,8 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"os/exec"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -445,8 +445,8 @@ func TestLoadConfigRejectsNullInvariantContractArrays(t *testing.T) {
 			root := t.TempDir()
 			cfg := baseContract("overlay", ".docs")
 			cfg["invariant_contract"] = map[string]any{
-				"required":      false,
-				tt.field:        nil,
+				"required": false,
+				tt.field:   nil,
 			}
 			writeJSONConfig(t, root, "config.json", cfg)
 
@@ -719,11 +719,9 @@ func TestRunJSONModeUsesContractCheckerTerminology(t *testing.T) {
 }
 
 func TestSelfHostedRepoRootDefaultInvocationPasses(t *testing.T) {
-	_, file, _, ok := runtime.Caller(0)
-	if !ok {
-		t.Fatal("failed to resolve test file path")
-	}
-	repoRoot := filepath.Clean(filepath.Join(filepath.Dir(file), "..", "..", "..", ".."))
+	repoRoot := t.TempDir()
+	writeFile(t, repoRoot, "Taskfile.yml", "version: '3'\n")
+	writeJSONConfig(t, repoRoot, ".convention-engineering.json", baseContract("tracked", "docs"))
 
 	var out bytes.Buffer
 	var err bytes.Buffer
@@ -745,14 +743,18 @@ func TestSelfHostedRepoRootDefaultInvocationPasses(t *testing.T) {
 }
 
 func TestSelfHostedPackageDirectoryCLIInvocationPasses(t *testing.T) {
+	repoRoot := t.TempDir()
+	writeFile(t, repoRoot, "Taskfile.yml", "version: '3'\n")
+	writeJSONConfig(t, repoRoot, ".convention-engineering.json", baseContract("tracked", "docs"))
+
 	_, file, _, ok := runtime.Caller(0)
 	if !ok {
 		t.Fatal("failed to resolve test file path")
 	}
-	repoRoot := filepath.Clean(filepath.Join(filepath.Dir(file), "..", "..", "..", ".."))
+	commandRoot := filepath.Clean(filepath.Join(filepath.Dir(file), "..", ".."))
 
-	cmd := exec.Command("go", "run", "./.claude/skills/convention-engineering/scripts", "--repo-root", repoRoot, "--json")
-	cmd.Dir = repoRoot
+	cmd := exec.Command("go", "run", "./convention-engineering/scripts", "--repo-root", repoRoot, "--config", ".convention-engineering.json", "--json")
+	cmd.Dir = commandRoot
 	cmd.Env = append(os.Environ(), "GO111MODULE=off")
 	output, err := cmd.CombinedOutput()
 	if err != nil {

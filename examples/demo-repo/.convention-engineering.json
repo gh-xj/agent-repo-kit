@@ -1,0 +1,112 @@
+{
+  "contract_version": 1,
+  "mode": "tracked",
+  "profiles": ["research-corpus"],
+  "docs_root": "docs",
+  "ownership_policy": {
+    "portable_skill_authoring_owner": "agent-repo-kit",
+    "domain_knowledge_owner": "repo-maintainers",
+    "repo_local_skills": {
+      "allowed": false,
+      "placement_roots": [".claude/skills", ".codex/skills"],
+      "authoring_owner": "agent-repo-kit",
+      "requires_justification": true
+    }
+  },
+  "required_files": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "Taskfile.yml",
+    "README.md",
+    "docs/README.md",
+    "docs/requests/README.md",
+    "docs/planning/README.md",
+    "docs/plans/README.md",
+    "docs/implementation/README.md",
+    "docs/taxonomy/README.md",
+    ".tickets/README.md",
+    ".tickets/audit-log.md",
+    ".tickets/harness/schema.yaml",
+    ".tickets/harness/taxonomy.yaml",
+    ".wiki/RULES.md",
+    ".wiki/Taskfile.yml",
+    ".wiki/scripts/lint.sh"
+  ],
+  "taskfile_checks": {
+    "Taskfile.yml": ["check:conventions:", "verify:", "wiki:", "tickets:"],
+    ".tickets/Taskfile.yml": ["init:", "new:", "transition:", "close:", "test:"],
+    ".wiki/Taskfile.yml": ["init:", "lint:"]
+  },
+  "mirror_policy": {
+    "mode": "mirrored",
+    "files": ["CLAUDE.md", "AGENTS.md"]
+  },
+  "canonical_pointer_mode": "all",
+  "canonical_pointers": [],
+  "content_checks": [
+    {
+      "name": "agents-conventions",
+      "file": "AGENTS.md",
+      "required_markers": [
+        "## Conventions",
+        "**Docs**",
+        ".convention-engineering.json",
+        ".tickets/README.md",
+        ".wiki/RULES.md",
+        "`task verify`"
+      ]
+    },
+    {
+      "name": "claude-conventions",
+      "file": "CLAUDE.md",
+      "required_markers": [
+        "## Conventions",
+        "**Docs**",
+        ".convention-engineering.json",
+        ".tickets/README.md",
+        ".wiki/RULES.md",
+        "`task verify`"
+      ]
+    },
+    {
+      "name": "tickets-readme-customized",
+      "file": ".tickets/README.md",
+      "required_markers": [
+        "`demo-repo`",
+        "agent-repo-kit",
+        "task -d .tickets test"
+      ]
+    },
+    {
+      "name": "tickets-taxonomy-customized",
+      "file": ".tickets/harness/taxonomy.yaml",
+      "required_markers": [
+        "project: demo-repo",
+        "agent-repo-kit",
+        "demo-repo"
+      ]
+    },
+    {
+      "name": "docs-root-explained",
+      "file": "docs/README.md",
+      "required_markers": [
+        ".convention-engineering.json",
+        ".wiki/",
+        "requests/",
+        "planning/",
+        "plans/"
+      ]
+    }
+  ],
+  "git_exclude_checks": [],
+  "invariant_contract": {
+    "required": false
+  },
+  "evaluation_inputs": {
+    "repo_risk": "standard"
+  },
+  "chunk_plan": {
+    "enabled": false,
+    "chunks": []
+  }
+}
