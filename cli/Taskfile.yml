@@ -1,0 +1,53 @@
+version: "3"
+
+tasks:
+  deps:
+    desc: Sync module dependencies
+    cmds:
+      - go mod tidy
+
+  fmt:
+    desc: Format Go files
+    cmds:
+      - gofmt -w .
+
+  fmt:check:
+    desc: Fail when gofmt would change files
+    cmds:
+      - test -z "$(gofmt -l .)"
+
+  lint:
+    desc: Run static checks
+    deps: [deps, fmt:check]
+    cmds:
+      - go vet ./...
+
+  test:
+    desc: Run tests
+    deps: [deps, fmt:check]
+    cmds:
+      - go test ./...
+
+  build:
+    desc: Build binary
+    deps: [deps, fmt:check]
+    cmds:
+      - mkdir -p bin
+      - go build -o bin/ark .
+
+  run:
+    desc: Run ark without building
+    cmds:
+      - go run . {{.CLI_ARGS}}
+
+  ci:
+    desc: Canonical CI contract command
+    deps: [lint, test, build]
+    cmds:
+      - echo "ci checks passed"
+
+  verify:
+    desc: Local aggregate verification
+    deps: [ci]
+    cmds:
+      - echo "verify checks passed"
