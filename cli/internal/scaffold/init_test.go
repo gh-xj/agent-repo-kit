@@ -1,13 +1,14 @@
-package main
+package scaffold
 
 import (
 	"bytes"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"testing"
+
+	"github.com/gh-xj/agent-repo-kit/cli/internal/contract"
 )
 
 func TestRunInitScaffoldsRepoAndTaskVerifyPasses(t *testing.T) {
@@ -16,7 +17,7 @@ func TestRunInitScaffoldsRepoAndTaskVerifyPasses(t *testing.T) {
 
 	var out bytes.Buffer
 	var err bytes.Buffer
-	exitCode := runInit(root, initOptions{
+	exitCode := RunInit(root, Options{
 		Profiles:   []string{"go"},
 		Operations: []string{"tickets", "wiki"},
 		RepoRisk:   "standard",
@@ -25,8 +26,8 @@ func TestRunInitScaffoldsRepoAndTaskVerifyPasses(t *testing.T) {
 		t.Fatalf("expected init to succeed, got %d stderr=%s stdout=%s", exitCode, err.String(), out.String())
 	}
 
-	checkTaskfile(t, root, "Taskfile.yml", initConventionsTaskfile)
-	checkTaskfile(t, root, initConventionsTaskfile, "check:conventions:", "verify:", "../.tickets/Taskfile.yml", "../.wiki/Taskfile.yml")
+	checkTaskfile(t, root, "Taskfile.yml", ConventionsTaskfile)
+	checkTaskfile(t, root, ConventionsTaskfile, "check:conventions:", "verify:", "../.tickets/Taskfile.yml", "../.wiki/Taskfile.yml")
 
 	freshHome := filepath.Join(t.TempDir(), "home")
 	if err := os.MkdirAll(freshHome, 0o755); err != nil {
@@ -51,7 +52,7 @@ func TestRunInitEmbedsBootstrapSourceRootAndUpdatedFallbacks(t *testing.T) {
 
 	var out bytes.Buffer
 	var err bytes.Buffer
-	exitCode := runInit(root, initOptions{
+	exitCode := RunInit(root, Options{
 		Profiles:   []string{"go"},
 		Operations: []string{"tickets", "wiki"},
 		RepoRisk:   "standard",
@@ -60,18 +61,20 @@ func TestRunInitEmbedsBootstrapSourceRootAndUpdatedFallbacks(t *testing.T) {
 		t.Fatalf("expected init to succeed, got %d stderr=%s stdout=%s", exitCode, err.String(), out.String())
 	}
 
-	config := readFileForTest(t, root, initConfigPath)
+	config := readFileForTest(t, root, ConfigPath)
 	if strings.Contains(config, "bootstrap_source_root") {
-		t.Fatalf("did not expect machine-local bootstrap source to be written into %s:\n%s", initConfigPath, config)
+		t.Fatalf("did not expect machine-local bootstrap source to be written into %s:\n%s", ConfigPath, config)
 	}
 
-	script := readFileForTest(t, root, initConventionsCheckPath)
+	script := readFileForTest(t, root, ConventionsCheckPath)
+	bootstrapRoot := conventionEngineeringRootForTest(t)
 	for _, marker := range []string{
-		"bootstrap_source=" + shellSingleQuote(conventionEngineeringRoot(t)),
-		"$HOME/.agents/skills/convention-engineering",
-		"$HOME/.codex/skills/convention-engineering",
-		"$HOME/.claude/skills/convention-engineering",
+		"bootstrap_source=" + shellSingleQuote(bootstrapRoot),
+		"$HOME/.agents/skills/agent-repo-kit/cli/bin/ark",
+		"$HOME/.codex/skills/agent-repo-kit/cli/bin/ark",
+		"$HOME/.claude/skills/agent-repo-kit/cli/bin/ark",
 		"legacy fallback: ~/.codex/skills",
+		"${ARK_BINARY:-}",
 	} {
 		if !strings.Contains(script, marker) {
 			t.Fatalf("expected generated check script to contain %q, got:\n%s", marker, script)
@@ -81,11 +84,11 @@ func TestRunInitEmbedsBootstrapSourceRootAndUpdatedFallbacks(t *testing.T) {
 		t.Fatalf("expected stale codex fallback help text to be removed, got:\n%s", script)
 	}
 
-	envIdx := strings.Index(script, "${CONVENTION_ENGINEERING_DIR:-}")
-	sourceIdx := strings.Index(script, "bootstrap_source="+shellSingleQuote(conventionEngineeringRoot(t)))
-	agentsIdx := strings.Index(script, "$HOME/.agents/skills/convention-engineering")
+	envIdx := strings.Index(script, "${ARK_BINARY:-}")
+	sourceIdx := strings.Index(script, "bootstrap_source="+shellSingleQuote(bootstrapRoot))
+	agentsIdx := strings.Index(script, "$HOME/.agents/skills/agent-repo-kit")
 	if envIdx < 0 || sourceIdx < 0 || agentsIdx <= sourceIdx {
-		t.Fatalf("expected fallback order env -> embedded source -> current Codex root, got:\n%s", script)
+		t.Fatalf("expected fallback order env -> embedded source -> agent-repo-kit home path, got:\n%s", script)
 	}
 }
 
@@ -99,7 +102,7 @@ func TestRunInitPreservesExistingAgentDocsAndAvoidsDuplicateManagedBlocks(t *tes
 	for i := 0; i < 2; i++ {
 		var out bytes.Buffer
 		var err bytes.Buffer
-		exitCode := runInit(root, initOptions{
+		exitCode := RunInit(root, Options{
 			Profiles:   []string{"go"},
 			Operations: []string{"tickets", "wiki"},
 			RepoRisk:   "standard",
@@ -116,10 +119,10 @@ func TestRunInitPreservesExistingAgentDocsAndAvoidsDuplicateManagedBlocks(t *tes
 	if !strings.Contains(agents, "Existing guidance.") || !strings.Contains(claude, "Existing guidance.") {
 		t.Fatalf("expected existing agent guidance to be preserved")
 	}
-	if strings.Count(agents, initManagedBlockStart) != 1 || strings.Count(claude, initManagedBlockStart) != 1 {
+	if strings.Count(agents, managedBlockStart) != 1 || strings.Count(claude, managedBlockStart) != 1 {
 		t.Fatalf("expected exactly one managed block in agent docs")
 	}
-	if strings.Count(taskfile, initConventionsTaskfile) != 1 {
+	if strings.Count(taskfile, ConventionsTaskfile) != 1 {
 		t.Fatalf("expected root Taskfile include to be inserted once, got:\n%s", taskfile)
 	}
 }
@@ -131,12 +134,12 @@ func TestRunInitAutoDetectsProfiles(t *testing.T) {
 
 	var out bytes.Buffer
 	var err bytes.Buffer
-	exitCode := runInit(root, initOptions{}, &out, &err)
+	exitCode := RunInit(root, Options{}, &out, &err)
 	if exitCode != 0 {
 		t.Fatalf("expected init to succeed with auto-detected profiles, got %d stderr=%s stdout=%s", exitCode, err.String(), out.String())
 	}
 
-	cfg, _, loadErr := loadConfig(root, initConfigPath)
+	cfg, _, loadErr := contract.LoadConfig(root, ConfigPath)
 	if loadErr != nil {
 		t.Fatalf("expected generated config to load: %v", loadErr)
 	}
@@ -145,13 +148,29 @@ func TestRunInitAutoDetectsProfiles(t *testing.T) {
 	}
 }
 
-func conventionEngineeringRoot(t *testing.T) string {
+// conventionEngineeringRootForTest resolves the same convention-engineering
+// root that scaffold.resolveConventionEngineeringRoot() embeds in the
+// generated check.sh. We re-implement the lookup here instead of calling the
+// private helper so the test exercises the production path-resolution
+// contract directly.
+func conventionEngineeringRootForTest(t *testing.T) string {
 	t.Helper()
-	_, file, _, ok := runtime.Caller(0)
-	if !ok {
-		t.Fatal("failed to resolve test file path")
+	root, err := resolveConventionEngineeringRoot()
+	if err != nil {
+		t.Fatalf("failed to resolve convention-engineering root: %v", err)
 	}
-	return filepath.Clean(filepath.Join(filepath.Dir(file), ".."))
+	return root
+}
+
+func writeFile(t *testing.T, root, rel, body string) {
+	t.Helper()
+	path := filepath.Join(root, rel)
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		t.Fatalf("mkdir %s: %v", rel, err)
+	}
+	if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
+		t.Fatalf("write %s: %v", rel, err)
+	}
 }
 
 func readFileForTest(t *testing.T, root, rel string) string {

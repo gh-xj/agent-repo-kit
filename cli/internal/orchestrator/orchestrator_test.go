@@ -1,4 +1,4 @@
-package main
+package orchestrator
 
 import (
 	"bytes"
@@ -20,9 +20,9 @@ func TestOrchestratorWritesBriefHandoffAndLaunchReceipt(t *testing.T) {
 		},
 	}
 
-	outcome, err := orchestrateEvaluation(fx.repoRoot, "", orchestrationRequest{
+	outcome, err := orchestrateEvaluation(fx.repoRoot, "", Request{
 		Topic:                  "Convention Launch",
-		RequestedScope:         orchestrationScopeFinal,
+		RequestedScope:         ScopeFinal,
 		GeneratedArtifactPaths: []string{"README.md", "OWNERSHIP.md"},
 	}, launcher, orchestratorFixedNow)
 	if err != nil {
@@ -53,9 +53,9 @@ func TestOrchestratorRetriesInfrastructureFailureOnce(t *testing.T) {
 		},
 	}
 
-	outcome, err := orchestrateEvaluation(fx.repoRoot, "", orchestrationRequest{
+	outcome, err := orchestrateEvaluation(fx.repoRoot, "", Request{
 		Topic:          "Convention Retry",
-		RequestedScope: orchestrationScopeFinal,
+		RequestedScope: ScopeFinal,
 	}, launcher, orchestratorFixedNow)
 	if err != nil {
 		t.Fatalf("expected orchestration retry to succeed, got %v", err)
@@ -75,12 +75,12 @@ func TestOrchestratorPersistsChunkStateForChunkScope(t *testing.T) {
 			{resultStatus: "passed"},
 		},
 	}
-	request := orchestrationRequest{
-		Topic:             "Chunk Scope",
-		RequestedScope:    orchestrationScopeChunk,
-		RequestedChunkID:  "agent-legibility",
+	request := Request{
+		Topic:                  "Chunk Scope",
+		RequestedScope:         ScopeChunk,
+		RequestedChunkID:       "agent-legibility",
 		GeneratedArtifactPaths: []string{"README.md"},
-		ChunkState: []orchestratorChunkState{
+		ChunkState: []ChunkState{
 			{ID: "repo-bootstrap", Status: "passed"},
 			{ID: "verification-gates", Status: "pending"},
 			{ID: "ownership-cleanup", Status: "deferred", HardFailDimensions: []string{"ownership_clarity"}},
@@ -92,9 +92,9 @@ func TestOrchestratorPersistsChunkStateForChunkScope(t *testing.T) {
 		t.Fatalf("expected chunk orchestration to succeed, got %v", err)
 	}
 
-	manifest := orchestrationHandoffManifest{}
+	manifest := HandoffManifest{}
 	readJSONForTest(t, fx.repoRoot, outcome.HandoffPath, &manifest)
-	if manifest.RequestedScope != orchestrationScopeChunk || manifest.RequestedChunkID != "agent-legibility" {
+	if manifest.RequestedScope != ScopeChunk || manifest.RequestedChunkID != "agent-legibility" {
 		t.Fatalf("expected chunk scope handoff, got %#v", manifest)
 	}
 	if len(manifest.ChunkState) != 3 || manifest.ChunkState[0].Status != "passed" || manifest.ChunkState[2].Status != "deferred" {
@@ -110,9 +110,9 @@ func TestOrchestratorDoesNotPassSessionContextToEvaluatorLaunch(t *testing.T) {
 		},
 	}
 
-	_, err := orchestrateEvaluation(fx.repoRoot, "", orchestrationRequest{
+	_, err := orchestrateEvaluation(fx.repoRoot, "", Request{
 		Topic:          "Launch Boundary",
-		RequestedScope: orchestrationScopeFinal,
+		RequestedScope: ScopeFinal,
 	}, launcher, orchestratorFixedNow)
 	if err != nil {
 		t.Fatalf("expected orchestration to succeed, got %v", err)
@@ -136,16 +136,16 @@ func TestOrchestratorWritesFullLaunchReceiptFields(t *testing.T) {
 		},
 	}
 
-	outcome, err := orchestrateEvaluation(fx.repoRoot, "", orchestrationRequest{
-		Topic:               "Receipt Shape",
-		ParentInvocationID:  "parent-invocation",
-		RequestedScope:      orchestrationScopeFinal,
+	outcome, err := orchestrateEvaluation(fx.repoRoot, "", Request{
+		Topic:              "Receipt Shape",
+		ParentInvocationID: "parent-invocation",
+		RequestedScope:     ScopeFinal,
 	}, launcher, orchestratorFixedNow)
 	if err != nil {
 		t.Fatalf("expected orchestration to succeed, got %v", err)
 	}
 
-	receipt := orchestrationLaunchReceipt{}
+	receipt := LaunchReceipt{}
 	readJSONForTest(t, fx.repoRoot, outcome.LaunchReceiptPath, &receipt)
 	if receipt.ParentInvocationID == "" || receipt.EvaluatorInvocationID == "" || receipt.LaunchMode == "" || receipt.HandoffManifestID == "" || receipt.LaunchedAt == "" {
 		t.Fatalf("expected full launch receipt, got %#v", receipt)
@@ -164,16 +164,18 @@ func TestProcessEvaluatorLauncherMakesReceiptAvailableToEvaluator(t *testing.T) 
 	if !ok {
 		t.Fatal("failed to resolve test file path")
 	}
-	evaluatorScript := filepath.Clean(filepath.Join(filepath.Dir(file), "..", "..", "convention-evaluator", "scripts", "main.go"))
-	launcher := processEvaluatorLauncher{
+	// After the port this test file lives at cli/internal/orchestrator/.
+	// Walk up three levels to the repo root, then into convention-evaluator.
+	evaluatorScript := filepath.Clean(filepath.Join(filepath.Dir(file), "..", "..", "..", "convention-evaluator", "scripts", "main.go"))
+	launcher := ProcessEvaluatorLauncher{
 		parentInvocationID: "parent-process",
 		now:                orchestratorFixedNow,
 		evaluatorScript:    evaluatorScript,
 	}
 
-	outcome, err := orchestrateEvaluation(fx.repoRoot, "", orchestrationRequest{
+	outcome, err := orchestrateEvaluation(fx.repoRoot, "", Request{
 		Topic:          "Process Launch",
-		RequestedScope: orchestrationScopeFinal,
+		RequestedScope: ScopeFinal,
 	}, launcher, orchestratorFixedNow)
 	if err != nil {
 		t.Fatalf("expected process launch orchestration to succeed, got %v", err)
@@ -182,7 +184,7 @@ func TestProcessEvaluatorLauncherMakesReceiptAvailableToEvaluator(t *testing.T) 
 		t.Fatalf("expected passed process launch result, got %#v", outcome.Result)
 	}
 
-	receipt := orchestrationLaunchReceipt{}
+	receipt := LaunchReceipt{}
 	readJSONForTest(t, fx.repoRoot, outcome.LaunchReceiptPath, &receipt)
 	if !receipt.FreshContext || receipt.LaunchMode != "process" {
 		t.Fatalf("expected process-mode fresh receipt, got %#v", receipt)
@@ -197,16 +199,16 @@ func TestOrchestratorWritesFullHandoffManifestFields(t *testing.T) {
 		},
 	}
 
-	outcome, err := orchestrateEvaluation(fx.repoRoot, "", orchestrationRequest{
+	outcome, err := orchestrateEvaluation(fx.repoRoot, "", Request{
 		Topic:                  "Handoff Shape",
-		RequestedScope:         orchestrationScopeFinal,
+		RequestedScope:         ScopeFinal,
 		GeneratedArtifactPaths: []string{"README.md", "OWNERSHIP.md"},
 	}, launcher, orchestratorFixedNow)
 	if err != nil {
 		t.Fatalf("expected orchestration to succeed, got %v", err)
 	}
 
-	manifest := orchestrationHandoffManifest{}
+	manifest := HandoffManifest{}
 	readJSONForTest(t, fx.repoRoot, outcome.HandoffPath, &manifest)
 	if manifest.ManifestID == "" || manifest.ContractPath == "" || manifest.BriefPath == "" || manifest.RawEvidenceBundlePath == "" || manifest.LaunchReceiptPath == "" || manifest.RequestedScope == "" {
 		t.Fatalf("expected full handoff manifest, got %#v", manifest)
@@ -218,6 +220,30 @@ func TestOrchestratorWritesFullHandoffManifestFields(t *testing.T) {
 		t.Fatalf("expected evaluator artifact paths in handoff, got %#v", manifest)
 	}
 }
+
+func TestRunOrchestrationReturnsSemanticFailureExitCode(t *testing.T) {
+	fx := newOrchestratorFixture(t)
+	launcher := &fakeEvaluatorLauncher{
+		attempts: []fakeLaunchAttempt{
+			{resultStatus: "semantic_failed"},
+		},
+	}
+
+	var out bytes.Buffer
+	var err bytes.Buffer
+	exitCode := Run(fx.repoRoot, "", Request{
+		Topic:          "CLI Exit",
+		RequestedScope: ScopeFinal,
+	}, launcher, &out, &err, orchestratorFixedNow)
+	if exitCode != 1 {
+		t.Fatalf("expected semantic failure exit 1, got %d stderr=%s", exitCode, err.String())
+	}
+	if !strings.Contains(out.String(), "status=semantic_failed") {
+		t.Fatalf("expected semantic status output, got %q", out.String())
+	}
+}
+
+// --- Test fixtures -------------------------------------------------------
 
 type orchestratorFixture struct {
 	repoRoot string
@@ -249,7 +275,7 @@ type fakeLaunchAttempt struct {
 }
 
 type fakeLaunchCall struct {
-	repoRoot   string
+	repoRoot    string
 	handoffPath string
 }
 
@@ -258,20 +284,20 @@ type fakeEvaluatorLauncher struct {
 	calls    []fakeLaunchCall
 }
 
-func (f *fakeEvaluatorLauncher) Launch(repoRoot string, handoffPath string) (orchestrationLaunchReceipt, error) {
+func (f *fakeEvaluatorLauncher) Launch(repoRoot string, handoffPath string) (LaunchReceipt, error) {
 	f.calls = append(f.calls, fakeLaunchCall{repoRoot: repoRoot, handoffPath: handoffPath})
 	attempt := fakeLaunchAttempt{resultStatus: "passed"}
 	if len(f.attempts) >= len(f.calls) {
 		attempt = f.attempts[len(f.calls)-1]
 	}
 
-	manifest := orchestrationHandoffManifest{}
+	manifest := HandoffManifest{}
 	if err := loadJSONArtifact(repoRoot, handoffPath, &manifest); err != nil {
-		return orchestrationLaunchReceipt{}, err
+		return LaunchReceipt{}, err
 	}
 
 	forkContext := false
-	receipt := orchestrationLaunchReceipt{
+	receipt := LaunchReceipt{
 		ParentInvocationID:    "parent-1",
 		EvaluatorInvocationID: fmt.Sprintf("eval-%d", len(f.calls)),
 		LaunchMode:            "agent",
@@ -281,10 +307,10 @@ func (f *fakeEvaluatorLauncher) Launch(repoRoot string, handoffPath string) (orc
 		LaunchedAt:            orchestratorFixedNow().UTC().Format(time.RFC3339),
 	}
 	if err := writeJSONForTest(repoRoot, manifest.LaunchReceiptPath, receipt); err != nil {
-		return orchestrationLaunchReceipt{}, err
+		return LaunchReceipt{}, err
 	}
 
-	result := orchestrationEvaluationResult{
+	result := EvaluationResult{
 		Scope:             manifest.RequestedScope,
 		Status:            attempt.resultStatus,
 		ChunkID:           manifest.RequestedChunkID,
@@ -294,10 +320,10 @@ func (f *fakeEvaluatorLauncher) Launch(repoRoot string, handoffPath string) (orc
 		GeneratedAt:       orchestratorFixedNow().UTC().Format(time.RFC3339),
 	}
 	if err := writeJSONForTest(repoRoot, manifest.ResultPath, result); err != nil {
-		return orchestrationLaunchReceipt{}, err
+		return LaunchReceipt{}, err
 	}
 	if err := writeTextForTest(repoRoot, manifest.ReportPath, "# Convention Evaluation\n"); err != nil {
-		return orchestrationLaunchReceipt{}, err
+		return LaunchReceipt{}, err
 	}
 
 	if attempt.launchErr != nil {
@@ -341,24 +367,52 @@ func orchestratorFixedNow() time.Time {
 	return time.Date(2026, time.April, 3, 16, 0, 0, 0, time.UTC)
 }
 
-func TestRunOrchestrationReturnsSemanticFailureExitCode(t *testing.T) {
-	fx := newOrchestratorFixture(t)
-	launcher := &fakeEvaluatorLauncher{
-		attempts: []fakeLaunchAttempt{
-			{resultStatus: "semantic_failed"},
-		},
+func writeFile(t *testing.T, root, rel, content string) {
+	t.Helper()
+	full := filepath.Join(root, rel)
+	if err := os.MkdirAll(filepath.Dir(full), 0o755); err != nil {
+		t.Fatalf("mkdir failed for %s: %v", rel, err)
 	}
+	if err := os.WriteFile(full, []byte(content), 0o644); err != nil {
+		t.Fatalf("write failed for %s: %v", rel, err)
+	}
+}
 
-	var out bytes.Buffer
-	var err bytes.Buffer
-	exitCode := runOrchestration(fx.repoRoot, "", orchestrationRequest{
-		Topic:          "CLI Exit",
-		RequestedScope: orchestrationScopeFinal,
-	}, launcher, &out, &err, orchestratorFixedNow)
-	if exitCode != 1 {
-		t.Fatalf("expected semantic failure exit 1, got %d stderr=%s", exitCode, err.String())
+func writeJSONConfig(t *testing.T, root, rel string, value any) {
+	t.Helper()
+	data, err := json.MarshalIndent(value, "", "  ")
+	if err != nil {
+		t.Fatalf("marshal json failed for %s: %v", rel, err)
 	}
-	if !strings.Contains(out.String(), "status=semantic_failed") {
-		t.Fatalf("expected semantic status output, got %q", out.String())
+	writeFile(t, root, rel, string(data))
+}
+
+func baseContract(mode, docsRoot string) map[string]any {
+	return map[string]any{
+		"contract_version": 1,
+		"mode":             mode,
+		"profiles":         []string{"go"},
+		"docs_root":        docsRoot,
+		"ownership_policy": map[string]any{
+			"portable_skill_authoring_owner": "skill-builder",
+			"domain_knowledge_owner":         "domain-skills",
+			"repo_local_skills": map[string]any{
+				"allowed":                false,
+				"placement_roots":        []string{".claude/skills", ".agents/skills"},
+				"authoring_owner":        "skill-builder",
+				"requires_justification": true,
+			},
+		},
+		"mirror_policy": map[string]any{
+			"mode":  "mirrored",
+			"files": []string{"CLAUDE.md", "AGENTS.md"},
+		},
+		"evaluation_inputs": map[string]any{
+			"repo_risk": "standard",
+		},
+		"chunk_plan": map[string]any{
+			"enabled": false,
+			"chunks":  []map[string]any{},
+		},
 	}
 }
