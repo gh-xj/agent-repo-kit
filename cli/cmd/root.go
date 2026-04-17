@@ -25,8 +25,9 @@ type command struct {
 }
 
 var (
-	commandRegistry      = map[string]command{}
-	skillCommandRegistry = map[string]command{}
+	commandRegistry         = map[string]command{}
+	skillCommandRegistry    = map[string]command{}
+	taskfileCommandRegistry = map[string]command{}
 )
 
 func init() {
@@ -41,6 +42,10 @@ func registerCommand(name string, cmd command) {
 
 func registerSkillCommand(name string, cmd command) {
 	skillCommandRegistry[name] = cmd
+}
+
+func registerTaskfileCommand(name string, cmd command) {
+	taskfileCommandRegistry[name] = cmd
 }
 
 func registerBuiltins() {
@@ -63,6 +68,7 @@ func newRootCmd() *cobra.Command {
 	}
 
 	root.AddCommand(newSkillCmd())
+	root.AddCommand(newTaskfileCmd())
 	return root
 }
 
@@ -76,6 +82,18 @@ func newSkillCmd() *cobra.Command {
 		skill.AddCommand(newLeafCmd(name, skillCommandRegistry[name]))
 	}
 	return skill
+}
+
+func newTaskfileCmd() *cobra.Command {
+	taskfile := &cobra.Command{
+		Use:          "taskfile",
+		Short:        "author and lint Taskfile.yml files",
+		SilenceUsage: true,
+	}
+	for _, name := range sortedKeys(taskfileCommandRegistry) {
+		taskfile.AddCommand(newLeafCmd(name, taskfileCommandRegistry[name]))
+	}
+	return taskfile
 }
 
 func newLeafCmd(name string, cmd command) *cobra.Command {
@@ -141,20 +159,29 @@ func resolveCode(err error) int {
 	return appctx.ResolveExitCode(err)
 }
 
+// usageErrorCode returns appctx.ExitUsage for cobra-generated usage errors
+// (unknown flag/command, bad arg count, invalid flag value) and 0 for
+// application errors. It matches cobra/pflag error-message *prefixes* so
+// that application errors whose text happens to contain tokens like
+// "requires" or "accepts" (e.g. a validator saying "requires justification")
+// are not misclassified as exit 2.
 func usageErrorCode(err error) int {
 	if err == nil {
 		return 0
 	}
-	text := err.Error()
-	usageIndicators := []string{
+	text := strings.ToLower(err.Error())
+	usagePrefixes := []string{
 		"unknown command",
 		"unknown flag",
-		"accepts",
-		"requires",
-		"usage:",
+		"unknown shorthand flag",
+		"invalid argument",
+		"flag needs an argument",
+		"accepts ",       // cobra ExactArgs / MaximumNArgs / RangeArgs
+		"requires at ",   // cobra MinimumNArgs
+		"requires exact", // defensive variant
 	}
-	for _, marker := range usageIndicators {
-		if strings.Contains(strings.ToLower(text), marker) {
+	for _, prefix := range usagePrefixes {
+		if strings.HasPrefix(text, prefix) {
 			return appctx.ExitUsage
 		}
 	}

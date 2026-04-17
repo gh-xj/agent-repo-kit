@@ -1,0 +1,74 @@
+package tasklint
+
+import (
+	"strings"
+	"testing"
+)
+
+func TestRuleUnknownTopLevelKeys(t *testing.T) {
+	t.Run("pass", func(t *testing.T) {
+		fx := &testFixture{t: t, taskfile: "version: '3'\ntasks:\n  build:\n    cmds: [echo hi]\n"}
+		assertRuleAbsent(t, fx.run(), "unknown-top-level-keys")
+	})
+	t.Run("typo variables", func(t *testing.T) {
+		fx := &testFixture{t: t, taskfile: "version: '3'\nvariables:\n  foo: bar\ntasks: {}\n"}
+		got := assertHasRule(t, fx.run(), "unknown-top-level-keys")
+		if !strings.Contains(got[0].Detail, "vars") {
+			t.Errorf("expected typo hint for `vars` in Detail, got %q", got[0].Detail)
+		}
+	})
+	t.Run("nonsense key", func(t *testing.T) {
+		fx := &testFixture{t: t, taskfile: "version: '3'\nhello: world\ntasks: {}\n"}
+		got := assertHasRule(t, fx.run(), "unknown-top-level-keys")
+		if got[0].Line < 2 {
+			t.Errorf("expected line >= 2, got %d", got[0].Line)
+		}
+	})
+}
+
+func TestRuleUnknownTaskKeys(t *testing.T) {
+	t.Run("pass", func(t *testing.T) {
+		fx := &testFixture{t: t, taskfile: `version: '3'
+tasks:
+  build:
+    desc: Build it
+    cmds: [echo hi]
+    sources: ['**/*.go']
+`}
+		assertRuleAbsent(t, fx.run(), "unknown-task-keys")
+	})
+	t.Run("unknown key 'command'", func(t *testing.T) {
+		fx := &testFixture{t: t, taskfile: `version: '3'
+tasks:
+  build:
+    command: echo hi
+`}
+		got := assertHasRule(t, fx.run(), "unknown-task-keys")
+		if !strings.Contains(got[0].Message, "command") {
+			t.Errorf("expected message to mention the bad key, got %q", got[0].Message)
+		}
+	})
+	t.Run("unknown key 'script'", func(t *testing.T) {
+		fx := &testFixture{t: t, taskfile: `version: '3'
+tasks:
+  build:
+    cmds: [echo hi]
+    script: ./x.sh
+`}
+		got := assertHasRule(t, fx.run(), "unknown-task-keys")
+		if got[0].Line == 0 {
+			t.Errorf("expected line info, got Line=0")
+		}
+	})
+	t.Run("shortcut task skipped", func(t *testing.T) {
+		// Scalar/sequence shortcut tasks have no keys; rule should not trigger.
+		fx := &testFixture{t: t, taskfile: `version: '3'
+tasks:
+  build: echo hi
+  test:
+    - echo a
+    - echo b
+`}
+		assertRuleAbsent(t, fx.run(), "unknown-task-keys")
+	})
+}

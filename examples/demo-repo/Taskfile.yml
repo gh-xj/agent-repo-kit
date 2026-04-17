@@ -17,9 +17,17 @@ tasks:
     cmds:
       - "{{.ARK}} check --repo-root . --config .convention-engineering.json"
 
+  taskfile:lint:
+    desc: Structural lint of all Taskfiles in this demo repo
+    cmds:
+      - "{{.ARK}} taskfile lint --repo-root . --path Taskfile.yml"
+      - "{{.ARK}} taskfile lint --repo-root . --path .tickets/Taskfile.yml"
+      - "{{.ARK}} taskfile lint --repo-root . --path .wiki/Taskfile.yml"
+
   verify:
     desc: Run the demo repo verification gates
     cmds:
       - task: tickets:test
       - task: wiki:lint
       - task: check:conventions
+      - task: taskfile:lint

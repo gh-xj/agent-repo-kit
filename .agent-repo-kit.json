@@ -63,6 +63,27 @@
           "mode": "body-only"
         }
       ]
+    },
+    {
+      "id": "taskfile-authoring",
+      "source": "taskfile-authoring/SKILL.md",
+      "targets": [
+        {
+          "adapter": "claude-code",
+          "path": "adapters/claude-code/taskfile-authoring/SKILL.md",
+          "mode": "frontmatter+body"
+        },
+        {
+          "adapter": "codex",
+          "path": "adapters/codex/taskfile-authoring/SKILL.md",
+          "mode": "body-only"
+        },
+        {
+          "adapter": "cursor",
+          "path": "adapters/cursor/taskfile-authoring.md",
+          "mode": "body-only"
+        }
+      ]
     }
   ]
 }

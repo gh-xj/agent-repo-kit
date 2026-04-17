@@ -1,0 +1,42 @@
+version: "3"
+
+# vars can be overridden from the command line: `task ci FOO=bar`
+vars:
+  PROJECT_NAME: your-project
+
+tasks:
+  default:
+    desc: List available tasks
+    cmds:
+      - task --list
+
+  fmt:
+    desc: Format sources in place
+    cmds:
+      - echo "replace with your formatter (gofmt, ruff format, prettier, etc.)"
+
+  lint:
+    desc: Static checks
+    cmds:
+      - echo "replace with your linter"
+
+  test:
+    desc: Run tests
+    cmds:
+      - echo "replace with your test runner"
+
+  build:
+    desc: Produce artifacts
+    sources: ["**/*"] # narrow to actual source paths (e.g. '**/*.go')
+    generates: ["dist/**"] # output paths; enables method: checksum caching
+    method: checksum
+    cmds:
+      - echo "replace with your build"
+
+  ci:
+    desc: Canonical CI target — what CI runs verbatim
+    deps: [lint, test, build]
+
+  verify:
+    desc: Local verification gate (CI plus any repo-specific extras)
+    deps: [ci]

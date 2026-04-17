@@ -1,0 +1,31 @@
+version: "3"
+
+vars:
+  ENTRYPOINT: main.py
+  INPUT: "" # override: `task run INPUT=path/to/file`
+
+tasks:
+  default:
+    desc: List available tasks
+    cmds: [task --list]
+
+  run:
+    desc: Run the CLI (uv handles venv sync automatically)
+    cmds:
+      - uv run {{.ENTRYPOINT}} {{if .INPUT}}--input={{.INPUT}}{{end}} {{.CLI_ARGS}}
+
+  lint:
+    desc: Static checks
+    cmds: [uv run ruff check .]
+
+  test:
+    desc: Run tests
+    cmds: [uv run pytest]
+
+  ci:
+    desc: Canonical CI target
+    deps: [lint, test]
+
+  verify:
+    desc: Local verification gate
+    deps: [ci]

@@ -46,3 +46,11 @@ jobs:
 
       - name: skill-sync — verify adapters in sync
         run: ./cli/bin/ark skill check --manifest .agent-repo-kit.json --repo-root .
+
+      - name: taskfile-lint — structural lint on all repo Taskfiles
+        run: |
+          set -e
+          ./cli/bin/ark taskfile lint --repo-root . --path cli/Taskfile.yml
+          ./cli/bin/ark taskfile lint --repo-root . --path examples/demo-repo/Taskfile.yml
+          ./cli/bin/ark taskfile lint --repo-root . --path examples/demo-repo/.tickets/Taskfile.yml
+          ./cli/bin/ark taskfile lint --repo-root . --path examples/demo-repo/.wiki/Taskfile.yml
