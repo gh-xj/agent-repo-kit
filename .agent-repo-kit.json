@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "skills": [
+    {
+      "id": "convention-engineering",
+      "source": "convention-engineering/SKILL.md",
+      "targets": [
+        {
+          "adapter": "claude-code",
+          "path": "adapters/claude-code/SKILL.md",
+          "mode": "frontmatter+body"
+        },
+        {
+          "adapter": "codex",
+          "path": "adapters/codex/SKILL.md",
+          "mode": "body-only"
+        },
+        {
+          "adapter": "cursor",
+          "path": "adapters/cursor/convention-engineering.md",
+          "mode": "body-only"
+        }
+      ]
+    },
+    {
+      "id": "convention-evaluator",
+      "source": "convention-evaluator/SKILL.md",
+      "targets": [
+        {
+          "adapter": "claude-code",
+          "path": "adapters/claude-code/convention-evaluator/SKILL.md",
+          "mode": "frontmatter+body"
+        },
+        {
+          "adapter": "codex",
+          "path": "adapters/codex/convention-evaluator/SKILL.md",
+          "mode": "body-only"
+        },
+        {
+          "adapter": "cursor",
+          "path": "adapters/cursor/convention-evaluator.md",
+          "mode": "body-only"
+        }
+      ]
+    },
+    {
+      "id": "skill-builder",
+      "source": "skill-builder/SKILL.md",
+      "targets": [
+        {
+          "adapter": "claude-code",
+          "path": "adapters/claude-code/skill-builder/SKILL.md",
+          "mode": "frontmatter+body"
+        },
+        {
+          "adapter": "codex",
+          "path": "adapters/codex/skill-builder/SKILL.md",
+          "mode": "body-only"
+        },
+        {
+          "adapter": "cursor",
+          "path": "adapters/cursor/skill-builder.md",
+          "mode": "body-only"
+        }
+      ]
+    }
+  ]
+}

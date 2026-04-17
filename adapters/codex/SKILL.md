@@ -1,8 +1,3 @@
----
-name: convention-engineering
-description: "Use when auditing or bootstrapping repo conventions: agent docs, docs taxonomy, verification gates, layer boundaries, dependency hygiene, repo-local skill placement, ticket tracker (.tickets/), or wiki (.wiki/). Triggers: init tickets, new ticket, list tickets, transition ticket, close ticket, ticket status, init wiki, ingest source, wiki lint, knowledge base, scaffold repo conventions."
----
-
 <!-- agent-repo-kit:skill-sync — do not edit; regenerate with `ark skill sync` -->
 
 # Convention Engineering

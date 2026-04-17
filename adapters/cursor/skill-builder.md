@@ -1,8 +1,3 @@
----
-name: skill-builder
-description: Use when creating, refactoring, auditing, or migrating Claude/Codex skills, especially when trigger wording, portable structure, reference extraction, or runtime placement need design.
----
-
 <!-- agent-repo-kit:skill-sync — do not edit; regenerate with `ark skill sync` -->
 
 # Skill Builder
