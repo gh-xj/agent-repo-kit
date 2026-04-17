@@ -134,25 +134,30 @@ func validateManifest(m Manifest) error {
 // is the original input. Returned frontmatter includes its enclosing fences
 // (and the trailing newline after the closing fence if present) so a caller
 // can re-emit it verbatim.
+//
+// The closing fence must be a proper "\n---\n" line (or "\n---" at EOF) —
+// a bare "\n---" elsewhere in the body (e.g. a "---%s" continuation or an
+// indented block scalar that the simple substring search would otherwise
+// match) is NOT accepted as a fence.
 func splitFrontmatter(source []byte) (frontmatter, body []byte) {
 	if !bytes.HasPrefix(source, []byte("---\n")) {
 		return nil, source
 	}
-	// Look for a terminating "\n---\n" after the opening fence. The opening
-	// "---\n" is 4 bytes; search begins at offset 4.
+	// The opening "---\n" is 4 bytes; the fence search begins at offset 4.
 	rest := source[4:]
-	idx := bytes.Index(rest, []byte("\n---"))
-	if idx < 0 {
-		return nil, source
+
+	// Preferred form: closing fence followed by newline, anywhere in the body.
+	if idx := bytes.Index(rest, []byte("\n---\n")); idx >= 0 {
+		end := idx + 5 // consume "\n---\n"
+		return source[:4+end], source[4+end:]
 	}
-	// The closing fence "---" lives at rest[idx+1 : idx+4].
-	end := idx + 4 // relative to rest
-	// Skip the trailing newline if present so body doesn't start with "\n".
-	if end < len(rest) && rest[end] == '\n' {
-		end++
+
+	// Tolerated form: closing fence at end-of-file with no trailing newline.
+	if bytes.HasSuffix(rest, []byte("\n---")) {
+		return source, nil
 	}
-	fmEnd := 4 + end
-	return source[:fmEnd], source[fmEnd:]
+
+	return nil, source
 }
 
 // Render applies the target's mode to the canonical source bytes and returns

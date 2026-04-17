@@ -24,6 +24,49 @@ Body line one.
 Body line two.
 `
 
+func TestSplitFrontmatterRejectsMidBodyTripleDash(t *testing.T) {
+	// A markdown horizontal rule ("\n---" with no trailing newline, mid-body)
+	// must NOT be treated as the closing fence. Without the fix this picked
+	// up the HR and produced a corrupt frontmatter/body split.
+	source := []byte("---\nname: demo\ndescription: d\n---\n\n# Heading\n\n---bad-hr\n\nmore body\n")
+	fm, body := splitFrontmatter(source)
+	if !strings.HasPrefix(string(fm), "---\nname: demo") {
+		t.Fatalf("frontmatter should still capture the real YAML header, got %q", fm)
+	}
+	if !strings.Contains(string(body), "---bad-hr") {
+		t.Fatalf("body should retain the mid-body '---bad-hr' marker, got %q", body)
+	}
+	// And the split position must be at the real closing fence, not the HR.
+	if !strings.HasPrefix(string(body), "\n# Heading") {
+		t.Fatalf("body should begin right after real fence, got %q", body)
+	}
+}
+
+func TestSplitFrontmatterEOFFenceAccepted(t *testing.T) {
+	// Files that end with a closing fence and no trailing newline are valid;
+	// the whole thing is frontmatter, body is empty.
+	source := []byte("---\nname: eof\ndescription: d\n---")
+	fm, body := splitFrontmatter(source)
+	if string(fm) != string(source) {
+		t.Fatalf("expected whole source to be frontmatter, got fm=%q body=%q", fm, body)
+	}
+	if len(body) != 0 {
+		t.Fatalf("expected empty body, got %q", body)
+	}
+}
+
+func TestSplitFrontmatterNoCloseFenceReturnsOriginal(t *testing.T) {
+	// Opening fence but no proper close anywhere → treat entire file as body.
+	source := []byte("---\nname: broken\nno closing fence\n")
+	fm, body := splitFrontmatter(source)
+	if fm != nil {
+		t.Fatalf("expected nil frontmatter when no closing fence, got %q", fm)
+	}
+	if string(body) != string(source) {
+		t.Fatalf("expected body to equal source, got %q", body)
+	}
+}
+
 func TestRenderFrontmatterBodyPreservesFrontmatter(t *testing.T) {
 	out, err := Render([]byte(sampleSourceWithFrontmatter), Target{
 		Adapter: "claude-code",

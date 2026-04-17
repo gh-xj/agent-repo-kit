@@ -1,6 +1,18 @@
-# CLAUDE.md
+# CLAUDE.md — agent-repo-kit
+
+You are inside **agent-repo-kit**. This repo publishes a convention for
+_other_ repos to adopt, and it also adopts that same convention on
+itself — `ark check --repo-root .` and `task verify` both run here.
+
+See `AGENTS.md` for the canonical entry-points map and the rules for
+editing the kit-owned surfaces (`convention-engineering/`,
+`convention-evaluator/`, `skill-builder/`, `adapters/<harness>/`,
+`examples/demo-repo/`). The `## Conventions` block below mirrors
+AGENTS.md per the `.agent-repo-kit.json` mirror policy; editing it
+requires regenerating with `ark skill sync` if it ever drifts.
 
 <!-- agent-repo-kit:init:start -->
+
 ## Conventions
 
 - **Docs** — tracked repo docs live under `docs/` using the `requests/`,
@@ -18,4 +30,5 @@
   machine-readable convention contract for this repo.
 
 Conventions are scaffolded by `agent-repo-kit` under `.convention-engineering/`.
+
 <!-- agent-repo-kit:init:end -->

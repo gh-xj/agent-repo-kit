@@ -22,6 +22,10 @@ packaged installs. The kit gives any repo three things out of the box:
 
 ## Install
 
+Prerequisites: Go ≥ 1.25 (used to build `cli/bin/ark`), `task`, `git`.
+If Go is unavailable, pass `--skip-build` and put an existing `ark` on
+`PATH` or point `ARK_BINARY` at one.
+
 ```bash
 git clone https://github.com/gh-xj/agent-repo-kit.git
 cd agent-repo-kit

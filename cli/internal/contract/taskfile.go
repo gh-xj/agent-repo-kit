@@ -11,7 +11,11 @@ import (
 var taskfilePathLinePattern = regexp.MustCompile(`(?m)^\s*taskfile:\s*(.+?)\s*$`)
 
 func aggregateTaskfileText(root, relativeTaskfile string) (string, []string, error) {
-	start := filepath.Join(root, relativeTaskfile)
+	absRoot, err := filepath.Abs(root)
+	if err != nil {
+		return "", nil, fmt.Errorf("resolve root: %w", err)
+	}
+	start := filepath.Join(absRoot, relativeTaskfile)
 	visitedOrder := make([]string, 0)
 	visited := map[string]bool{}
 	builder := strings.Builder{}
@@ -21,6 +25,13 @@ func aggregateTaskfileText(root, relativeTaskfile string) (string, []string, err
 		absPath, err := filepath.Abs(path)
 		if err != nil {
 			return err
+		}
+		// Reject paths outside the repo root. A Taskfile with
+		// `taskfile: /etc/passwd` or `taskfile: ../../escape.yml` would
+		// otherwise cause the checker to read arbitrary files on the host.
+		rel, relErr := filepath.Rel(absRoot, absPath)
+		if relErr != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+			return fmt.Errorf("taskfile include path escapes repo root: %s", absPath)
 		}
 		if visited[absPath] {
 			return nil
