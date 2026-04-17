@@ -73,6 +73,25 @@ func parseErrorFinding(path string, err error) Finding {
 	}
 }
 
+// schemaErrorFinding converts an upstream AST decode error into a
+// single finding. The file parsed as YAML but a typed field (e.g.
+// `dotenv:` declared as a scalar) rejected the input during
+// `yaml.Unmarshal` into `ast.Taskfile`.
+func schemaErrorFinding(path string, err error) Finding {
+	line, col := extractYAMLLocation(err)
+	return Finding{
+		RuleID:   "schema-error",
+		Severity: SeverityError,
+		Path:     path,
+		Line:     line,
+		Column:   col,
+		Message:  "Taskfile fails the upstream schema decode",
+		Detail:   err.Error(),
+		Fix:      "Adjust the flagged field to match the documented type (e.g. scalar vs list).",
+		Docs:     "https://taskfile.dev/reference/schema/",
+	}
+}
+
 // extractYAMLLocation pulls a line number out of a yaml.TypeError or
 // a yaml syntax error when it is formatted as "yaml: line N: ...".
 func extractYAMLLocation(err error) (int, int) {

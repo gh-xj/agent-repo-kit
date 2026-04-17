@@ -43,16 +43,27 @@ type ruleFunc func(c *ruleContext) []Finding
 // ruleFuncs lists the rules in execution order. Keep in sync with
 // rules_data.go and the per-rule tests.
 var ruleFuncs = []ruleFunc{
-	ruleVersionRequired,      // 1
-	ruleVersionIsThree,       // 2
-	ruleUnknownTopLevelKeys,  // 3
-	ruleUnknownTaskKeys,      // 4
-	ruleCmdAndCmdsMutex,      // 5
+	ruleSchemaError,             // 0 — upstream AST decode error surfacing
+	ruleVersionRequired,         // 1
+	ruleVersionIsThree,          // 2
+	ruleUnknownTopLevelKeys,     // 3
+	ruleUnknownTaskKeys,         // 4
+	ruleCmdAndCmdsMutex,         // 5
 	ruleIncludesPathsResolvable, // 6
 	ruleFlattenNoNameCollision,  // 7
 	ruleMethodValidEnum,         // 8
 	ruleFingerprintDirGitignored, // 9
 	ruleDotenvFilesGitignored,    // 10
+}
+
+// ruleSchemaError surfaces upstream AST decode errors (captured by
+// the parser) as a single `schema-error` finding. Other rules keep
+// running so the user sees every problem at once.
+func ruleSchemaError(c *ruleContext) []Finding {
+	if c.astParseErr == nil {
+		return nil
+	}
+	return []Finding{schemaErrorFinding(c.reportPath, c.astParseErr)}
 }
 
 // findRootKey returns the value yaml.Node for a top-level key, or nil.

@@ -11,6 +11,12 @@ type Rule struct {
 // V1 rule catalog — order mirrors ruleFuncs.
 var rulesCatalog = []Rule{
 	{
+		ID:          "schema-error",
+		Title:       "Taskfile fails the upstream schema decode",
+		Description: "A field's type does not match the go-task AST (e.g. `dotenv:` given as a scalar instead of a list). Emitted in addition to other findings.",
+		Severity:    SeverityError,
+	},
+	{
 		ID:          "version-required",
 		Title:       "Taskfile must declare a version",
 		Description: "The top-level `version:` key is required so Task can validate the schema.",

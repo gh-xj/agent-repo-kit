@@ -8,8 +8,11 @@ import (
 
 const versionDocsURL = "https://taskfile.dev/reference/schema/#schema"
 
-// versionPattern matches `3` or `3.<digits>` (as required by the rule set).
-var versionPattern = regexp.MustCompile(`^3(\.\d+)?$`)
+// versionPattern matches any v3 semver that upstream accepts via
+// `*semver.Version`: bare `3`, `3.x`, `3.x.y`, plus optional
+// pre-release and build-metadata suffixes. Upstream parses the
+// version with Masterminds/semver which accepts e.g. `3.50.0`.
+var versionPattern = regexp.MustCompile(`^3(\.\d+(\.\d+(-[0-9A-Za-z.\-]+)?(\+[0-9A-Za-z.\-]+)?)?)?$`)
 
 // ruleVersionRequired (rule 1) — top-level `version:` must exist.
 func ruleVersionRequired(c *ruleContext) []Finding {

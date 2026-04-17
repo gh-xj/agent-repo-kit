@@ -143,8 +143,9 @@ func TestLintRulesCatalogMatchesImplemented(t *testing.T) {
 		}
 	}
 
-	// The ten documented V1 rule IDs must all be present.
+	// The documented V1 rule IDs must all be present.
 	expected := []string{
+		"schema-error",
 		"version-required",
 		"version-is-three",
 		"unknown-top-level-keys",

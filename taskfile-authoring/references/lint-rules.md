@@ -1,11 +1,37 @@
 # `ark taskfile lint` V1 Rule Catalog
 
-Ten structural rules. Each rule ID below matches the identifier used by the
-sibling `cli/internal/tasklint` package, so `ark taskfile lint` output and
-this doc stay in sync.
+Eleven structural rules. Each rule ID below matches the identifier used by
+the sibling `cli/internal/tasklint` package, so `ark taskfile lint` output
+and this doc stay in sync.
 
 Every rule: one-line statement, rationale, a minimal trigger, the fix, and
 an upstream doc link where relevant.
+
+---
+
+## 0. `schema-error`
+
+**Statement:** the upstream go-task AST must accept the file without a
+decode error.
+
+**Rationale:** a field declared with the wrong type (e.g. `dotenv: ".env"`
+as a scalar instead of a list) fails upstream parsing but leaves the raw
+YAML tree intact. Without this rule such files silently lint clean. This
+rule runs alongside the others (it does not short-circuit), so users see
+every problem at once.
+
+**Trigger:**
+
+```yaml
+version: "3"
+dotenv: ".env" # must be a list: `dotenv: [".env"]`
+tasks:
+  build: { cmds: [go build .] }
+```
+
+**Fix:** adjust the flagged field to match the documented type.
+
+**Upstream:** https://taskfile.dev/reference/schema/
 
 ---
 
@@ -34,11 +60,14 @@ tasks:
 
 ## 2. `version-is-three`
 
-**Statement:** `version:` must be `'3'` (string) or `3` (number).
+**Statement:** `version:` must parse as a valid go-task v3 semver —
+`3`, `3.x`, `3.x.y`, or any of those with a pre-release / build suffix.
 
 **Rationale:** V1 lint only understands go-task v3 schema. Older schemas (v1,
 v2) have divergent semantics (e.g. different `deps:` handling). Flagging
 non-3 versions prevents confusing false positives from other rules.
+Upstream parses `version:` as `*semver.Version`, so fully-qualified values
+like `3.50.0` and `3.50.0-rc.1` are accepted.
 
 **Trigger:**
 
@@ -57,12 +86,14 @@ tasks:
 ## 3. `unknown-top-level-keys`
 
 **Statement:** top-level keys must come from the v3 schema allowlist
-(`version`, `vars`, `env`, `dotenv`, `includes`, `tasks`, `output`, `method`,
-`silent`, `run`, `interval`, `set`, `shopt`).
+(`version`, `tasks`, `includes`, `vars`, `env`, `dotenv`, `output`,
+`method`, `run`, `set`, `shopt`, `interval`, `silent`). The YAML merge
+directive `<<:` is also accepted (it's a YAML construct, not a schema key).
 
 **Rationale:** typos like `task:` (singular) or `varz:` silently produce a
 Taskfile that does not behave as written. Catching them structurally is
-cheap.
+cheap. The allowlist mirrors the fields of `ast.Taskfile` in upstream
+go-task v3.50.0.
 
 **Trigger:**
 
@@ -84,10 +115,16 @@ task: # typo: should be `tasks:`
 (`cmds`, `cmd`, `desc`, `summary`, `aliases`, `sources`, `generates`,
 `status`, `preconditions`, `method`, `prefix`, `silent`, `interactive`,
 `internal`, `ignore_error`, `run`, `platforms`, `deps`, `label`, `vars`,
-`env`, `dotenv`, `dir`, `set`, `shopt`, `requires`).
+`env`, `dotenv`, `dir`, `set`, `shopt`, `requires`, `prompt`, `watch`,
+`if`, `failfast`). The YAML merge directive `<<:` is also accepted.
+
+Cmd-only properties (`for`, `defer`, `output`) belong on entries inside
+`cmds:` and must NOT appear at task level. They are rejected here.
 
 **Rationale:** the most common variant is `cmd:` mistyped as `command:` or
-`deps:` mistyped as `depends:`, which silently skips the value.
+`deps:` mistyped as `depends:`, which silently skips the value. The
+allowlist mirrors the decoder in `(*ast.Task).UnmarshalYAML` (upstream
+go-task v3.50.0).
 
 **Trigger:**
 

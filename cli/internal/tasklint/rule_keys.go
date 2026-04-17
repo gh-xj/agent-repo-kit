@@ -7,60 +7,66 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// allowedTopLevelKeys is the full allowlist for the root mapping. Keep
-// in sync with the design doc's V1 rule list.
+// allowedTopLevelKeys is the full allowlist for the root mapping.
+// Mirrors the yaml-tag surface of `ast.Taskfile` in
+// github.com/go-task/task/v3@v3.50.0/taskfile/ast/taskfile.go.
 var allowedTopLevelKeys = map[string]struct{}{
-	"version":      {},
-	"tasks":        {},
-	"includes":     {},
-	"vars":         {},
-	"env":          {},
-	"dotenv":       {},
-	"output":       {},
-	"method":       {},
-	"run":          {},
-	"set":          {},
-	"shopt":        {},
-	"interval":     {},
-	"silent":       {},
-	"requires":     {},
-	"experimental": {},
+	"version":  {},
+	"tasks":    {},
+	"includes": {},
+	"vars":     {},
+	"env":      {},
+	"dotenv":   {},
+	"output":   {},
+	"method":   {},
+	"run":      {},
+	"set":      {},
+	"shopt":    {},
+	"interval": {},
+	"silent":   {},
 }
 
-// allowedTaskKeys is the allowlist for each task's mapping.
+// allowedTaskKeys is the allowlist for each task's mapping. Mirrors
+// the fields decoded in `(*ast.Task).UnmarshalYAML` — cmd-only
+// properties (`for`, `defer`, `output`) must NOT appear at task level.
 var allowedTaskKeys = map[string]struct{}{
-	"desc":         {},
-	"summary":      {},
-	"aliases":      {},
-	"cmds":         {},
-	"cmd":          {},
-	"deps":         {},
+	"desc":          {},
+	"summary":       {},
+	"aliases":       {},
+	"cmds":          {},
+	"cmd":           {},
+	"deps":          {},
 	"preconditions": {},
-	"requires":     {},
-	"sources":      {},
-	"generates":    {},
-	"method":       {},
-	"status":       {},
-	"dir":          {},
-	"env":          {},
-	"vars":         {},
-	"silent":       {},
-	"internal":     {},
-	"interactive":  {},
-	"ignore_error": {},
-	"run":          {},
-	"platforms":    {},
-	"prefix":       {},
-	"label":        {},
-	"prompt":       {},
-	"watch":        {},
-	"set":          {},
-	"shopt":        {},
-	"defer":        {},
-	"for":          {},
-	"if":           {},
-	"output":       {},
+	"requires":      {},
+	"sources":       {},
+	"generates":     {},
+	"method":        {},
+	"status":        {},
+	"dir":           {},
+	"env":           {},
+	"vars":          {},
+	"dotenv":        {},
+	"silent":        {},
+	"internal":      {},
+	"interactive":   {},
+	"ignore_error":  {},
+	"run":           {},
+	"platforms":     {},
+	"prefix":        {},
+	"label":         {},
+	"prompt":        {},
+	"watch":         {},
+	"set":           {},
+	"shopt":         {},
+	"if":            {},
+	"failfast":      {},
 }
+
+// yamlMergeKey is the literal YAML merge directive. When a mapping
+// uses `<<: *anchor` the yaml.v3 parser keeps the key as `<<` in the
+// node tree; it is not a Taskfile schema key, so we skip it in the
+// root-level and task-level scanners.
+const yamlMergeKey = "<<"
 
 // commonTypos maps a known-bad root key to its likely intended replacement.
 var commonRootTypos = map[string]string{
@@ -80,6 +86,10 @@ const (
 func ruleUnknownTopLevelKeys(c *ruleContext) []Finding {
 	var findings []Finding
 	iterMapping(c.rootNode, func(key, _ *yaml.Node) {
+		// Skip YAML merge directives — valid YAML, not a schema key.
+		if key.Value == yamlMergeKey {
+			return
+		}
 		if _, ok := allowedTopLevelKeys[key.Value]; ok {
 			return
 		}
@@ -118,6 +128,10 @@ func ruleUnknownTaskKeys(c *ruleContext) []Finding {
 			return
 		}
 		iterMapping(taskBody, func(key, _ *yaml.Node) {
+			// Skip YAML merge directives — valid YAML, not a schema key.
+			if key.Value == yamlMergeKey {
+				return
+			}
 			if _, ok := allowedTaskKeys[key.Value]; ok {
 				return
 			}

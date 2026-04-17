@@ -50,18 +50,37 @@ func TaskfileLintCommand() command {
 
 			findings, err := tasklint.Lint(absPath, tasklint.Options{RepoRoot: absRoot})
 			if err != nil {
-				return err
+				// I/O failures (e.g. file not found) map to ExitUsage (2)
+				// via ResolveExitCode's default; we wrap to preserve the
+				// message but make the exit code explicit regardless of
+				// output mode.
+				return appctx.NewExitError(appctx.ExitUsage, err.Error())
 			}
 
+			// Emit findings first so both JSON and human modes produce
+			// output before the exit-code decision. Keeping emit and
+			// exit-code mapping independent means `--json` exits 1 on
+			// findings just like the human mode does.
 			if jsonMode {
-				return emitFindingsJSON(command, findings)
+				if emitErr := emitFindingsJSON(command, findings); emitErr != nil {
+					return emitErr
+				}
+			} else {
+				emitFindingsHuman(command, findings)
 			}
-			emitFindingsHuman(command, findings)
 
 			if len(findings) == 0 {
 				return nil
 			}
-			return appctx.NewExitError(1, "")
+			// Parse errors (YAML-level failures that short-circuit the
+			// rules) surface as ExitUsage to signal "fix your input
+			// first"; all other findings are normal lint failures.
+			for _, f := range findings {
+				if f.RuleID == "parse-error" {
+					return appctx.NewExitError(appctx.ExitUsage, "")
+				}
+			}
+			return appctx.NewExitError(appctx.ExitError, "")
 		},
 	}
 }

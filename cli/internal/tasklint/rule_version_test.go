@@ -52,4 +52,18 @@ func TestRuleVersionIsThree(t *testing.T) {
 		fx := &testFixture{t: t, taskfile: "version: 3\ntasks: {}\n"}
 		assertRuleAbsent(t, fx.run(), "version-is-three")
 	})
+	t.Run("pass full semver 3.50.0", func(t *testing.T) {
+		// Bug 5 regression: upstream's Version is *semver.Version so
+		// `3.50.0` is valid. Our regex must accept it.
+		fx := &testFixture{t: t, taskfile: "version: '3.50.0'\ntasks: {}\n"}
+		assertRuleAbsent(t, fx.run(), "version-is-three")
+	})
+	t.Run("pass semver with prerelease", func(t *testing.T) {
+		fx := &testFixture{t: t, taskfile: "version: '3.50.0-rc.1'\ntasks: {}\n"}
+		assertRuleAbsent(t, fx.run(), "version-is-three")
+	})
+	t.Run("fail non-3 major even with patch", func(t *testing.T) {
+		fx := &testFixture{t: t, taskfile: "version: '2.5.0'\ntasks: {}\n"}
+		assertHasRule(t, fx.run(), "version-is-three")
+	})
 }
