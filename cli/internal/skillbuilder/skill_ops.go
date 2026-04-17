@@ -125,12 +125,13 @@ func InitSkill(cfg InitConfig) (InitResult, error) {
 }
 
 func AuditSkill(cfg AuditConfig) (AuditResult, error) {
-	skillDir, err := filepath.Abs(strings.TrimSpace(cfg.SkillDir))
+	trimmed := strings.TrimSpace(cfg.SkillDir)
+	if trimmed == "" {
+		return AuditResult{}, fmt.Errorf("skill dir is required")
+	}
+	skillDir, err := filepath.Abs(trimmed)
 	if err != nil {
 		return AuditResult{}, fmt.Errorf("resolve skill dir: %w", err)
-	}
-	if skillDir == "" {
-		return AuditResult{}, fmt.Errorf("skill dir is required")
 	}
 
 	result := AuditResult{

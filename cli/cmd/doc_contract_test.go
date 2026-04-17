@@ -20,9 +20,12 @@ func TestSkillBuilderDocsMatchCLIContract(t *testing.T) {
 	for _, required := range []string{
 		"`ark skill init`",
 		"`ark skill audit`",
+		"`ark skill sync`",
+		"`ark skill check`",
 		"`task ark:skill:init -- ...`",
 		"`task ark:skill:audit -- ...`",
-		"`task ark:skill:run -- ...`",
+		"`task ark:skill:sync`",
+		"`task ark:skill:check`",
 	} {
 		if !strings.Contains(skillDoc+"\n"+cliRefDoc, required) {
 			t.Fatalf("skill-builder docs are missing required contract text %q", required)

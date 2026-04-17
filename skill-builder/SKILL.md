@@ -84,7 +84,8 @@ Use prose when judgment is required. Use code when the pattern is deterministic 
 - When wired into a host repo's root Taskfile, keep the wrappers thin:
   - `task ark:skill:init -- ...`
   - `task ark:skill:audit -- ...`
-  - `task ark:skill:run -- ...`
+  - `task ark:skill:sync`
+  - `task ark:skill:check`
 
 ## References
 

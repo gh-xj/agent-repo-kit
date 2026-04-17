@@ -2,7 +2,13 @@
 # install.sh — install agent-repo-kit into a supported harness
 #
 # Usage:
-#   ./install.sh [--target claude-code|none] [--dry-run]
+#   ./install.sh [--target claude-code|none] [--dry-run] [--skip-build]
+#
+# Flags:
+#   --target <name>  install target: claude-code or none (auto-detected if omitted)
+#   --dry-run        preview actions without making changes
+#   --skip-build     skip the Go build of cli/bin/ark (use when Go is unavailable
+#                    and you already have an ark binary on PATH or at $ARK_BINARY)
 #
 # Default: auto-detect.
 #   - ~/.claude/skills exists -> claude-code
@@ -35,7 +41,7 @@ while [ $# -gt 0 ]; do
         --dry-run)  DRY_RUN=1; shift ;;
         --skip-build) SKIP_BUILD=1; shift ;;
         -h|--help)
-            sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'
+            sed -n '2,15p' "$0" | sed 's/^# \{0,1\}//'
             exit 0
             ;;
         *) die "unknown arg: $1" ;;

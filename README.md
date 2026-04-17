@@ -23,12 +23,13 @@ packaged installs. The kit gives any repo three things out of the box:
 ## Install
 
 ```bash
-git clone https://github.com/YOURORG/agent-repo-kit.git
+git clone https://github.com/gh-xj/agent-repo-kit.git
 cd agent-repo-kit
 ./install.sh                       # auto-detect Claude Code, else print manual instructions
 ./install.sh --target claude-code  # install the Claude Code surfaces
 ./install.sh --target none         # just print manual adoption instructions
 ./install.sh --dry-run             # preview without changes
+./install.sh --skip-build          # skip the Go build of cli/bin/ark (requires Go otherwise)
 ```
 
 Supported install targets today: `claude-code` and `none`. Codex and Cursor

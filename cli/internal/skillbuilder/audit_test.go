@@ -114,6 +114,18 @@ description: Use when validating placeholder path handling.
 	}
 }
 
+func TestAuditSkillRejectsEmptySkillDir(t *testing.T) {
+	for _, input := range []string{"", "   ", "\t"} {
+		_, err := AuditSkill(AuditConfig{SkillDir: input})
+		if err == nil {
+			t.Fatalf("AuditSkill(%q) returned nil error; expected 'skill dir is required'", input)
+		}
+		if !strings.Contains(err.Error(), "skill dir is required") {
+			t.Fatalf("AuditSkill(%q) = %v; expected 'skill dir is required'", input, err)
+		}
+	}
+}
+
 func hasFinding(findings []Finding, code string) bool {
 	for _, finding := range findings {
 		if finding.Code == code {

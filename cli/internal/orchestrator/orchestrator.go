@@ -189,17 +189,16 @@ func orchestrateEvaluation(repoRoot, configPath string, request Request, launche
 		ResultPath:         resultRel,
 	}
 
-	var lastInfraResult *EvaluationResult
 	for attempt := 0; attempt < 2; attempt++ {
 		_, launchErr := launcher.Launch(root, resolveArtifactPath(root, handoffRel))
 		if launchErr != nil {
 			if attempt == 0 {
 				continue
 			}
-			if lastInfraResult != nil {
-				outcome.Result = *lastInfraResult
-				return outcome, nil
-			}
+			// A launch failure on the retry is a genuine infrastructure
+			// problem distinct from a prior infrastructure_failed result:
+			// the launcher itself would not start. Propagate the error
+			// instead of silently masking it as a stale success-like result.
 			return Outcome{}, fmt.Errorf("launch evaluator: %w", launchErr)
 		}
 
@@ -208,28 +207,17 @@ func orchestrateEvaluation(repoRoot, configPath string, request Request, launche
 			if attempt == 0 {
 				continue
 			}
-			if lastInfraResult != nil {
-				outcome.Result = *lastInfraResult
-				return outcome, nil
-			}
 			return Outcome{}, fmt.Errorf("read evaluation result: %w", err)
 		}
 
-		if result.Status == "infrastructure_failed" {
-			lastInfraResult = &result
-			if attempt == 0 {
-				continue
-			}
+		if result.Status == "infrastructure_failed" && attempt == 0 {
+			continue
 		}
 
 		outcome.Result = result
 		return outcome, nil
 	}
 
-	if lastInfraResult != nil {
-		outcome.Result = *lastInfraResult
-		return outcome, nil
-	}
 	return Outcome{}, fmt.Errorf("evaluation did not produce a result")
 }
 

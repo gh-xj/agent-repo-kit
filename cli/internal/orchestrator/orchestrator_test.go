@@ -68,6 +68,28 @@ func TestOrchestratorRetriesInfrastructureFailureOnce(t *testing.T) {
 	}
 }
 
+func TestOrchestratorPropagatesSecondAttemptLaunchError(t *testing.T) {
+	fx := newOrchestratorFixture(t)
+	secondLaunchErr := fmt.Errorf("evaluator binary not executable")
+	launcher := &fakeEvaluatorLauncher{
+		attempts: []fakeLaunchAttempt{
+			{resultStatus: "infrastructure_failed"},
+			{resultStatus: "infrastructure_failed", launchErr: secondLaunchErr},
+		},
+	}
+
+	_, err := orchestrateEvaluation(fx.repoRoot, "", Request{
+		Topic:          "Second Launch Error",
+		RequestedScope: ScopeFinal,
+	}, launcher, orchestratorFixedNow)
+	if err == nil {
+		t.Fatalf("expected orchestration to fail on second-attempt launch error, got nil")
+	}
+	if !strings.Contains(err.Error(), secondLaunchErr.Error()) {
+		t.Fatalf("expected second launch error to propagate, got %v", err)
+	}
+}
+
 func TestOrchestratorPersistsChunkStateForChunkScope(t *testing.T) {
 	fx := newOrchestratorFixture(t)
 	launcher := &fakeEvaluatorLauncher{
