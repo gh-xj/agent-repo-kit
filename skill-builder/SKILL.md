@@ -77,12 +77,12 @@ Use prose when judgment is required. Use code when the pattern is deterministic 
 
 ## CLI Surface
 
-- `skill-builder init` scaffolds a router-grade `SKILL.md` and can optionally add a `cli/` surface.
-- `skill-builder audit` checks frontmatter, router size, and referenced relative paths.
+- `ark skill init` scaffolds a router-grade `SKILL.md` and can optionally add a `cli/` surface.
+- `ark skill audit` checks frontmatter, router size, and referenced relative paths.
 - When wired into a host repo's root `Taskfile.yml`, keep the wrappers thin:
-  - `task skill-builder:init -- ...`
-  - `task skill-builder:audit -- ...`
-  - `task skill-builder:run -- ...`
+  - `task ark:skill:init -- ...`
+  - `task ark:skill:audit -- ...`
+  - `task ark:skill:run -- ...`
 
 ## References
 

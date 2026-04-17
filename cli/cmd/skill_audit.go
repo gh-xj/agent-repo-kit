@@ -9,12 +9,12 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/gh-xj/agent-repo-kit/skill-builder/cli/internal/appctx"
-	appio "github.com/gh-xj/agent-repo-kit/skill-builder/cli/internal/io"
-	skillop "github.com/gh-xj/agent-repo-kit/skill-builder/cli/operator"
+	"github.com/gh-xj/agent-repo-kit/cli/internal/appctx"
+	appio "github.com/gh-xj/agent-repo-kit/cli/internal/io"
+	skillop "github.com/gh-xj/agent-repo-kit/cli/internal/skillbuilder"
 )
 
-func AuditCommand() command {
+func SkillAuditCommand() command {
 	return command{
 		Description: "audit a skill router, references, and local CLI layout",
 		Configure: func(command *cobra.Command) {
@@ -34,7 +34,7 @@ func AuditCommand() command {
 
 			if jsonOutput, _ := app.Values["json"].(bool); jsonOutput {
 				if err := appio.WriteJSON(os.Stdout, map[string]any{
-					"command":          "audit",
+					"command":          "skill audit",
 					"ok":               !result.HasErrors(),
 					"skill_dir":        result.SkillDir,
 					"skill_path":       result.SkillPath,
@@ -60,7 +60,7 @@ func AuditCommand() command {
 }
 
 func printAuditResult(result skillop.AuditResult) {
-	fmt.Fprintf(os.Stdout, "[skill-builder audit] %s\n", result.SkillPath)
+	fmt.Fprintf(os.Stdout, "[ark skill audit] %s\n", result.SkillPath)
 	fmt.Fprintf(os.Stdout, "  line_count: %d\n", result.LineCount)
 	fmt.Fprintf(os.Stdout, "  has_cli: %t\n", result.HasCLI)
 	if result.Name != "" {

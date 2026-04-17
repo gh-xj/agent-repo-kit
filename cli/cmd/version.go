@@ -3,26 +3,30 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
+
+	"github.com/gh-xj/agent-repo-kit/cli/internal/appctx"
 )
 
-func newVersionCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "version",
-		Short: "print build metadata",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			jsonFlag, _ := cmd.Flags().GetBool("json")
+func VersionCommand() command {
+	return command{
+		Description: "print build metadata",
+		Run: func(app *appctx.AppContext, _ *cobra.Command, _ []string) error {
 			data := map[string]string{
-				"name":    binaryName,
-				"version": appVersion,
+				"schema_version": "v1",
+				"name":           binaryName,
+				"version":        appVersion,
+				"commit":         appCommit,
+				"date":           appDate,
 			}
-			if jsonFlag {
-				enc := json.NewEncoder(cmd.OutOrStdout())
+			if jsonOutput, _ := app.Values["json"].(bool); jsonOutput {
+				enc := json.NewEncoder(os.Stdout)
 				enc.SetIndent("", "  ")
 				return enc.Encode(data)
 			}
-			_, err := fmt.Fprintf(cmd.OutOrStdout(), "%s %s\n", data["name"], data["version"])
+			_, err := fmt.Fprintf(os.Stdout, "%s %s\n", data["name"], data["version"])
 			return err
 		},
 	}

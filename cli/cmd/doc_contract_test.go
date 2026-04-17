@@ -13,24 +13,23 @@ import (
 )
 
 func TestSkillBuilderDocsMatchCLIContract(t *testing.T) {
-	skillDir := sharedSkillDir(t)
+	skillDir := skillBuilderSkillDir(t)
 	skillDoc := mustReadDoc(t, filepath.Join(skillDir, "SKILL.md"))
-	readmeDoc := mustReadDoc(t, filepath.Join(skillDir, "cli", "README.md"))
 	cliRefDoc := mustReadDoc(t, filepath.Join(skillDir, "references", "repo-owned-clis.md"))
 
 	for _, required := range []string{
-		"`skill-builder init`",
-		"`skill-builder audit`",
-		"`task skill-builder:init -- ...`",
-		"`task skill-builder:audit -- ...`",
-		"`task skill-builder:run -- ...`",
+		"`ark skill init`",
+		"`ark skill audit`",
+		"`task ark:skill:init -- ...`",
+		"`task ark:skill:audit -- ...`",
+		"`task ark:skill:run -- ...`",
 	} {
-		if !strings.Contains(skillDoc+"\n"+readmeDoc+"\n"+cliRefDoc, required) {
+		if !strings.Contains(skillDoc+"\n"+cliRefDoc, required) {
 			t.Fatalf("skill-builder docs are missing required contract text %q", required)
 		}
 	}
 
-	documented := documentedCommands(skillDoc + "\n" + readmeDoc)
+	documented := documentedCommands(skillDoc)
 	supported := cliCommands(buildRootCmd())
 
 	var unsupported []string
@@ -49,14 +48,15 @@ func buildRootCmd() *cobra.Command {
 	return newRootCmd()
 }
 
-func sharedSkillDir(t *testing.T) string {
+func skillBuilderSkillDir(t *testing.T) string {
 	t.Helper()
 
 	_, filename, _, ok := runtime.Caller(0)
 	if !ok {
 		t.Fatal("resolve runtime caller")
 	}
-	return filepath.Clean(filepath.Join(filepath.Dir(filename), "..", ".."))
+	// filename lives at cli/cmd/doc_contract_test.go; skill dir is at <repo>/skill-builder
+	return filepath.Clean(filepath.Join(filepath.Dir(filename), "..", "..", "skill-builder"))
 }
 
 func mustReadDoc(t *testing.T, path string) string {
@@ -70,7 +70,7 @@ func mustReadDoc(t *testing.T, path string) string {
 }
 
 func documentedCommands(content string) map[string]bool {
-	pattern := regexp.MustCompile("`(skill-builder[^`]+)`")
+	pattern := regexp.MustCompile("`(ark[^`]+)`")
 	commands := make(map[string]bool)
 	for _, match := range pattern.FindAllStringSubmatch(content, -1) {
 		commands[strings.Join(strings.Fields(match[1]), " ")] = true

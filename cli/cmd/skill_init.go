@@ -7,12 +7,12 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/gh-xj/agent-repo-kit/skill-builder/cli/internal/appctx"
-	appio "github.com/gh-xj/agent-repo-kit/skill-builder/cli/internal/io"
-	skillop "github.com/gh-xj/agent-repo-kit/skill-builder/cli/operator"
+	"github.com/gh-xj/agent-repo-kit/cli/internal/appctx"
+	appio "github.com/gh-xj/agent-repo-kit/cli/internal/io"
+	skillop "github.com/gh-xj/agent-repo-kit/cli/internal/skillbuilder"
 )
 
-func InitCommand() command {
+func SkillInitCommand() command {
 	return command{
 		Description: "scaffold a skill router",
 		Configure: func(command *cobra.Command) {
@@ -40,7 +40,7 @@ func InitCommand() command {
 
 			if jsonOutput, _ := app.Values["json"].(bool); jsonOutput {
 				return appio.WriteJSON(os.Stdout, map[string]any{
-					"command":    "init",
+					"command":    "skill init",
 					"ok":         true,
 					"skill_dir":  result.SkillDir,
 					"skill_path": result.SkillPath,
@@ -49,9 +49,9 @@ func InitCommand() command {
 				})
 			}
 
-			fmt.Fprintf(os.Stdout, "[skill-builder init] created %s\n", result.SkillPath)
+			fmt.Fprintf(os.Stdout, "[ark skill init] created %s\n", result.SkillPath)
 			if result.CLIPath != "" {
-				fmt.Fprintf(os.Stdout, "[skill-builder init] scaffolded %s\n", result.CLIPath)
+				fmt.Fprintf(os.Stdout, "[ark skill init] scaffolded %s\n", result.CLIPath)
 			}
 			return nil
 		},

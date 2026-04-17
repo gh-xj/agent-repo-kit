@@ -40,9 +40,18 @@ tasks:
     cmds:
       - go run . {{.CLI_ARGS}}
 
+  smoke:
+    desc: Deterministic smoke checks
+    deps: [build]
+    cmds:
+      - mkdir -p test/smoke
+      - rm -f test/smoke/version.output.json
+      - ./bin/ark --json version > test/smoke/version.output.json
+      - go run ./internal/tools/smokecheck --schema test/smoke/version.schema.json --input test/smoke/version.output.json
+
   ci:
     desc: Canonical CI contract command
-    deps: [lint, test, build]
+    deps: [lint, test, build, smoke]
     cmds:
       - echo "ci checks passed"
 

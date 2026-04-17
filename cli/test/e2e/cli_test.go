@@ -13,19 +13,19 @@ func TestInitCommandCreatesSkill(t *testing.T) {
 	skillDir := filepath.Join(t.TempDir(), "demo-skill")
 
 	output, err := runCLI(t,
-		"init",
+		"skill", "init",
 		"--skill-dir", skillDir,
 		"--name", "demo-skill",
 		"--description", "Use when building or refactoring a demo skill.",
 	)
 	if err != nil {
-		t.Fatalf("init command failed: %v\n%s", err, output)
+		t.Fatalf("skill init command failed: %v\n%s", err, output)
 	}
 
 	if _, err := os.Stat(filepath.Join(skillDir, "SKILL.md")); err != nil {
 		t.Fatalf("expected SKILL.md: %v", err)
 	}
-	if !strings.Contains(output, "[skill-builder init] created") {
+	if !strings.Contains(output, "[ark skill init] created") {
 		t.Fatalf("unexpected output: %s", output)
 	}
 }
@@ -47,7 +47,7 @@ See `+"`references/missing.md`"+` for details.
 		t.Fatalf("write SKILL.md: %v", err)
 	}
 
-	output, err := runCLI(t, "audit", "--skill-dir", skillDir)
+	output, err := runCLI(t, "skill", "audit", "--skill-dir", skillDir)
 	if err == nil {
 		t.Fatalf("expected audit command to fail\n%s", output)
 	}
