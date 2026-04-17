@@ -20,7 +20,7 @@ Owned:
 - Stack-specific profiles (Go, TypeScript/React, Python, Research Corpus) that compose additively.
 - Audit workflow (check existing repo against conventions, produce gap report).
 - Bootstrap workflow (scaffold convention files for new repo).
-- Open-source/local-overlay workflow (apply conventions with `.git/info/exclude` and `.docs/` without touching tracked files).
+- Open-source/local-overlay workflow (apply conventions with a local-only git exclude list and `.docs/` without touching tracked files).
 - Verification gate contracts.
 
 Not owned:
@@ -53,7 +53,7 @@ Not owned:
 | Python repo conventions?           | `references/profiles/python.md`           |
 | Research corpus repo conventions?  | `references/profiles/research-corpus.md`  |
 
-Profiles compose: a Go+React repo uses both `profiles/go.md` and `profiles/typescript-react.md`. A research repo with Go CLI tooling uses both `profiles/research-corpus.md` and `profiles/go.md`.
+Profiles compose: a Go+React repo uses both `references/profiles/go.md` and `references/profiles/typescript-react.md`. A research repo with Go CLI tooling uses both `references/profiles/research-corpus.md` and `references/profiles/go.md`.
 
 ### Operations
 

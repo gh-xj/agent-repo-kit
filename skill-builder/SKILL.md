@@ -79,7 +79,9 @@ Use prose when judgment is required. Use code when the pattern is deterministic 
 
 - `ark skill init` scaffolds a router-grade `SKILL.md` and can optionally add a `cli/` surface.
 - `ark skill audit` checks frontmatter, router size, and referenced relative paths.
-- When wired into a host repo's root `Taskfile.yml`, keep the wrappers thin:
+- `ark skill sync` regenerates per-adapter SKILL files from a canonical source, driven by `.agent-repo-kit.json`.
+- `ark skill check` verifies every adapter copy is in sync — use it as a CI drift gate.
+- When wired into a host repo's root Taskfile, keep the wrappers thin:
   - `task ark:skill:init -- ...`
   - `task ark:skill:audit -- ...`
   - `task ark:skill:run -- ...`
