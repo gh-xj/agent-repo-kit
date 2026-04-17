@@ -110,8 +110,7 @@ Create `.docs/convention-engineering.overlay.json`:
 ## Step 5: Run Contract Checker
 
 ```bash
-SKILL_DIR="$HOME/.claude/skills/convention-engineering"
-GO111MODULE=off go run "$SKILL_DIR/scripts" \
+ark check \
   --repo-root . \
   --config .docs/convention-engineering.overlay.json \
   --json

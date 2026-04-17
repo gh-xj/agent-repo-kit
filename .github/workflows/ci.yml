@@ -24,3 +24,25 @@ jobs:
       - name: wiki — lint (expect OK)
         working-directory: examples/demo-repo/.wiki
         run: task lint
+
+  ark-cli:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: cli/go.mod
+          cache-dependency-path: cli/go.sum
+
+      - name: Install go-task
+        run: |
+          sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
+          task --version
+
+      - name: cli — task ci (lint + test + build + smoke)
+        working-directory: cli
+        run: task ci
+
+      - name: skill-sync — verify adapters in sync
+        run: ./cli/bin/ark skill check --manifest .agent-repo-kit.json --repo-root .

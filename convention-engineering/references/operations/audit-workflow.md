@@ -13,18 +13,16 @@ Use this workflow to check an existing repo against convention standards. Produc
 ## How to Run
 
 1. Navigate to the repo root.
-2. Run the contract checker for programmatic checks:
+2. Run the contract checker for programmatic checks (assumes `ark` is on `PATH` after `install.sh`; set `ARK_BINARY` to override):
 
 ```bash
-SKILL_DIR="$HOME/.claude/skills/convention-engineering"
-GO111MODULE=off go run "$SKILL_DIR/scripts" --repo-root . --json
+ark check --repo-root . --json
 ```
 
 For open-source/local overlay mode, use:
 
 ```bash
-SKILL_DIR="$HOME/.claude/skills/convention-engineering"
-GO111MODULE=off go run "$SKILL_DIR/scripts" --repo-root . --config .docs/convention-engineering.overlay.json --json
+ark check --repo-root . --config .docs/convention-engineering.overlay.json --json
 ```
 
 3. Walk through the manual checklist below for items the checker doesn't cover.
@@ -121,15 +119,13 @@ tasks:
   check:conventions:
     desc: Check repo convention compliance
     vars:
-      SKILL_DIR: "{{.HOME}}/.claude/skills/convention-engineering"
+      ARK: '{{default "ark" .ARK_BINARY}}'
       CONFIG_FILE: '{{default ".convention-engineering.json" .CONFIG}}'
     cmds:
-      - GO111MODULE=off go run {{.SKILL_DIR}}/scripts
-        --repo-root .
-        --config {{.CONFIG_FILE}}
+      - "{{.ARK}} check --repo-root . --config {{.CONFIG_FILE}}"
     preconditions:
-      - sh: test -f {{.SKILL_DIR}}/scripts/main.go
-        msg: "convention-engineering skill not installed"
+      - sh: command -v {{.ARK}} >/dev/null 2>&1
+        msg: "ark CLI not found on PATH (install agent-repo-kit via ./install.sh or set ARK_BINARY)"
 ```
 
 Include in the canonical verify gate:

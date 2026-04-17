@@ -10,12 +10,13 @@ Unified repo convention knowledge with multi-stack profiles.
 
 ## Run Init
 
-Scaffold the tracked convention surface into a target repo:
+Install agent-repo-kit via `./install.sh` (which builds `cli/bin/ark` and
+symlinks the skill directories) or add `ark` to your `PATH`. Then scaffold
+the tracked convention surface into a target repo:
 
 ```bash
-GO111MODULE=off go run ./convention-engineering/scripts \
+ark init \
   --repo-root /path/to/your-repo \
-  --init \
   --profiles go,typescript-react
 ```
 
@@ -26,8 +27,7 @@ conventions (`tickets,wiki`) and validates the generated repo immediately.
 ## Run Contract Checker
 
 ```bash
-SKILL_DIR="<path-to-this-convention>"
-GO111MODULE=off go run "$SKILL_DIR/scripts" --repo-root . --json
+ark check --repo-root . --json
 ```
 
 This reads the tracked contract at `.convention-engineering.json`. The checker
@@ -36,21 +36,20 @@ now fails if that machine artifact is missing.
 With an explicit tracked contract path:
 
 ```bash
-GO111MODULE=off go run "$SKILL_DIR/scripts" --repo-root . --config .convention-engineering.json --json
+ark check --repo-root . --config .convention-engineering.json --json
 ```
 
 With an overlay contract:
 
 ```bash
-GO111MODULE=off go run "$SKILL_DIR/scripts" --repo-root . --config .docs/convention-engineering.overlay.json --json
+ark check --repo-root . --config .docs/convention-engineering.overlay.json --json
 ```
 
 ## Run Orchestrated Evaluation
 
 ```bash
-GO111MODULE=off go run "$SKILL_DIR/scripts" \
+ark orchestrate \
   --repo-root . \
-  --orchestrate \
   --topic convention-run \
   --generated-artifacts README.md,OWNERSHIP.md
 ```
@@ -99,5 +98,8 @@ references/
 ├── profiles/       # Stack-specific (Go, TypeScript/React, Python)
 ├── contracts/      # Verification gate contracts
 └── operations/     # Audit and bootstrap workflows
-scripts/            # Go contract checker CLI
 ```
+
+The contract checker is the unified `ark` CLI (source in `../cli/`, binary at
+`../cli/bin/ark`). Install agent-repo-kit via `./install.sh` or put `ark` on
+your `PATH`.

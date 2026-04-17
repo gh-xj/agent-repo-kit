@@ -101,23 +101,22 @@ runtime provides.
 4. For docs taxonomy decisions (RFI/design/plan): `references/core/docs-taxonomy.md`.
 5. For repo-local skill placement: `references/core/project-skill-placement.md`.
 6. For open-source/local-only setup (`git exclude` + `.docs`): `references/operations/open-source-git-exclude-workflow.md`.
-7. Run the contract checker:
+7. Run the contract checker (assumes `ark` is on `PATH` after `install.sh`; set `ARK_BINARY` to override):
 
 ```bash
-SKILL_DIR="$HOME/.claude/skills/convention-engineering"
-GO111MODULE=off go run "$SKILL_DIR/scripts" --repo-root . --json
+ark check --repo-root . --json
 ```
 
 With repo config:
 
 ```bash
-GO111MODULE=off go run "$SKILL_DIR/scripts" --repo-root . --config .convention-engineering.json --json
+ark check --repo-root . --config .convention-engineering.json --json
 ```
 
 To orchestrate evaluation artifacts and launch the evaluator:
 
 ```bash
-GO111MODULE=off go run "$SKILL_DIR/scripts" --repo-root . --orchestrate --topic convention-run
+ark orchestrate --repo-root . --topic convention-run
 ```
 
 ## Boundaries

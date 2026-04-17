@@ -1,7 +1,7 @@
 version: "3"
 
 vars:
-  CONVENTION_ENGINEERING_DIR: ../../convention-engineering/scripts
+  ARK: ../../cli/bin/ark
 
 includes:
   wiki:
@@ -15,7 +15,7 @@ tasks:
   check:conventions:
     desc: Validate the tracked convention contract for demo-repo
     cmds:
-      - GO111MODULE=off go run {{.CONVENTION_ENGINEERING_DIR}} --repo-root . --config .convention-engineering.json
+      - "{{.ARK}} check --repo-root . --config .convention-engineering.json"
 
   verify:
     desc: Run the demo repo verification gates

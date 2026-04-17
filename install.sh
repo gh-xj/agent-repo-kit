@@ -13,6 +13,7 @@ set -eu
 DIR=$(cd "$(dirname "$0")" && pwd)
 TARGET=""
 DRY_RUN=0
+SKIP_BUILD=0
 
 log()  { printf '[install] %s\n' "$*"; }
 warn() { printf '[install] WARN: %s\n' "$*" >&2; }
@@ -32,6 +33,7 @@ while [ $# -gt 0 ]; do
             shift
             ;;
         --dry-run)  DRY_RUN=1; shift ;;
+        --skip-build) SKIP_BUILD=1; shift ;;
         -h|--help)
             sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'
             exit 0
@@ -39,6 +41,17 @@ while [ $# -gt 0 ]; do
         *) die "unknown arg: $1" ;;
     esac
 done
+
+build_ark() {
+    if [ "$SKIP_BUILD" -eq 1 ]; then
+        log "skipping ark build (--skip-build)"
+        return 0
+    fi
+    if ! command -v go >/dev/null 2>&1; then
+        die "go toolchain not found; install Go or pass --skip-build"
+    fi
+    run "(cd \"$DIR/cli\" && mkdir -p bin && go build -o bin/ark .)"
+}
 
 if [ -z "$TARGET" ]; then
     if [ -d "$HOME/.claude/skills" ]; then
@@ -81,12 +94,14 @@ link() {
 
 case "$TARGET" in
     claude-code)
+        build_ark
         DEST="$HOME/.claude/skills"
         log "installing symlinks into $DEST/"
         link "$DIR/convention-engineering" "$DEST/convention-engineering"
         link "$DIR/convention-evaluator" "$DEST/convention-evaluator"
         link "$DIR/skill-builder" "$DEST/skill-builder"
         log "done. restart your Claude Code session to pick up the skills."
+        log "ark binary available at: $DIR/cli/bin/ark"
         ;;
     codex)
         die "unsupported target: codex (no packaged Codex adapter yet; see adapters/codex/README.md)"
@@ -95,17 +110,18 @@ case "$TARGET" in
         die "unsupported target: cursor (no packaged Cursor adapter yet; see adapters/cursor/README.md)"
         ;;
     none)
+        build_ark
         cat <<EOF
 No harness detected (or --target none). To adopt manually:
 
-  1. From this checkout, bootstrap your repo with:
-     (cd "$DIR" && GO111MODULE=off go run ./convention-engineering/scripts \\
-       --repo-root /path/to/your-repo --init)
-  2. Read convention-engineering/ and convention-evaluator/ for the full
-     convention and scoring surfaces.
+  1. Scaffold the tracked contract into your repo:
+       "$DIR/cli/bin/ark" init --repo-root /path/to/your-repo
+  2. Read convention-engineering/ and convention-evaluator/ for the
+     full convention and scoring surfaces.
   3. In the target repo, run: task verify
-  4. If you later move this checkout, set:
-     CONVENTION_ENGINEERING_DIR="$DIR/convention-engineering"
+  4. The generated .convention-engineering/check.sh resolves ark via
+     PATH, \$ARK_BINARY, or $DIR/cli/bin/ark. If you relocate this
+     checkout, either put ark on PATH or set ARK_BINARY.
 EOF
         ;;
     *) die "unknown target: $TARGET (expected claude-code|none)" ;;

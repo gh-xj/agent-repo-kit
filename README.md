@@ -37,13 +37,11 @@ ship installable adapters for them.
 
 ## Bootstrap A Repo
 
-Use the convention-engineering CLI to scaffold the kit-owned repo surface in
-one pass:
+Use the `ark` CLI to scaffold the kit-owned repo surface in one pass:
 
 ```bash
-GO111MODULE=off go run ./convention-engineering/scripts \
+ark init \
   --repo-root /path/to/your-repo \
-  --init \
   --profiles go,typescript-react
 ```
 
@@ -58,7 +56,7 @@ task verify
 
 Prerequisites:
 
-- `go` for bootstrap and convention checks
+- `ark` on `PATH` (installed by `./install.sh`) for bootstrap and convention checks
 - `task`, `bash`, and standard Unix tools for `task verify`
 
 ## What you get
@@ -80,15 +78,9 @@ Prerequisites:
 ## Quick example
 
 ```bash
-KIT_DIR=/path/to/agent-repo-kit
-
-(
-  cd "$KIT_DIR"
-  GO111MODULE=off go run ./convention-engineering/scripts \
-    --repo-root /path/to/your-repo \
-    --init \
-    --profiles go
-)
+ark init \
+  --repo-root /path/to/your-repo \
+  --profiles go
 
 cd /path/to/your-repo
 task verify           # conventions + tickets + wiki

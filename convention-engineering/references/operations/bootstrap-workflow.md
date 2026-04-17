@@ -6,9 +6,8 @@ Preferred path: run the initializer and then treat the steps below as the
 reference for what it generated.
 
 ```bash
-GO111MODULE=off go run ./convention-engineering/scripts \
+ark init \
   --repo-root /path/to/your-repo \
-  --init \
   --profiles go,typescript-react
 ```
 
