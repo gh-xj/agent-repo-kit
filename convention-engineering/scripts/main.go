@@ -162,7 +162,7 @@ func main() {
 	chunkID := flag.String("chunk-id", "", "Chunk id for chunk-scoped orchestration")
 	generatedArtifacts := flag.String("generated-artifacts", "", "Comma-separated repo-relative artifact paths under review")
 	parentInvocationID := flag.String("parent-invocation-id", "manual", "Parent invocation id for orchestration launch receipts")
-	evaluatorPath := flag.String("evaluator-path", "", "Path to convention-evaluator scripts dir or main.go (falls back to $CONVENTION_EVALUATOR_PATH / $EVALUATOR_SCRIPT_PATH, sibling layout, then .claude/skills/convention-evaluator/scripts/main.go)")
+	evaluatorPath := flag.String("evaluator-path", "", "Path to convention-evaluator scripts dir or main.go (falls back to $CONVENTION_EVALUATOR_PATH / $EVALUATOR_SCRIPT_PATH, sibling layout, then repo-local skill paths such as .claude/skills or .agents/skills)")
 	// Portable alias of --evaluator-path for standalone installs. Takes precedence
 	// over --evaluator-path if both are supplied, since callers explicitly opting
 	// into the portable name signal standalone-kit intent.
@@ -316,7 +316,7 @@ func defaultConfig() checkConfig {
 		// .convention-engineering.json based on their harness layout. Common
 		// placement_roots values are:
 		//   - Claude Code harness: ".claude/skills"
-		//   - Codex/OpenAI harness: ".codex/skills"
+		//   - Codex/OpenAI harness: ".agents/skills"
 		//   - Custom/mixed: list every directory your harness loads skills from
 		// Common owner values are free-form labels identifying the
 		// team/role responsible (e.g. "platform-team", "docs-wg", "skill-builder").

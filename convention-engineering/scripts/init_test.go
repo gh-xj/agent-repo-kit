@@ -28,12 +28,64 @@ func TestRunInitScaffoldsRepoAndTaskVerifyPasses(t *testing.T) {
 	checkTaskfile(t, root, "Taskfile.yml", initConventionsTaskfile)
 	checkTaskfile(t, root, initConventionsTaskfile, "check:conventions:", "verify:", "../.tickets/Taskfile.yml", "../.wiki/Taskfile.yml")
 
+	freshHome := filepath.Join(t.TempDir(), "home")
+	if err := os.MkdirAll(freshHome, 0o755); err != nil {
+		t.Fatalf("mkdir fresh home: %v", err)
+	}
 	cmd := exec.Command("task", "verify")
 	cmd.Dir = root
-	cmd.Env = append(os.Environ(), "CONVENTION_ENGINEERING_DIR="+conventionEngineeringRoot(t))
+	cmd.Env = testEnv(
+		map[string]string{"HOME": freshHome},
+		"CODEX_HOME",
+		"CONVENTION_ENGINEERING_DIR",
+	)
 	output, runErr := cmd.CombinedOutput()
 	if runErr != nil {
 		t.Fatalf("expected task verify to pass: %v\n%s", runErr, output)
+	}
+}
+
+func TestRunInitEmbedsBootstrapSourceRootAndUpdatedFallbacks(t *testing.T) {
+	root := t.TempDir()
+	writeFile(t, root, "go.mod", "module example.com/init-test\n\ngo 1.22\n")
+
+	var out bytes.Buffer
+	var err bytes.Buffer
+	exitCode := runInit(root, initOptions{
+		Profiles:   []string{"go"},
+		Operations: []string{"tickets", "wiki"},
+		RepoRisk:   "standard",
+	}, &out, &err)
+	if exitCode != 0 {
+		t.Fatalf("expected init to succeed, got %d stderr=%s stdout=%s", exitCode, err.String(), out.String())
+	}
+
+	config := readFileForTest(t, root, initConfigPath)
+	if strings.Contains(config, "bootstrap_source_root") {
+		t.Fatalf("did not expect machine-local bootstrap source to be written into %s:\n%s", initConfigPath, config)
+	}
+
+	script := readFileForTest(t, root, initConventionsCheckPath)
+	for _, marker := range []string{
+		"bootstrap_source=" + shellSingleQuote(conventionEngineeringRoot(t)),
+		"$HOME/.agents/skills/convention-engineering",
+		"$HOME/.codex/skills/convention-engineering",
+		"$HOME/.claude/skills/convention-engineering",
+		"legacy fallback: ~/.codex/skills",
+	} {
+		if !strings.Contains(script, marker) {
+			t.Fatalf("expected generated check script to contain %q, got:\n%s", marker, script)
+		}
+	}
+	if strings.Contains(script, "install agent-repo-kit into ~/.claude/skills or ~/.codex/skills.") {
+		t.Fatalf("expected stale codex fallback help text to be removed, got:\n%s", script)
+	}
+
+	envIdx := strings.Index(script, "${CONVENTION_ENGINEERING_DIR:-}")
+	sourceIdx := strings.Index(script, "bootstrap_source="+shellSingleQuote(conventionEngineeringRoot(t)))
+	agentsIdx := strings.Index(script, "$HOME/.agents/skills/convention-engineering")
+	if envIdx < 0 || sourceIdx < 0 || agentsIdx <= sourceIdx {
+		t.Fatalf("expected fallback order env -> embedded source -> current Codex root, got:\n%s", script)
 	}
 }
 
@@ -129,4 +181,27 @@ func containsString(items []string, target string) bool {
 		}
 	}
 	return false
+}
+
+func testEnv(overrides map[string]string, dropKeys ...string) []string {
+	drop := map[string]bool{}
+	for _, key := range dropKeys {
+		drop[key] = true
+	}
+
+	env := make([]string, 0, len(os.Environ())+len(overrides))
+	for _, entry := range os.Environ() {
+		key, _, ok := strings.Cut(entry, "=")
+		if !ok || drop[key] {
+			continue
+		}
+		if _, overridden := overrides[key]; overridden {
+			continue
+		}
+		env = append(env, entry)
+	}
+	for key, value := range overrides {
+		env = append(env, key+"="+value)
+	}
+	return env
 }

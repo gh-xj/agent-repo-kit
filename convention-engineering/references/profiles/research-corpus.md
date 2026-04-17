@@ -448,7 +448,7 @@ For research repos, the `.convention-engineering.json` should include:
     "domain_knowledge_owner": "domain-skills",
     "repo_local_skills": {
       "allowed": false,
-      "placement_roots": [".claude/skills", ".codex/skills"],
+      "placement_roots": [".claude/skills", ".agents/skills"],
       "authoring_owner": "skill-author",
       "requires_justification": true
     }

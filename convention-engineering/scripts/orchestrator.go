@@ -81,13 +81,13 @@ type orchestrationEvaluationResult struct {
 }
 
 type orchestrationRequest struct {
-	Topic                 string
-	ParentInvocationID    string
-	RequestedScope        string
-	RequestedChunkID      string
+	Topic                  string
+	ParentInvocationID     string
+	RequestedScope         string
+	RequestedChunkID       string
 	GeneratedArtifactPaths []string
-	ChunkState            []orchestratorChunkState
-	BriefBody             string
+	ChunkState             []orchestratorChunkState
+	BriefBody              string
 }
 
 type orchestrationOutcome struct {
@@ -128,7 +128,8 @@ func newProcessEvaluatorLauncher(repoRoot, parentInvocationID, evaluatorScript s
 //     backward compatibility with existing local setups)
 //  4. Sibling lookup relative to this binary/source tree: the standalone
 //     agent-repo-kit layout places convention-evaluator next to convention-engineering
-//  5. Legacy repo-local path: <repoRoot>/.claude/skills/convention-evaluator/scripts/main.go
+//  5. Repo-local skill paths under <repoRoot>/.claude/skills/,
+//     <repoRoot>/.agents/skills/, or legacy <repoRoot>/.codex/skills/
 //
 // Returns an absolute path to main.go (or the scripts directory containing it) that
 // exists on disk, or an error describing every attempted location.
@@ -189,12 +190,17 @@ func resolveEvaluatorScript(repoRoot, explicit string) (string, error) {
 		}
 	}
 
-	// Legacy repo-local layout (backward compat for adopters using the
-	// Claude harness skill placement).
+	// Repo-local skill placement fallbacks.
 	if strings.TrimSpace(repoRoot) != "" {
-		legacy := filepath.Join(repoRoot, ".claude", "skills", "convention-evaluator", "scripts", "main.go")
-		if path, ok := normalize(legacy); ok {
-			return path, nil
+		repoLocalCandidates := []string{
+			filepath.Join(repoRoot, ".claude", "skills", "convention-evaluator", "scripts", "main.go"),
+			filepath.Join(repoRoot, ".agents", "skills", "convention-evaluator", "scripts", "main.go"),
+			filepath.Join(repoRoot, ".codex", "skills", "convention-evaluator", "scripts", "main.go"),
+		}
+		for _, candidate := range repoLocalCandidates {
+			if path, ok := normalize(candidate); ok {
+				return path, nil
+			}
 		}
 	}
 

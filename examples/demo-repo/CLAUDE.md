@@ -16,5 +16,6 @@
 - **Tracked contract** — `.convention-engineering.json` is the machine-readable
   convention contract for this repo.
 
-Conventions are owned by the `agent-repo-kit` contract; templates live under
-that kit's `contract/references/templates/` directory.
+Conventions are owned by `agent-repo-kit`'s `convention-engineering/`
+surface; templates live under that kit's
+`convention-engineering/references/templates/` directory.

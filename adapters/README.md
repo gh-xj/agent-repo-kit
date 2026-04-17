@@ -1,20 +1,20 @@
 # adapters/
 
 Adapters are thin wrappers that expose the harness-free content under
-`contract/` and `evaluator/` to a specific agent harness. Each adapter
-either symlinks or re-exports those pieces in the format the harness
-expects (for example, Claude Code expects a `SKILL.md` with a YAML
-frontmatter header; Codex expects a TOML agent definition).
+`convention-engineering/`, `convention-evaluator/`, and `skill-builder/` to a
+specific agent harness. An adapter owns only runtime-specific loader glue;
+the skill content stays in the repo-root surfaces.
 
 **No adapter owns content.** All adapters point at the same source in
-`contract/` and `evaluator/`. If you find yourself duplicating convention
-text into an adapter, stop and hoist it back into `contract/`.
+`convention-engineering/`, `convention-evaluator/`, and `skill-builder/`. If
+you find yourself duplicating skill text into an adapter, stop and hoist it
+back into the repo-root surfaces.
 
 ## Current adapters
 
-- `claude-code/` — a Claude Code skill shim that makes `contract/` load as
-  `convention-engineering` and `evaluator/` as `convention-evaluator`.
-- `codex/` — placeholder.
-- `cursor/` — placeholder.
+- `claude-code/` — shipped. `install.sh --target claude-code` symlinks the
+  three skill surfaces into `~/.claude/skills/`.
+- `codex/` — placeholder docs only; no packaged adapter or install wiring.
+- `cursor/` — placeholder docs only; no packaged adapter or install wiring.
 
 Contributions welcome for new harnesses.

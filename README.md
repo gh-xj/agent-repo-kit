@@ -7,9 +7,11 @@
 ## TL;DR
 
 `agent-repo-kit` is a drop-in set of repo conventions and tooling for
-AI-agent-assisted development. It is **harness-agnostic**: works equally well
-with Claude Code, Codex, Cursor, or a plain editor with no harness at all. The
-kit gives any repo three things out of the box:
+AI-agent-assisted development. The convention surfaces are
+**harness-agnostic** and can be adopted from any editor or agent runtime. This
+repo currently ships one ready-to-install adapter (`claude-code`) plus manual
+adoption guidance; `codex/` and `cursor/` are placeholder adapter docs, not
+packaged installs. The kit gives any repo three things out of the box:
 
 1. A flat-file **work tracker** (`.tickets/`) — state machine, verb surface,
    Taskfile.
@@ -23,12 +25,15 @@ kit gives any repo three things out of the box:
 ```bash
 git clone https://github.com/YOURORG/agent-repo-kit.git
 cd agent-repo-kit
-./install.sh                       # auto-detect harness
-./install.sh --target claude-code  # force Claude Code adapter
-./install.sh --target codex        # force Codex adapter
-./install.sh --target none         # just print adoption instructions
+./install.sh                       # auto-detect Claude Code, else print manual instructions
+./install.sh --target claude-code  # install the Claude Code surfaces
+./install.sh --target none         # just print manual adoption instructions
 ./install.sh --dry-run             # preview without changes
 ```
+
+Supported install targets today: `claude-code` and `none`. Codex and Cursor
+can consume the generated repo surface manually, but this repo does not yet
+ship installable adapters for them.
 
 ## Bootstrap A Repo
 
@@ -51,55 +56,73 @@ convention blocks. The generated repo then supports:
 task verify
 ```
 
+Prerequisites:
+
+- `go` for bootstrap and convention checks
+- `task`, `bash`, and standard Unix tools for `task verify`
+
 ## What you get
 
-- **`contract/`** — repo conventions: agent docs, docs taxonomy, stack
-  profiles, verification gates, tickets + wiki scaffolds. The canonical,
-  harness-free source of truth.
-- **`evaluator/`** — skeptical scoring of a repo's adoption of the contract.
-  Produces a graded report with evidence.
+- **`convention-engineering/`** — repo conventions: agent docs, docs
+  taxonomy, stack profiles, verification gates, tickets + wiki scaffolds.
+  The canonical, harness-free source of truth.
+- **`convention-evaluator/`** — skeptical scoring of a repo's adoption of
+  the contract. Produces a graded report with evidence.
+- **`skill-builder/`** — harness-free skill for creating, refactoring, and
+  auditing agent skills (trigger wording, portable structure, reference
+  extraction, runtime placement).
 - **`examples/demo-repo/`** — a working repo showing `.tickets/` + `.wiki/`
   adoption end to end, wired to CI.
-- **`adapters/`** — thin wrappers that expose `contract/` and `evaluator/` to
-  a specific harness (Claude Code skill, Codex agent, Cursor rules).
+- **`adapters/`** — thin wrappers that expose the repo-root skill surfaces
+  to a specific harness. `claude-code/` is shipped; `codex/` and `cursor/`
+  are placeholder docs today.
 
 ## Quick example
 
 ```bash
-# In any repo you want to adopt:
-GO111MODULE=off go run /path/to/agent-repo-kit/convention-engineering/scripts \
-  --repo-root . \
-  --init \
-  --profiles go
+KIT_DIR=/path/to/agent-repo-kit
 
-task verify               # conventions + tickets + wiki
-task -d .tickets test     # 10/10 scenarios pass
-task -d .wiki lint        # OK
+(
+  cd "$KIT_DIR"
+  GO111MODULE=off go run ./convention-engineering/scripts \
+    --repo-root /path/to/your-repo \
+    --init \
+    --profiles go
+)
+
+cd /path/to/your-repo
+task verify           # conventions + tickets + wiki
+task -d .tickets test # 10/10 scenarios pass
+task -d .wiki lint    # OK
 ```
 
 ## Architecture
 
 ```
-           +-----------+        +-------------+
-           | contract/ |<-------|  evaluator/ |
-           +-----+-----+        +------+------+
-                 ^                     ^
-                 |                     |
-         +-------+-----+       +-------+------+
-         |  adapters/  |       | examples/    |
-         | claude-code |       | demo-repo/   |
-         |   codex     |       | (.tickets,   |
-         |   cursor    |       |  .wiki, CI)  |
-         +-------------+       +--------------+
+     +-------------------------+      +-----------------------+
+     | convention-engineering/ |<-----| convention-evaluator/ |
+     +------------+------------+      +-----------+-----------+
+                  ^                               ^
+                  |                               |
+           +------+-------+                +------+------+
+           |  adapters/   |                | examples/   |
+           | claude-code  |                | demo-repo/  |
+           | codex*       |                | (.tickets,  |
+           | cursor*      |                |  .wiki, CI) |
+           +--------------+                +-------------+
 ```
 
-Content lives in `contract/` and `evaluator/`. Adapters don't own content;
-they re-export. Examples are concrete, runnable proof.
+`*` placeholder adapter docs only; not installable targets today.
+
+Content lives in `convention-engineering/`, `convention-evaluator/`, and
+`skill-builder/`. Adapters don't own content; they re-export. Examples are
+concrete, runnable proof.
 
 ## Contributing
 
-PRs welcome. Keep `contract/` and `evaluator/` harness-free; put harness
-specifics under `adapters/<name>/`.
+PRs welcome. Keep `convention-engineering/`, `convention-evaluator/`, and
+`skill-builder/` harness-free; put harness specifics under
+`adapters/<name>/`.
 
 ## License
 

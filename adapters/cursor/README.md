@@ -1,8 +1,9 @@
 # adapters/cursor/
 
-**TBD — contributions welcome.**
+No packaged Cursor adapter is shipped yet.
 
-The Cursor adapter will expose `contract/` and `evaluator/` as Cursor
-rules (typically `.cursor/rules/*.mdc`). See `../claude-code/` for the
-pattern: a thin shim pointing at the harness-free source, plus install.sh
-wiring.
+If you add one, keep it thin: point it at the repo-root
+`convention-engineering/` and `convention-evaluator/` surfaces rather than
+duplicating content.
+
+`install.sh` does not support a Cursor target today.

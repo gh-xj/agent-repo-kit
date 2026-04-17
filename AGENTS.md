@@ -5,28 +5,40 @@ _other_ repos to adopt. It is not itself a downstream project.
 
 ## Entry points
 
-- `contract/` — the harness-free content describing repo conventions
-  (tickets, wiki, agent docs, verification gates, etc.). Canonical source.
-- `evaluator/` — the harness-free scoring rubric used to grade a repo's
-  adoption against the contract.
+- `convention-engineering/` — the harness-free content describing repo
+  conventions (tickets, wiki, agent docs, verification gates, etc.).
+  Canonical source.
+- `convention-evaluator/` — the harness-free scoring rubric used to grade a
+  repo's adoption against the contract.
+- `skill-builder/` — harness-free skill for authoring and auditing agent
+  skills (trigger wording, portable structure, reference extraction,
+  runtime placement).
 - `examples/demo-repo/` — a working repo that shows the conventions applied
   end to end; the CI exercises it.
-- `adapters/<harness>/` — thin shims that expose `contract/` and
-  `evaluator/` to a specific harness (Claude Code, Codex, Cursor).
+- `adapters/<harness>/` — thin shims that expose `convention-engineering/`,
+  `convention-evaluator/`, and `skill-builder/` to a specific harness.
+  `claude-code/` is shipped today; `codex/` and `cursor/` are placeholder
+  docs.
 
 ## Rules for editing this repo
 
 1. **Do not** add harness-specific frontmatter (e.g. Claude skill YAML) to
-   files under `contract/` or `evaluator/`. That belongs in
-   `adapters/claude-code/SKILL.md` and equivalents.
-2. **Do not** reference "Claude", "Skill tool", "Codex", or absolute user
-   paths like `/Users/...` or `~/.claude/` inside `contract/` or
-   `evaluator/`. Those are harness specifics.
+   files under `convention-engineering/` or `convention-evaluator/`. That
+   belongs in `adapters/claude-code/SKILL.md` and equivalents.
+   `skill-builder/SKILL.md` is the exception: its portable frontmatter
+   (`name` + `description` only) is the skill's interface.
+2. **Do not** reference absolute user paths like `/Users/...` or
+   `~/.claude/` inside any top-level skill surface. Those are environment
+   specifics. `convention-engineering/` and `convention-evaluator/` must
+   also avoid the harness names "Claude", "Skill tool", and "Codex" — but
+   `skill-builder/` may name them since authoring skills for those
+   runtimes is its subject matter.
 3. **Dual-write pointer blocks** — when adding a new convention, update
    both `examples/demo-repo/AGENTS.md` and `examples/demo-repo/CLAUDE.md`
    identically.
 4. **Adapters re-export, they don't own.** An adapter file should be a
-   short wrapper pointing at `contract/` or `evaluator/`.
+   short wrapper pointing at `convention-engineering/` or
+   `convention-evaluator/`.
 
 ## Testing
 

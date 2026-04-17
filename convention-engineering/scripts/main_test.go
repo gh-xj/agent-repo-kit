@@ -386,7 +386,7 @@ func TestLoadConfigRejectsEvaluationInputsNull(t *testing.T) {
     "domain_knowledge_owner": "domain-skills",
     "repo_local_skills": {
       "allowed": false,
-      "placement_roots": [".claude/skills", ".codex/skills"],
+      "placement_roots": [".claude/skills", ".agents/skills"],
       "authoring_owner": "skill-builder",
       "requires_justification": true
     }
@@ -568,7 +568,7 @@ func TestLoadConfigRejectsChunkPlanChunksNull(t *testing.T) {
     "domain_knowledge_owner": "domain-skills",
     "repo_local_skills": {
       "allowed": false,
-      "placement_roots": [".claude/skills", ".codex/skills"],
+      "placement_roots": [".claude/skills", ".agents/skills"],
       "authoring_owner": "skill-builder",
       "requires_justification": true
     }
@@ -781,7 +781,7 @@ func baseContract(mode, docsRoot string) map[string]any {
 			"domain_knowledge_owner":         "domain-skills",
 			"repo_local_skills": map[string]any{
 				"allowed":                false,
-				"placement_roots":        []string{".claude/skills", ".codex/skills"},
+				"placement_roots":        []string{".claude/skills", ".agents/skills"},
 				"authoring_owner":        "skill-builder",
 				"requires_justification": true,
 			},

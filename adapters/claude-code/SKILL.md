@@ -9,19 +9,17 @@ This file is the Claude Code thin wrapper for `agent-repo-kit`'s
 harness-free content. It exists so Claude's skill loader can discover
 the convention surface via the frontmatter above.
 
-**All substantive content lives in `../../contract/`.** Do not duplicate
-rules, templates, or scripts into this adapter — read from `contract/`.
+**All substantive content lives in `../../convention-engineering/`.** Do not
+duplicate rules, templates, or scripts into this adapter.
 
-For the evaluator, see the sibling adapter file that points at
-`../../evaluator/` (or symlink it into `~/.claude/skills/convention-evaluator/`
-via the repo's `install.sh`).
+The companion evaluator surface lives in `../../convention-evaluator/`.
 
 ## How install.sh wires this up
 
 `install.sh` with `--target claude-code` symlinks:
 
-- `contract/` → `~/.claude/skills/convention-engineering/`
-- `evaluator/` → `~/.claude/skills/convention-evaluator/`
+- `convention-engineering/` → `~/.claude/skills/convention-engineering/`
+- `convention-evaluator/` → `~/.claude/skills/convention-evaluator/`
 
 so this adapter file is only needed while iterating in-tree. The
-published form is the symlinked `contract/` itself.
+published form is the symlinked repo-root convention surface itself.
