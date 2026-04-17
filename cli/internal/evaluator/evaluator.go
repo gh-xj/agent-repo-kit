@@ -1,8 +1,16 @@
-package main
+// Package evaluator is the in-process convention-evaluator. Before Stage 5
+// it lived at convention-evaluator/scripts/main.go and was invoked via
+// `go run` by the orchestrator's ProcessEvaluatorLauncher. The scoring
+// contract is unchanged — only the delivery mechanism moved in-process.
+//
+// Entry point: Run(repoRoot, handoffPath, stdout, stderr, now) int.
+// Exit codes mirror the previous binary: 0 = passed, 1 = semantic or
+// infrastructure failure (result written to disk), 2 = could not produce
+// a result (fatal error before the evaluator had enough inputs).
+package evaluator
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
 	"io"
 	"os"
@@ -91,15 +99,10 @@ var hardFailDimensions = map[string]bool{
 	"ownership_clarity": true,
 }
 
-func main() {
-	repoRoot := flag.String("repo-root", ".", "Path to repository root")
-	handoff := flag.String("handoff", "", "Path to handoff manifest JSON")
-	flag.Parse()
-
-	os.Exit(run(*repoRoot, *handoff, os.Stdout, os.Stderr, time.Now))
-}
-
-func run(repoRoot, handoffPath string, stdout, stderr io.Writer, now func() time.Time) int {
+// Run evaluates a handoff manifest and writes the evaluation result + report
+// to the paths declared in the manifest (or sibling defaults). It returns
+// the process-style exit code the former binary returned.
+func Run(repoRoot, handoffPath string, stdout, stderr io.Writer, now func() time.Time) int {
 	root, err := filepath.Abs(repoRoot)
 	if err != nil {
 		fmt.Fprintf(stderr, "failed to resolve repo root: %v\n", err)
@@ -492,18 +495,4 @@ func firstError(errs ...error) error {
 		}
 	}
 	return nil
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
 }

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -182,17 +181,13 @@ func TestOrchestratorWritesFullLaunchReceiptFields(t *testing.T) {
 
 func TestProcessEvaluatorLauncherMakesReceiptAvailableToEvaluator(t *testing.T) {
 	fx := newOrchestratorFixture(t)
-	_, file, _, ok := runtime.Caller(0)
-	if !ok {
-		t.Fatal("failed to resolve test file path")
-	}
-	// After the port this test file lives at cli/internal/orchestrator/.
-	// Walk up three levels to the repo root, then into convention-evaluator.
-	evaluatorScript := filepath.Clean(filepath.Join(filepath.Dir(file), "..", "..", "..", "convention-evaluator", "scripts", "main.go"))
+	// Stage 5 absorbed convention-evaluator/scripts into the in-process
+	// evaluator package; ProcessEvaluatorLauncher no longer takes a script
+	// path. The test now exercises the full happy path end-to-end against
+	// the absorbed evaluator.
 	launcher := ProcessEvaluatorLauncher{
 		parentInvocationID: "parent-process",
 		now:                orchestratorFixedNow,
-		evaluatorScript:    evaluatorScript,
 	}
 
 	outcome, err := orchestrateEvaluation(fx.repoRoot, "", Request{

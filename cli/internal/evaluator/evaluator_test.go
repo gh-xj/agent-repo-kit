@@ -1,4 +1,4 @@
-package main
+package evaluator
 
 import (
 	"bytes"
@@ -17,7 +17,7 @@ func TestRunFailsWhenLaunchReceiptIsNotFresh(t *testing.T) {
 
 	var out bytes.Buffer
 	var err bytes.Buffer
-	exitCode := run(fx.repoRoot, fx.handoffRel, &out, &err, fx.now)
+	exitCode := Run(fx.repoRoot, fx.handoffRel, &out, &err, fx.now)
 	if exitCode != 1 {
 		t.Fatalf("expected exit 1, got %d stderr=%s", exitCode, err.String())
 	}
@@ -33,7 +33,7 @@ func TestRunFailsWhenHandoffManifestIsUnreadable(t *testing.T) {
 
 	var out bytes.Buffer
 	var err bytes.Buffer
-	exitCode := run(repoRoot, "docs/reviews/missing_handoff.json", &out, &err, fixedNow)
+	exitCode := Run(repoRoot, "docs/reviews/missing_handoff.json", &out, &err, fixedNow)
 	if exitCode != 2 {
 		t.Fatalf("expected exit 2, got %d stderr=%s", exitCode, err.String())
 	}
@@ -57,7 +57,7 @@ func TestRunRaisesSoftFailThresholdForHighRiskRepos(t *testing.T) {
 
 	var out bytes.Buffer
 	var err bytes.Buffer
-	exitCode := run(fx.repoRoot, fx.handoffRel, &out, &err, fx.now)
+	exitCode := Run(fx.repoRoot, fx.handoffRel, &out, &err, fx.now)
 	if exitCode != 1 {
 		t.Fatalf("expected exit 1, got %d stderr=%s", exitCode, err.String())
 	}
@@ -82,7 +82,7 @@ func TestRunWritesChunkScopedResultWithChunkID(t *testing.T) {
 
 	var out bytes.Buffer
 	var err bytes.Buffer
-	exitCode := run(fx.repoRoot, fx.handoffRel, &out, &err, fx.now)
+	exitCode := Run(fx.repoRoot, fx.handoffRel, &out, &err, fx.now)
 	if exitCode != 0 {
 		t.Fatalf("expected exit 0, got %d stderr=%s", exitCode, err.String())
 	}
@@ -104,7 +104,7 @@ func TestRunChecksRegressionOnCompletedChunks(t *testing.T) {
 
 	var out bytes.Buffer
 	var err bytes.Buffer
-	exitCode := run(fx.repoRoot, fx.handoffRel, &out, &err, fx.now)
+	exitCode := Run(fx.repoRoot, fx.handoffRel, &out, &err, fx.now)
 	if exitCode != 1 {
 		t.Fatalf("expected exit 1, got %d stderr=%s", exitCode, err.String())
 	}
@@ -127,7 +127,7 @@ func TestRunIgnoresFuturePendingChunksInChunkScope(t *testing.T) {
 
 	var out bytes.Buffer
 	var err bytes.Buffer
-	exitCode := run(fx.repoRoot, fx.handoffRel, &out, &err, fx.now)
+	exitCode := Run(fx.repoRoot, fx.handoffRel, &out, &err, fx.now)
 	if exitCode != 0 {
 		t.Fatalf("expected exit 0, got %d stderr=%s", exitCode, err.String())
 	}
@@ -148,7 +148,7 @@ func TestRunFailsFinalScopeWhenDeferredHardFailRemains(t *testing.T) {
 
 	var out bytes.Buffer
 	var err bytes.Buffer
-	exitCode := run(fx.repoRoot, fx.handoffRel, &out, &err, fx.now)
+	exitCode := Run(fx.repoRoot, fx.handoffRel, &out, &err, fx.now)
 	if exitCode != 1 {
 		t.Fatalf("expected exit 1, got %d stderr=%s", exitCode, err.String())
 	}
@@ -173,7 +173,7 @@ func TestRunWritesSemanticFailureResultForCheckerFailures(t *testing.T) {
 
 	var out bytes.Buffer
 	var err bytes.Buffer
-	exitCode := run(fx.repoRoot, fx.handoffRel, &out, &err, fx.now)
+	exitCode := Run(fx.repoRoot, fx.handoffRel, &out, &err, fx.now)
 	if exitCode != 1 {
 		t.Fatalf("expected exit 1, got %d stderr=%s", exitCode, err.String())
 	}
@@ -199,7 +199,7 @@ func TestRunWritesPassedResultForCleanCheckerReport(t *testing.T) {
 
 	var out bytes.Buffer
 	var err bytes.Buffer
-	exitCode := run(fx.repoRoot, fx.handoffRel, &out, &err, fx.now)
+	exitCode := Run(fx.repoRoot, fx.handoffRel, &out, &err, fx.now)
 	if exitCode != 0 {
 		t.Fatalf("expected exit 0, got %d stderr=%s", exitCode, err.String())
 	}
@@ -287,12 +287,12 @@ func newEvalFixture(t *testing.T) evalFixture {
 
 func (fx evalFixture) writeAll(t *testing.T) {
 	t.Helper()
-	writeJSON(t, fx.repoRoot, "docs/reviews/contract.json", fx.contract)
-	writeFile(t, fx.repoRoot, "docs/planning/brief.md", "# Brief\n")
-	writeFile(t, fx.repoRoot, "docs/reviews/evidence/manifest.json", `{"records":[]}`)
-	writeJSON(t, fx.repoRoot, fx.receiptRel, fx.launchReceipt)
-	writeJSON(t, fx.repoRoot, fx.checkerRel, fx.checker)
-	writeJSON(t, fx.repoRoot, fx.handoffRel, fx.handoff)
+	writeJSONForTest(t, fx.repoRoot, "docs/reviews/contract.json", fx.contract)
+	writeFileForTest(t, fx.repoRoot, "docs/planning/brief.md", "# Brief\n")
+	writeFileForTest(t, fx.repoRoot, "docs/reviews/evidence/manifest.json", `{"records":[]}`)
+	writeJSONForTest(t, fx.repoRoot, fx.receiptRel, fx.launchReceipt)
+	writeJSONForTest(t, fx.repoRoot, fx.checkerRel, fx.checker)
+	writeJSONForTest(t, fx.repoRoot, fx.handoffRel, fx.handoff)
 }
 
 func (fx evalFixture) readResult(t *testing.T) evaluationResult {
@@ -317,16 +317,16 @@ func (fx evalFixture) readReport(t *testing.T) string {
 	return string(data)
 }
 
-func writeJSON(t *testing.T, root, rel string, value any) {
+func writeJSONForTest(t *testing.T, root, rel string, value any) {
 	t.Helper()
 	data, err := json.MarshalIndent(value, "", "  ")
 	if err != nil {
 		t.Fatalf("marshal %s: %v", rel, err)
 	}
-	writeFile(t, root, rel, string(data))
+	writeFileForTest(t, root, rel, string(data))
 }
 
-func writeFile(t *testing.T, root, rel, content string) {
+func writeFileForTest(t *testing.T, root, rel, content string) {
 	t.Helper()
 	full := filepath.Join(root, rel)
 	if err := os.MkdirAll(filepath.Dir(full), 0o755); err != nil {

@@ -19,8 +19,8 @@ func init() {
 
 // OrchestrateCommand wires the convention orchestrator (brief → checker
 // → handoff → evaluator launch → evaluation result) behind `ark
-// orchestrate`. Flags mirror the legacy `--orchestrate` flag set from
-// convention-engineering/scripts/main.go.
+// orchestrate`. As of Stage 5 the evaluator is in-process; the former
+// --evaluator-path / --evaluator-script flags are no longer needed.
 func OrchestrateCommand() command {
 	return command{
 		Description: "run the convention orchestrator and launch the evaluator",
@@ -32,8 +32,6 @@ func OrchestrateCommand() command {
 			command.Flags().String("chunk-id", "", "chunk id for chunk-scoped orchestration")
 			command.Flags().String("generated-artifacts", "", "comma-separated repo-relative artifact paths under review")
 			command.Flags().String("parent-invocation-id", "manual", "parent invocation id for orchestration launch receipts")
-			command.Flags().String("evaluator-path", "", "path to convention-evaluator scripts dir or main.go (falls back to $CONVENTION_EVALUATOR_PATH / $EVALUATOR_SCRIPT_PATH, sibling layout, then repo-local skill paths)")
-			command.Flags().String("evaluator-script", "", "alias for --evaluator-path (portable standalone name; takes precedence when both are set)")
 		},
 		Run: func(app *appctx.AppContext, command *cobra.Command, args []string) error {
 			if len(args) != 0 {
@@ -47,8 +45,6 @@ func OrchestrateCommand() command {
 			chunkID, _ := command.Flags().GetString("chunk-id")
 			generatedArtifacts, _ := command.Flags().GetString("generated-artifacts")
 			parentInvocationID, _ := command.Flags().GetString("parent-invocation-id")
-			evaluatorPath, _ := command.Flags().GetString("evaluator-path")
-			evaluatorScript, _ := command.Flags().GetString("evaluator-script")
 
 			// Fall back to the persistent --config flag when the
 			// orchestrate-local --config was not supplied.
@@ -63,17 +59,6 @@ func OrchestrateCommand() command {
 				return fmt.Errorf("resolve repo root: %w", err)
 			}
 
-			// Portable alias wins when both are supplied: explicit
-			// standalone-kit callers signal intent.
-			explicitEvaluator := strings.TrimSpace(evaluatorScript)
-			if explicitEvaluator == "" {
-				explicitEvaluator = strings.TrimSpace(evaluatorPath)
-			}
-			resolvedEvaluator, err := orchestrator.ResolveEvaluatorScript(root, explicitEvaluator)
-			if err != nil {
-				return fmt.Errorf("resolve evaluator: %w", err)
-			}
-
 			req := orchestrator.Request{
 				Topic:                  topic,
 				ParentInvocationID:     parentInvocationID,
@@ -82,7 +67,7 @@ func OrchestrateCommand() command {
 				GeneratedArtifactPaths: orchestrator.ParseGeneratedArtifactList(generatedArtifacts),
 			}
 
-			launcher := orchestrator.NewProcessEvaluatorLauncher(root, parentInvocationID, resolvedEvaluator, time.Now)
+			launcher := orchestrator.NewProcessEvaluatorLauncher(root, parentInvocationID, time.Now)
 			exitCode := orchestrator.Run(root, configPath, req, launcher, os.Stdout, os.Stderr, time.Now)
 			if exitCode == appctx.ExitSuccess {
 				return nil
