@@ -24,8 +24,12 @@ Keys:
 
 - `taskfile:` — path to the Taskfile to include. Relative to the
   **including file**, not CWD.
-- `dir:` — working directory for tasks in the included file. Also relative
-  to the including file. Defaults to the directory of `taskfile:`.
+- `dir:` — working directory for tasks in the included file. Relative to
+  the including file. **If omitted, included tasks run in the _including_
+  Taskfile's directory, not the included file's directory** (see guide.md
+  §"Directory of included Taskfile" and `internal/fsext/fs.go` `ResolveDir`
+  — an empty `dir:` joins to the entrypoint's own dir). Set `dir:` explicitly
+  when the overlay needs its own working directory.
 - `optional: true` — include is skipped silently if the file is missing. V1
   lint only checks existence for **non-optional** includes (rule
   `includes-paths-resolvable`).
@@ -59,22 +63,39 @@ the moment the overlay is moved.
 
 ## Variable Precedence (Surprising)
 
-When a task in an included file reads `{{.FOO}}`, go-task resolves `FOO` in
-this order, highest to lowest:
+Precedence follows from how go-task builds the var map in
+`compiler.go:107-143` (`Compiler.getVariables`): it calls `Set` in a fixed
+sequence, and each `Set` overwrites any prior value for the same key
+(`taskfile/ast/vars.go:62`, orderedmap `Set`). **Later writes win.**
 
-1. **Call-site vars** — `task: ns:foo` with `vars:` block, or
-   `task ns:foo FOO=x` on the CLI.
-2. **Task-level `vars:`** — defined on the task itself.
-3. **Included file's own `vars:`** — top-level `vars:` block in the
-   included Taskfile. **This wins over the includer's `includes.ns.vars:`.**
-4. **Includer's `includes.ns.vars:`** — values passed in from the
-   `includes:` entry.
-5. **Root `vars:`** — top-level `vars:` of the entry Taskfile.
-6. **Environment** — OS env vars.
+For a task being invoked (included or not), the write order is:
 
-The surprise is #3 > #4: if you ship an included Taskfile with
-`vars: {FOO: default}`, the includer cannot override it by passing
-`includes.ns.vars.FOO`. The fix:
+1. **Environment** — OS env vars seeded into the result first
+   (`compiler.go:48`, plus `TaskfileEnv` at `:107`).
+2. **Root Taskfile `vars:`** — `TaskfileVars` of the entry Taskfile
+   (`compiler.go:112`). Note: this is always the _entry_ Taskfile's
+   top-level `vars:`, not the included file's.
+3. **Includer's `includes.ns.vars:`** — `t.IncludeVars`, populated when
+   the task was merged from an include (`compiler.go:118`,
+   `taskfile/ast/tasks.go:178`).
+4. **Included file's own `vars:`** — `t.IncludedTaskfileVars`, the
+   top-level `vars:` block of the included Taskfile (`compiler.go:123`,
+   `taskfile/ast/tasks.go:179`).
+5. **Call-site vars** — `call.Vars` from `task: ns:foo` with a `vars:`
+   block, or `task ns:foo FOO=x` on the CLI (`compiler.go:134`).
+6. **Task-level `vars:`** — `t.Vars` defined on the task itself
+   (`compiler.go:139`). **Highest precedence.**
+
+Two consequences that often trip people up:
+
+- **Task-level `vars:` beat call-site vars.** Hard-coding `FOO: baked-in`
+  at the task level means `task foo FOO=whatever` at the CLI cannot
+  override it. Use `FOO: '{{.FOO | default "baked-in"}}'` if you want an
+  overridable default.
+- **Included file's own `vars:` beat the includer's `includes.ns.vars:`.**
+  If you ship an included Taskfile with `vars: {FOO: default}`, the
+  includer cannot override it by passing `includes.ns.vars.FOO`. Same
+  fix:
 
 ```yaml
 # inside the included Taskfile
@@ -143,9 +164,24 @@ V1 lint catches this as rule `flatten-no-name-collision`.
 
 ### `dotenv:` in an included file
 
-go-task only honors `dotenv:` at the **root** Taskfile. An included file
-with `dotenv: ['.env']` produces no error and loads nothing. Move it up to
-the root Taskfile, or load env explicitly in the task via `set -a; . .env`.
+Two different keys, two different behaviours:
+
+- **Top-level `dotenv:` in an included Taskfile** — hard error. Merging
+  returns `ErrIncludedTaskfilesCantHaveDotenvs` (`taskfile/ast/taskfile.go:44`:
+  _"Included Taskfiles can't have dotenv declarations. Please, move the dotenv
+  declaration to the main Taskfile"_). Move it up to the entry Taskfile.
+- **Task-level `dotenv:` on a task defined in an included Taskfile** —
+  works. The per-task dotenv loader runs against `task.Dir` regardless of
+  where the task was defined (`variables.go:158-174`; covered by
+  `TestTaskDotenv*` at `task_test.go:1913-1978` and the `included-task-dotenv`
+  case at `executor_test.go:1024-1026`, comment: _"Somehow dotenv is working
+  here!"_). The path is resolved relative to the task's working directory
+  (`new.Dir`), which for included tasks is `include.Dir` joined with the
+  task's own `dir:` (`taskfile/ast/tasks.go:174`).
+
+Caveat: dotenv values populate the task's `Env` (shell env for the command),
+not the template `vars` map. `{{.FOO}}` inside a `cmd:` will not see a
+dotenv-sourced `FOO`; `$FOO` inside the shell command will.
 
 ### Variable triangulation across includes
 

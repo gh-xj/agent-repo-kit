@@ -47,10 +47,25 @@ jobs:
       - name: skill-sync — verify adapters in sync
         run: ./cli/bin/ark skill check --manifest .agent-repo-kit.json --repo-root .
 
-      - name: taskfile-lint — structural lint on all repo Taskfiles
+      - name: taskfile-lint — structural lint on every Taskfile in the repo
         run: |
           set -e
-          ./cli/bin/ark taskfile lint --repo-root . --path cli/Taskfile.yml
-          ./cli/bin/ark taskfile lint --repo-root . --path examples/demo-repo/Taskfile.yml
-          ./cli/bin/ark taskfile lint --repo-root . --path examples/demo-repo/.tickets/Taskfile.yml
-          ./cli/bin/ark taskfile lint --repo-root . --path examples/demo-repo/.wiki/Taskfile.yml
+          # Discover all Taskfile*.yml under the repo (excluding .git and vendor)
+          # so a new Taskfile added tomorrow is linted automatically. A failure
+          # on any one file fails the step.
+          mapfile -t TASKFILES < <(find . -type f \
+            \( -name 'Taskfile.yml' -o -name 'Taskfile.*.yml' \) \
+            -not -path './.git/*' \
+            -not -path './.claude/*' \
+            -not -path './vendor/*' \
+            -not -path './node_modules/*' \
+            | sort)
+          if [ ${#TASKFILES[@]} -eq 0 ]; then
+            echo "no Taskfiles discovered" >&2
+            exit 1
+          fi
+          echo "linting ${#TASKFILES[@]} Taskfile(s):"
+          printf '  %s\n' "${TASKFILES[@]}"
+          for tf in "${TASKFILES[@]}"; do
+            ./cli/bin/ark taskfile lint --repo-root . --path "$tf"
+          done

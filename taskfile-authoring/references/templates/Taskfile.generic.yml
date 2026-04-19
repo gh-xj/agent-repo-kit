@@ -27,9 +27,12 @@ tasks:
 
   build:
     desc: Produce artifacts
-    sources: ["**/*"] # narrow to actual source paths (e.g. '**/*.go')
-    generates: ["dist/**"] # output paths; enables method: checksum caching
-    method: checksum
+    # To enable build-cache caching, uncomment the three lines below AND add
+    # `.task/` to this repo's `.gitignore` (see references/build-cache.md).
+    # Narrow `sources:` to actual source paths (e.g. '**/*.go', 'src/**/*.ts').
+    # sources: ["**/*.go", "go.mod", "go.sum"]
+    # generates: ["dist/**"]
+    # method: checksum
     cmds:
       - echo "replace with your build"
 

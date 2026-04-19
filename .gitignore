@@ -1,0 +1,11 @@
+# Fingerprint cache for go-task's build cache (sources:/generates:/method:).
+# Required by `ark taskfile lint` rule 9 (fingerprint-dir-gitignored) whenever
+# any Taskfile in the tree uses `sources:` — see
+# `taskfile-authoring/references/build-cache.md`.
+.task/
+
+# macOS, editor, and agent scratch
+.DS_Store
+.idea/
+.vscode/
+/.claude/worktrees

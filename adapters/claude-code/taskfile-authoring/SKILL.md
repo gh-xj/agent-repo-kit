@@ -7,6 +7,12 @@ description: Use when writing, creating, or refactoring Taskfile.yml for any pro
 
 # Taskfile Authoring
 
+> **Canonical source**: `taskfile-authoring/SKILL.md` in the `agent-repo-kit`
+> repository. All `references/...` links below resolve from that path. If you
+> are reading this in an adapter mirror (`adapters/claude-code/`,
+> `adapters/codex/`, `adapters/cursor/`), open the canonical file to reach the
+> references and templates.
+
 Write lean, composable, verification-first Taskfiles for go-task v3. Keep the
 surface small, the cache correct, and the composition transparent. Pair with
 `ark taskfile lint` to catch structural mistakes automatically.
