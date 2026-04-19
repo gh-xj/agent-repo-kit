@@ -1,0 +1,53 @@
+version: 2
+
+project_name: ark
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: ark
+    binary: ark
+    dir: cli
+    gomod:
+      dir: cli
+    main: .
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+      - -X github.com/gh-xj/agent-repo-kit/cli/cmd.appVersion={{.Version}}
+      - -X github.com/gh-xj/agent-repo-kit/cli/cmd.appCommit={{.Commit}}
+      - -X github.com/gh-xj/agent-repo-kit/cli/cmd.appDate={{.Date}}
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - id: ark
+    builds: [ark]
+    name_template: "ark-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
+    format: tar.gz
+    files:
+      - LICENSE
+
+checksum:
+  name_template: "checksums.txt"
+  algorithm: sha256
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+      - "^ci:"
+      - Merge pull request
+      - Merge branch
