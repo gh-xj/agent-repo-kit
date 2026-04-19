@@ -19,7 +19,34 @@ var (
 	frontmatterDescriptionPattern = regexp.MustCompile(`(?m)^description:\s*"?([^"\n]+)"?\s*$`)
 	inlinePathPattern             = regexp.MustCompile("`([^`]+)`")
 	linkPathPattern               = regexp.MustCompile(`\[[^\]]+\]\(([^)]+)\)`)
+	// modulePathPrefixPattern matches classic module path hosts like
+	// `github.com/`, `gopkg.in/`, `golang.org/x/`, `example.co.uk/`.
+	modulePathPrefixPattern = regexp.MustCompile(`^[a-z0-9]+(?:[-.][a-z0-9]+)*\.[a-z]{2,}/`)
+	// goIdentifierPattern matches a token that is a valid Go identifier
+	// (letters, digits, underscore; not starting with a digit).
+	goIdentifierPattern = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
 )
+
+// knownSkillPathPrefixes are directory names commonly used inside a skill
+// directory. A backticked token beginning with one of these is treated as a
+// relative repo path, not a package shorthand.
+var knownSkillPathPrefixes = []string{
+	"references/",
+	"scripts/",
+	"assets/",
+	"cli/",
+	"tools/",
+	"templates/",
+	"examples/",
+	"fixtures/",
+}
+
+// repoPathExtensions are file-name suffixes that strongly suggest a repo
+// path rather than a package path.
+var repoPathExtensions = []string{
+	".md", ".go", ".sh", ".yml", ".yaml", ".json",
+	".tmpl", ".txt", ".toml", ".py", ".rs", ".ts", ".js",
+}
 
 type CLIInitializer func(skillDir string, module string) error
 
@@ -260,7 +287,7 @@ func referencedRelativePaths(content string) []string {
 	for _, pattern := range []*regexp.Regexp{inlinePathPattern, linkPathPattern} {
 		for _, match := range pattern.FindAllStringSubmatch(content, -1) {
 			candidate := strings.TrimSpace(match[1])
-			if !looksLikeRelativePath(candidate) {
+			if !looksLikeRepoPath(candidate) {
 				continue
 			}
 			candidate = filepath.Clean(candidate)
@@ -275,11 +302,24 @@ func referencedRelativePaths(content string) []string {
 	return refs
 }
 
-func looksLikeRelativePath(candidate string) bool {
+// looksLikeRepoPath reports whether a backticked token from SKILL.md should
+// be checked for existence on disk as a path relative to the skill directory.
+//
+// The extractor skips tokens that are obviously not paths (URLs, placeholder
+// markers, command fragments, package shorthands like `samber/lo` or
+// `github.com/x/y`). For ambiguous single-segment tokens, only a small set
+// of well-known filenames are treated as paths; everything else is skipped
+// to keep the signal-to-noise ratio high. When a token with a `/` could be
+// either a relative path or a package path, we prefer known skill
+// directories and known file extensions as evidence it is a path; absent
+// that evidence, we fall back to a conservative default of checking.
+func looksLikeRepoPath(candidate string) bool {
+	// 0. Structural filters: empty, absolute, URL-like, whitespace, HTML
+	//    placeholder markers, trailing slash, or CLI flag fragments.
 	if candidate == "" || strings.Contains(candidate, "://") || filepath.IsAbs(candidate) {
 		return false
 	}
-	if strings.Contains(candidate, " ") {
+	if strings.ContainsAny(candidate, " \t\n") {
 		return false
 	}
 	if strings.ContainsAny(candidate, "<>") {
@@ -291,15 +331,60 @@ func looksLikeRelativePath(candidate string) bool {
 	if strings.HasPrefix(candidate, "--") {
 		return false
 	}
-	if strings.Contains(candidate, "/") {
+
+	// 1. Explicit relative or absolute path markers: always check.
+	if strings.HasPrefix(candidate, "./") || strings.HasPrefix(candidate, "../") {
 		return true
 	}
-	switch candidate {
-	case "SKILL.md", "README.md", "Taskfile.yml":
-		return true
-	default:
+
+	// 2. Single-segment tokens (no `/`): only treat known project filenames
+	//    as references; ignore everything else.
+	if !strings.Contains(candidate, "/") {
+		switch candidate {
+		case "SKILL.md", "README.md", "Taskfile.yml", "AGENTS.md", "CLAUDE.md":
+			return true
+		default:
+			return false
+		}
+	}
+
+	// 3. Known skill subdirectory prefixes: `references/...`, `scripts/...`,
+	//    etc. Treat these as repo paths even if both segments happen to look
+	//    like Go identifiers.
+	for _, prefix := range knownSkillPathPrefixes {
+		if strings.HasPrefix(candidate, prefix) {
+			return true
+		}
+	}
+
+	// 4. Classic module path hosts (e.g. `github.com/x/y`, `gopkg.in/x`,
+	//    `golang.org/x/tools`): skip.
+	if modulePathPrefixPattern.MatchString(candidate) {
 		return false
 	}
+
+	// 5. `org/name`-shaped shorthand (exactly one `/`, both sides are valid
+	//    Go identifiers): skip. Catches `samber/lo`, `spf13/cobra`,
+	//    `log/slog`.
+	if parts := strings.Split(candidate, "/"); len(parts) == 2 &&
+		goIdentifierPattern.MatchString(parts[0]) &&
+		goIdentifierPattern.MatchString(parts[1]) {
+		return false
+	}
+
+	// 6. Known file extensions: treat as a repo path.
+	lower := strings.ToLower(candidate)
+	for _, ext := range repoPathExtensions {
+		if strings.HasSuffix(lower, ext) {
+			return true
+		}
+	}
+
+	// 7. Conservative default: treat multi-segment tokens as repo paths so
+	//    genuine references surface as missing_reference findings when the
+	//    author forgets to create the file. Package paths without a host
+	//    prefix and outside the `org/name` shape are rare in practice.
+	return true
 }
 
 func extractMatch(pattern *regexp.Regexp, content string) string {

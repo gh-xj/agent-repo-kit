@@ -126,6 +126,110 @@ func TestAuditSkillRejectsEmptySkillDir(t *testing.T) {
 	}
 }
 
+// TestAuditSkillIgnoresGoPackagePaths is a regression guard for the bug
+// where backticked Go package paths like `samber/lo`, `spf13/cobra`, or
+// `github.com/alecthomas/kong` were extracted as referenced relative paths
+// and reported as missing_reference findings.
+func TestAuditSkillIgnoresGoPackagePaths(t *testing.T) {
+	skillDir := filepath.Join(t.TempDir(), "go-package-skill")
+	if err := os.MkdirAll(filepath.Join(skillDir, "references"), 0o755); err != nil {
+		t.Fatalf("mkdir references: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(skillDir, "references", "logging.md"), []byte("# Logging\n"), 0o644); err != nil {
+		t.Fatalf("write logging: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(skillDir, "SKILL.md"), []byte(`---
+name: go-package-skill
+description: Use when evaluating Go package shorthand handling.
+---
+
+# Go Package Skill
+
+- Reach for `+"`samber/lo`"+` only as a last resort.
+- Prefer stdlib `+"`log/slog`"+` with `+"`lmittmann/tint`"+` colors.
+- CLI parsing via `+"`spf13/cobra`"+` or `+"`github.com/alecthomas/kong`"+`.
+- See `+"`references/logging.md`"+` for tradeoffs.
+`), 0o644); err != nil {
+		t.Fatalf("write SKILL.md: %v", err)
+	}
+
+	result, err := AuditSkill(AuditConfig{SkillDir: skillDir})
+	if err != nil {
+		t.Fatalf("AuditSkill returned error: %v", err)
+	}
+	if result.HasErrors() {
+		t.Fatalf("unexpected errors on skill with Go package paths: %#v", result.Findings)
+	}
+	// The only path the extractor should have picked up is the real
+	// references file; package shorthands must be absent.
+	if len(result.Referenced) != 1 || result.Referenced[0] != filepath.Clean("references/logging.md") {
+		t.Fatalf("Referenced = %v, want [references/logging.md]", result.Referenced)
+	}
+}
+
+// TestAuditSkillStillFlagsMissingReferenceFiles guards the inverse: a
+// genuine-looking relative path (e.g. `references/cobra-patterns.md`,
+// `./file.sh`, `../other/README.md`) that is NOT on disk must still surface
+// as a missing_reference finding.
+func TestAuditSkillStillFlagsMissingReferenceFiles(t *testing.T) {
+	skillDir := filepath.Join(t.TempDir(), "missing-refs-skill")
+	if err := os.MkdirAll(skillDir, 0o755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(skillDir, "SKILL.md"), []byte(`---
+name: missing-refs-skill
+description: Use when verifying missing-reference detection still works.
+---
+
+# Missing Refs Skill
+
+- See `+"`references/cobra-patterns.md`"+` for usage.
+- Run `+"`./file.sh`"+` to bootstrap.
+- Also `+"`../other/README.md`"+` from the parent dir.
+`), 0o644); err != nil {
+		t.Fatalf("write SKILL.md: %v", err)
+	}
+
+	result, err := AuditSkill(AuditConfig{SkillDir: skillDir})
+	if err != nil {
+		t.Fatalf("AuditSkill returned error: %v", err)
+	}
+	if !result.HasErrors() {
+		t.Fatalf("expected missing_reference errors, got %#v", result.Findings)
+	}
+
+	wantPaths := []string{
+		filepath.Clean("references/cobra-patterns.md"),
+		filepath.Clean("file.sh"),
+		filepath.Clean("../other/README.md"),
+	}
+	for _, want := range wantPaths {
+		found := false
+		for _, ref := range result.Referenced {
+			if ref == want {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Fatalf("Referenced missing %q; got %v", want, result.Referenced)
+		}
+	}
+
+	// Every referenced path should produce a missing_reference finding
+	// (none exist on disk).
+	missingCount := 0
+	for _, f := range result.Findings {
+		if f.Code == "missing_reference" {
+			missingCount++
+		}
+	}
+	if missingCount != len(wantPaths) {
+		t.Fatalf("expected %d missing_reference findings, got %d: %#v",
+			len(wantPaths), missingCount, result.Findings)
+	}
+}
+
 func hasFinding(findings []Finding, code string) bool {
 	for _, finding := range findings {
 		if finding.Code == code {
