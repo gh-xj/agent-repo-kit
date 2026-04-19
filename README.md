@@ -107,20 +107,23 @@ Prerequisites:
 
 ## What you get
 
-- **`convention-engineering/`** — repo conventions: agent docs, docs
-  taxonomy, stack profiles, verification gates, tickets + wiki scaffolds.
-  The canonical, harness-free source of truth.
-- **`convention-evaluator/`** — skeptical scoring of a repo's adoption of
-  the contract. Produces a graded report with evidence.
-- **`skill-builder/`** — harness-free skill for creating, refactoring, and
-  auditing agent skills (trigger wording, portable structure, reference
-  extraction, runtime placement).
+- **`skills/`** — canonical, harness-free skill sources:
+  - `skills/convention-engineering/` — repo conventions: agent docs, docs
+    taxonomy, stack profiles, verification gates, tickets + wiki scaffolds.
+  - `skills/convention-evaluator/` — skeptical scoring of a repo's adoption
+    of the contract. Produces a graded report with evidence.
+  - `skills/skill-builder/` — skill for creating, refactoring, and auditing
+    agent skills (trigger wording, portable structure, reference
+    extraction, runtime placement).
+  - `skills/taskfile-authoring/` — skill for writing canonical Taskfiles,
+    used by `ark taskfile lint`.
+  - `skills/attack-architecture/` — adversarial architecture-review skill
+    (parallel lens attacks + debate).
 - **`examples/demo-repo/`** — a working repo showing `.tickets/` + `.wiki/`
   adoption end to end, wired to CI.
-- **`adapters/`** — thin wrappers that expose the repo-root skill surfaces
-  to a specific harness. `claude-code/` and `codex/` are shipped as
-  install targets (see `adapters/manifest.json`); `cursor/` is
-  placeholder docs today.
+- **`adapters/`** — thin wrappers that expose `skills/` to a specific
+  harness. `claude-code/` and `codex/` are shipped as install targets
+  (see `adapters/manifest.json`); `cursor/` is placeholder docs today.
 
 ## Quick example
 
@@ -138,30 +141,28 @@ task -d .wiki lint    # OK
 ## Architecture
 
 ```
-     +-------------------------+      +-----------------------+
-     | convention-engineering/ |<-----| convention-evaluator/ |
-     +------------+------------+      +-----------+-----------+
-                  ^                               ^
-                  |                               |
-           +------+-------+                +------+------+
-           |  adapters/   |                | examples/   |
-           | claude-code  |                | demo-repo/  |
-           | codex        |                | (.tickets,  |
-           | cursor*      |                |  .wiki, CI) |
-           +--------------+                +-------------+
+     +---------+             +-----------------------+
+     | skills/ |<------------| examples/demo-repo/   |
+     +----+----+             | (.tickets, .wiki, CI) |
+          ^                  +-----------------------+
+          |
+   +------+-------+
+   |  adapters/   |
+   | claude-code  |
+   | codex        |
+   | cursor*      |
+   +--------------+
 ```
 
 `*` placeholder adapter docs only; not an installable target today.
 
-Content lives in `convention-engineering/`, `convention-evaluator/`, and
-`skill-builder/`. Adapters don't own content; they re-export. Examples are
-concrete, runnable proof.
+Content lives under `skills/`. Adapters don't own content; they re-export
+via `adapters/manifest.json`. Examples are concrete, runnable proof.
 
 ## Contributing
 
-PRs welcome. Keep `convention-engineering/`, `convention-evaluator/`, and
-`skill-builder/` harness-free; put harness specifics under
-`adapters/<name>/`.
+PRs welcome. Keep everything under `skills/` harness-free; put harness
+specifics under `adapters/<name>/`.
 
 ## License
 

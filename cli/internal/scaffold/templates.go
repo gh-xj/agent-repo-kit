@@ -10,11 +10,11 @@ import (
 )
 
 // resolveConventionEngineeringRoot locates the `convention-engineering`
-// directory that ships alongside this CLI module. The package file lives at
-// `cli/internal/scaffold/`, and templates at
-// `convention-engineering/references/templates/`, so we walk up from the
-// package file looking for a sibling `convention-engineering` tree with a
-// `references/templates` directory.
+// skill directory that ships alongside this CLI module. The package file
+// lives at `cli/internal/scaffold/`, and templates at
+// `skills/convention-engineering/references/templates/`, so we walk up
+// from the package file looking for a sibling `skills/convention-engineering`
+// tree with a `references/templates` directory.
 func resolveConventionEngineeringRoot() (string, error) {
 	_, thisFile, _, ok := runtime.Caller(0)
 	if !ok {
@@ -22,7 +22,7 @@ func resolveConventionEngineeringRoot() (string, error) {
 	}
 	dir := filepath.Dir(thisFile)
 	for i := 0; i < 12; i++ {
-		candidate := filepath.Join(dir, "convention-engineering")
+		candidate := filepath.Join(dir, "skills", "convention-engineering")
 		if stat, err := os.Stat(filepath.Join(candidate, "references", "templates")); err == nil && stat.IsDir() {
 			return candidate, nil
 		}
@@ -32,7 +32,7 @@ func resolveConventionEngineeringRoot() (string, error) {
 		}
 		dir = parent
 	}
-	return "", fmt.Errorf("failed to locate convention-engineering root from %s", thisFile)
+	return "", fmt.Errorf("failed to locate skills/convention-engineering root from %s", thisFile)
 }
 
 func resolveTemplatesRoot() (string, error) {

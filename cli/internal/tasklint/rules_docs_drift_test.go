@@ -11,7 +11,7 @@ import (
 )
 
 // TestRulesDocsDrift ensures the set of rule IDs in
-// `taskfile-authoring/references/lint-rules.md` equals the set
+// `skills/taskfile-authoring/references/lint-rules.md` equals the set
 // returned by Rules(). If either side has an ID the other lacks,
 // the doc or the code is stale.
 func TestRulesDocsDrift(t *testing.T) {
@@ -21,9 +21,9 @@ func TestRulesDocsDrift(t *testing.T) {
 		t.Fatalf("runtime.Caller failed")
 	}
 	// this file lives at <repo>/cli/internal/tasklint/<...>_test.go.
-	// Walk up to <repo>/ and then into taskfile-authoring/...
+	// Walk up to <repo>/ and then into skills/taskfile-authoring/...
 	repoRoot := filepath.Clean(filepath.Join(filepath.Dir(thisFile), "..", "..", ".."))
-	docPath := filepath.Join(repoRoot, "taskfile-authoring", "references", "lint-rules.md")
+	docPath := filepath.Join(repoRoot, "skills", "taskfile-authoring", "references", "lint-rules.md")
 
 	data, err := os.ReadFile(docPath)
 	if err != nil {

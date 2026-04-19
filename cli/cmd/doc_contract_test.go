@@ -58,8 +58,8 @@ func skillBuilderSkillDir(t *testing.T) string {
 	if !ok {
 		t.Fatal("resolve runtime caller")
 	}
-	// filename lives at cli/cmd/doc_contract_test.go; skill dir is at <repo>/skill-builder
-	return filepath.Clean(filepath.Join(filepath.Dir(filename), "..", "..", "skill-builder"))
+	// filename lives at cli/cmd/doc_contract_test.go; skill dir is at <repo>/skills/skill-builder
+	return filepath.Clean(filepath.Join(filepath.Dir(filename), "..", "..", "skills", "skill-builder"))
 }
 
 func mustReadDoc(t *testing.T, path string) string {

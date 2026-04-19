@@ -34,9 +34,8 @@ files. `ark skill check` acts as a drift lint.
 
 ## Guardrails for a future packaged adapter
 
-- Keep adapter files thin. They point at the repo-root
-  `convention-engineering/`, `convention-evaluator/`, and
-  `skill-builder/` surfaces rather than duplicating content.
+- Keep adapter files thin. They point at the skill surfaces under
+  `skills/` rather than duplicating content.
 - Cursor uses MDC for rule authoring; if a native MDC wrapper is added,
   keep metadata (globs, alwaysApply) out of the portable core.
 - When you wire `--target cursor` into `install.sh`, emit a copy step

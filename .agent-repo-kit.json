@@ -3,7 +3,7 @@
   "skills": [
     {
       "id": "convention-engineering",
-      "source": "convention-engineering/SKILL.md",
+      "source": "skills/convention-engineering/SKILL.md",
       "targets": [
         {
           "adapter": "claude-code",
@@ -24,7 +24,7 @@
     },
     {
       "id": "convention-evaluator",
-      "source": "convention-evaluator/SKILL.md",
+      "source": "skills/convention-evaluator/SKILL.md",
       "targets": [
         {
           "adapter": "claude-code",
@@ -45,7 +45,7 @@
     },
     {
       "id": "skill-builder",
-      "source": "skill-builder/SKILL.md",
+      "source": "skills/skill-builder/SKILL.md",
       "targets": [
         {
           "adapter": "claude-code",
@@ -66,7 +66,7 @@
     },
     {
       "id": "taskfile-authoring",
-      "source": "taskfile-authoring/SKILL.md",
+      "source": "skills/taskfile-authoring/SKILL.md",
       "targets": [
         {
           "adapter": "claude-code",
@@ -81,6 +81,27 @@
         {
           "adapter": "cursor",
           "path": "adapters/cursor/taskfile-authoring.md",
+          "mode": "body-only"
+        }
+      ]
+    },
+    {
+      "id": "attack-architecture",
+      "source": "skills/attack-architecture/SKILL.md",
+      "targets": [
+        {
+          "adapter": "claude-code",
+          "path": "adapters/claude-code/attack-architecture/SKILL.md",
+          "mode": "frontmatter+body"
+        },
+        {
+          "adapter": "codex",
+          "path": "adapters/codex/attack-architecture/SKILL.md",
+          "mode": "body-only"
+        },
+        {
+          "adapter": "cursor",
+          "path": "adapters/cursor/attack-architecture.md",
           "mode": "body-only"
         }
       ]

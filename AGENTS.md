@@ -7,20 +7,27 @@ _other_ repos to adopt, and it also adopts that same convention on itself
 
 ## Entry points
 
-- `convention-engineering/` — the harness-free content describing repo
-  conventions (tickets, wiki, agent docs, verification gates, etc.).
-  Canonical source.
-- `convention-evaluator/` — the harness-free scoring rubric used to grade a
-  repo's adoption against the contract.
-- `skill-builder/` — harness-free skill for authoring and auditing agent
-  skills (trigger wording, portable structure, reference extraction,
-  runtime placement).
+- `skills/` — canonical, harness-free skill sources. One directory per
+  skill:
+  - `skills/convention-engineering/` — content describing repo conventions
+    (tickets, wiki, agent docs, verification gates, etc.). Canonical source.
+  - `skills/convention-evaluator/` — scoring rubric used to grade a repo's
+    adoption against the contract.
+  - `skills/skill-builder/` — skill for authoring and auditing agent skills
+    (trigger wording, portable structure, reference extraction, runtime
+    placement).
+  - `skills/taskfile-authoring/` — skill for writing canonical Taskfiles
+    (structure, composition, anti-patterns, lint rules). Referenced by
+    `ark taskfile lint`.
+  - `skills/attack-architecture/` — adversarial architecture-review skill.
+    Runs parallel lens attacks, ToT expansion, and attacker/defender debate
+    against an existing codebase and writes a report under
+    `.docs/arch-attacks/`.
 - `examples/demo-repo/` — a working repo that shows the conventions applied
   end to end; the CI exercises it.
-- `adapters/<harness>/` — thin shims that expose `convention-engineering/`,
-  `convention-evaluator/`, and `skill-builder/` to a specific harness.
-  `claude-code/` and `codex/` are shipped install targets; `cursor/` is
-  placeholder docs.
+- `adapters/<harness>/` — thin shims that expose every skill under
+  `skills/` to a specific harness. `claude-code/` and `codex/` are shipped
+  install targets; `cursor/` is placeholder docs.
 - `adapters/manifest.json` — machine-readable source of truth for which
   skill directories get symlinked into which harness. Consumed by
   `ark adapters link` and `ark adapters list-links`.
@@ -40,22 +47,23 @@ _other_ repos to adopt, and it also adopts that same convention on itself
 ## Rules for editing this repo
 
 1. **Do not** add harness-specific frontmatter (e.g. Claude skill YAML) to
-   files under `convention-engineering/` or `convention-evaluator/`. That
-   belongs in `adapters/claude-code/SKILL.md` and equivalents.
-   `skill-builder/SKILL.md` is the exception: its portable frontmatter
-   (`name` + `description` only) is the skill's interface.
+   files under `skills/convention-engineering/` or
+   `skills/convention-evaluator/`. That belongs in
+   `adapters/claude-code/SKILL.md` and equivalents.
+   `skills/skill-builder/SKILL.md` is the exception: its portable
+   frontmatter (`name` + `description` only) is the skill's interface.
 2. **Do not** reference absolute user paths like `/Users/...` or
-   `~/.claude/` inside any top-level skill surface. Those are environment
-   specifics. `convention-engineering/` and `convention-evaluator/` must
-   also avoid the harness names "Claude", "Skill tool", and "Codex" — but
-   `skill-builder/` may name them since authoring skills for those
-   runtimes is its subject matter.
+   `~/.claude/` inside any skill surface. Those are environment specifics.
+   `skills/convention-engineering/` and `skills/convention-evaluator/`
+   must also avoid the harness names "Claude", "Skill tool", and "Codex"
+   — but `skills/skill-builder/` and `skills/attack-architecture/` may
+   name them since the runtimes (and their agent/tool APIs) are the
+   subject matter of those skills.
 3. **Dual-write pointer blocks** — when adding a new convention, update
    both `examples/demo-repo/AGENTS.md` and `examples/demo-repo/CLAUDE.md`
    identically.
 4. **Adapters re-export, they don't own.** An adapter file should be a
-   short wrapper pointing at `convention-engineering/` or
-   `convention-evaluator/`.
+   short wrapper pointing at a skill under `skills/`.
 
 ## Testing
 

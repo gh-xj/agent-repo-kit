@@ -35,10 +35,10 @@ the symlinked directory layout, render them explicitly and copy the
 
 ## Guardrails for a future packaged adapter
 
-- Keep adapter files thin. They point at the repo-root
-  `convention-engineering/`, `convention-evaluator/`, and
-  `skill-builder/` surfaces rather than duplicating content.
+- Keep adapter files thin. They point at the skill surfaces under
+  `skills/` rather than duplicating content.
 - Do not introduce Codex-specific skill authoring rules here — those
-  belong in the portable `skill-builder/` skill.
-- When you wire a new target into `install.sh`, mirror the three
-  symlinks that the `claude-code` target creates.
+  belong in the portable `skills/skill-builder/` skill.
+- When wiring a new skill into this adapter, add a link entry to
+  `adapters/manifest.json` so `ark adapters link --target codex` picks
+  it up automatically.
