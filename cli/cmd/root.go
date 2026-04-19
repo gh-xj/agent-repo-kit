@@ -69,6 +69,7 @@ func newRootCmd() *cobra.Command {
 
 	root.AddCommand(newSkillCmd())
 	root.AddCommand(newTaskfileCmd())
+	root.AddCommand(newAdaptersCmd())
 	return root
 }
 
