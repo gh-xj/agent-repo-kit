@@ -19,10 +19,13 @@ func init() {
 	registerCommand("init", InitCommand())
 }
 
-// Wizard option lists (locked by install-v2.md §6c).
+// Wizard option lists match scaffold.normalizeOptions' allowlists
+// (cli/internal/scaffold/scaffold.go) and scaffold.detectProfiles
+// (cli/internal/scaffold/detect.go). Leaving profiles empty triggers
+// auto-detect.
 var (
-	wizardProfileOptions = []string{"web-service", "library", "monorepo", "data-pipeline", "tool"}
-	wizardOpsOptions     = []string{"tickets", "wiki", "taskfile"}
+	wizardProfileOptions = []string{"go", "typescript-react", "python"}
+	wizardOpsOptions     = []string{"tickets", "wiki"}
 	wizardRiskOptions    = []string{"standard", "elevated", "critical"}
 )
 
@@ -94,9 +97,9 @@ func runInteractiveInit(command *cobra.Command, repoRoot string, stdin io.Reader
 		}
 	}
 
-	// 2. Profiles.
+	// 2. Profiles. Empty selection → auto-detect via scaffold.detectProfiles.
 	profilesIdx, err := prompt.MultiSelect(stdin, stdout,
-		"Which profiles describe this repo?",
+		"Which profiles describe this repo? (empty = auto-detect)",
 		wizardProfileOptions, nil)
 	if err != nil {
 		return err
