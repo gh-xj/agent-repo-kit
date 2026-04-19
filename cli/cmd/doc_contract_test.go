@@ -10,8 +10,6 @@ import (
 	"testing"
 
 	"github.com/alecthomas/kong"
-
-	"github.com/gh-xj/agent-repo-kit/cli/internal/skillsync"
 )
 
 // TestSkillBuilderDocsMatchCLIContract guards that every `ark ...`
@@ -63,8 +61,7 @@ func kongCommands(t *testing.T) map[string]bool {
 	parser, err := kong.New(&cli,
 		kong.Name(binaryName),
 		kong.Vars{
-			"version":                    appVersion,
-			"skillsync_manifest_default": skillsync.ManifestDefaultPath,
+			"version": appVersion,
 		},
 	)
 	if err != nil {

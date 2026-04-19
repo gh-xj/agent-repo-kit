@@ -45,7 +45,7 @@ jobs:
         run: task ci
 
       - name: skill-sync — verify adapters in sync
-        run: ./cli/bin/ark skill check --manifest .agent-repo-kit.json --repo-root .
+        run: ./cli/bin/ark skill check --repo-root .
 
       - name: taskfile-lint — structural lint on every Taskfile in the repo
         run: |

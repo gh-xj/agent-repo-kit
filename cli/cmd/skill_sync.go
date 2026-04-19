@@ -8,35 +8,39 @@ import (
 	"github.com/gh-xj/agent-repo-kit/cli/internal/skillsync"
 )
 
-// SkillSyncCmd renders every per-adapter target declared in the manifest
-// from the canonical SKILL.md source files.
+// SkillSyncCmd renders every per-adapter target from the canonical SKILL.md
+// source files discovered under <repo-root>/skills/.
 type SkillSyncCmd struct {
-	Manifest string `help:"path to the skill-sync manifest" default:"${skillsync_manifest_default}"`
 	RepoRoot string `name:"repo-root" help:"path to the repository root" default:"."`
 }
 
 func (c *SkillSyncCmd) Run(globals *CLI) error {
-	manifestPath := c.Manifest
-	if !filepath.IsAbs(manifestPath) {
-		manifestPath = filepath.Join(c.RepoRoot, manifestPath)
-	}
-
-	manifest, err := skillsync.LoadManifest(manifestPath)
+	plan, err := loadSkillPlan(c.RepoRoot)
 	if err != nil {
 		fmt.Fprintln(globals.stderr(), err.Error())
 		return appctx.NewExitError(appctx.ExitUsage, "")
 	}
 
-	if err := skillsync.Sync(c.RepoRoot, manifest); err != nil {
+	if err := skillsync.Sync(c.RepoRoot, plan); err != nil {
 		fmt.Fprintln(globals.stderr(), err.Error())
 		return appctx.NewExitError(appctx.ExitUsage, "")
 	}
 
 	out := globals.stdout()
-	for _, skill := range manifest.Skills {
+	for _, skill := range plan.Skills {
 		for _, target := range skill.Targets {
 			fmt.Fprintf(out, "synced %s -> %s\n", skill.ID, target.Adapter)
 		}
 	}
 	return nil
+}
+
+// loadSkillPlan reads the repo-root config and auto-discovers the skill
+// plan. Shared by `ark skill sync` and `ark skill check`.
+func loadSkillPlan(repoRoot string) (skillsync.Plan, error) {
+	cfg, err := skillsync.LoadConfig(filepath.Join(repoRoot, skillsync.ConfigDefaultPath))
+	if err != nil {
+		return skillsync.Plan{}, err
+	}
+	return skillsync.BuildPlan(repoRoot, cfg)
 }

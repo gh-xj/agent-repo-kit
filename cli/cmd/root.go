@@ -16,7 +16,6 @@ import (
 
 	"github.com/gh-xj/agent-repo-kit/cli/internal/appctx"
 	"github.com/gh-xj/agent-repo-kit/cli/internal/log"
-	"github.com/gh-xj/agent-repo-kit/cli/internal/skillsync"
 )
 
 const binaryName = "ark"
@@ -93,8 +92,7 @@ func execWriters(args []string, stdout, stderr io.Writer) int {
 		kong.Description("agent-repo-kit unified CLI"),
 		kong.Writers(stdout, stderr),
 		kong.Vars{
-			"version":                    appVersion,
-			"skillsync_manifest_default": skillsync.ManifestDefaultPath,
+			"version": appVersion,
 		},
 	)
 	if err != nil {
