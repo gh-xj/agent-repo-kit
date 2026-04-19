@@ -1,6 +1,6 @@
 ---
 name: attack-architecture
-description: "Use when adversarially reviewing an existing codebase or a user-defined scope for architectural smells — overengineering (speculative abstraction, dead flexibility), data-model/contract inelegance (illegal states representable, stringly-typed, leaky types, primitive obsession), coupling and module-boundary violations (god modules, cyclic deps, leaky layers), silent failures and error-handling rot (swallowed exceptions, fake fallbacks, missing observability), and evolvability/change-cost smells (rigidity, fragility, what the next engineer will hate). Trigger on phrases like 'attack the architecture', 'critique the design', 'audit this module for slop', 'review this AI-generated code for architecture problems', 'is this data model right', 'where will this hurt to change', or when the user wants an adversarial second opinion on an existing design rather than a bug-hunt code review."
+description: "Use when adversarially reviewing an existing codebase or subsystem for architectural smells — rigidity, fragility, coupling, silent failures, overengineering, leaky contracts — not hunting bugs. Triggers: 'attack the architecture', 'critique the design', 'audit this module for slop', 'review AI-generated code', 'is this data model right', 'where will this hurt to change'."
 ---
 
 <!-- agent-repo-kit:skill-sync — do not edit; regenerate with `ark skill sync` -->
