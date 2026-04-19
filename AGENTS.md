@@ -19,8 +19,23 @@ _other_ repos to adopt, and it also adopts that same convention on itself
   end to end; the CI exercises it.
 - `adapters/<harness>/` — thin shims that expose `convention-engineering/`,
   `convention-evaluator/`, and `skill-builder/` to a specific harness.
-  `claude-code/` is shipped today; `codex/` and `cursor/` are placeholder
-  docs.
+  `claude-code/` and `codex/` are shipped install targets; `cursor/` is
+  placeholder docs.
+- `adapters/manifest.json` — machine-readable source of truth for which
+  skill directories get symlinked into which harness. Consumed by
+  `ark adapters link` and `ark adapters list-links`.
+- `install.sh` — POSIX installer. Default path: download the prebuilt
+  `ark` binary for the current OS/arch from the latest GitHub Release,
+  drop it in `--prefix` (default `~/.local/bin`), then call
+  `ark adapters link --target <harness>` to wire the symlinks. Pass
+  `--from-source` to build `cli/` locally instead.
+- `ark upgrade` — in-place upgrade. Detects whether `ark` lives inside a
+  git clone (runs `git pull` + rebuild) or was installed from a release
+  archive (downloads + atomically replaces the binary), then re-runs
+  `adapters link`.
+- `.goreleaser.yml` + `.github/workflows/release.yml` — release pipeline
+  that publishes `ark-{version}-{os}-{arch}.tar.gz` + `checksums.txt` on
+  each `v*` tag.
 
 ## Rules for editing this repo
 
