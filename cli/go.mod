@@ -4,6 +4,7 @@ go 1.25.8
 
 require (
 	github.com/go-task/task/v3 v3.50.0
+	github.com/lmittmann/tint v1.1.3
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06
 	github.com/spf13/cobra v1.10.1
 	golang.org/x/term v0.42.0

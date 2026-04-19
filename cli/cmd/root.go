@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/gh-xj/agent-repo-kit/cli/internal/appctx"
+	"github.com/gh-xj/agent-repo-kit/cli/internal/log"
 )
 
 const binaryName = "ark"
@@ -144,11 +145,32 @@ func Execute(args []string) int {
 	root.SetArgs(args)
 	root.SetOut(os.Stdout)
 	root.SetErr(os.Stderr)
+
+	// Initialize logging before command execution. Flag values come from
+	// the raw argv so subcommands see an already-configured slog default.
+	verbose := flagPresent(args, "--verbose", "-v")
+	noColor := flagPresent(args, "--no-color")
+	log.Setup(log.Options{Verbose: verbose, NoColor: noColor})
+
 	if err := root.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		return resolveCode(err)
 	}
 	return appctx.ExitSuccess
+}
+
+// flagPresent returns true if any of the given flag names appears as a
+// bare token in args. Used to snapshot global flags before cobra parses,
+// so slog is set up before the first subcommand runs.
+func flagPresent(args []string, names ...string) bool {
+	for _, a := range args {
+		for _, n := range names {
+			if a == n {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func resolveCode(err error) int {

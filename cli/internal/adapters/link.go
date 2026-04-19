@@ -3,6 +3,7 @@ package adapters
 import (
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"sort"
@@ -21,15 +22,14 @@ import (
 // When dryRun is true, actions are printed to stdout but the filesystem
 // is left untouched.
 func RunLink(repoRoot, manifestPath, target string, dryRun bool) error {
-	return runLink(os.Stdout, os.Stderr, repoRoot, manifestPath, target, dryRun)
+	return runLink(os.Stdout, repoRoot, manifestPath, target, dryRun)
 }
 
-func runLink(stdout, stderr io.Writer, repoRoot, manifestPath, target string, dryRun bool) error {
-	harness, skillRoot, repoAbs, err := resolveHarness(repoRoot, manifestPath, target)
+func runLink(stdout io.Writer, repoRoot, manifestPath, target string, dryRun bool) error {
+	_, skillRoot, repoAbs, err := resolveHarness(repoRoot, manifestPath, target)
 	if err != nil {
 		return err
 	}
-	_ = harness
 
 	skills, err := discoverSkills(repoAbs)
 	if err != nil {
@@ -39,7 +39,7 @@ func runLink(stdout, stderr io.Writer, repoRoot, manifestPath, target string, dr
 	for _, skill := range skills {
 		srcAbs := filepath.Join(repoAbs, SkillsDir, skill)
 		dstAbs := filepath.Join(skillRoot, skill)
-		if err := ensureSymlink(stdout, stderr, srcAbs, dstAbs, dryRun); err != nil {
+		if err := ensureSymlink(stdout, srcAbs, dstAbs, dryRun); err != nil {
 			return err
 		}
 	}
@@ -94,9 +94,7 @@ func resolveHarness(repoRoot, manifestPath, target string) (*Harness, string, st
 }
 
 // discoverSkills returns the sorted names of immediate subdirectories of
-// <repoAbs>/skills/ that contain a SKILL.md file. Dirs without SKILL.md
-// are silently skipped so incidental files (README, scratch) never
-// become accidental skill symlinks.
+// <repoAbs>/skills/ that contain a SKILL.md file.
 func discoverSkills(repoAbs string) ([]string, error) {
 	skillsRoot := filepath.Join(repoAbs, SkillsDir)
 	entries, err := os.ReadDir(skillsRoot)
@@ -108,8 +106,7 @@ func discoverSkills(repoAbs string) ([]string, error) {
 		if !entry.IsDir() {
 			continue
 		}
-		skillMd := filepath.Join(skillsRoot, entry.Name(), "SKILL.md")
-		if _, err := os.Stat(skillMd); err != nil {
+		if _, err := os.Stat(filepath.Join(skillsRoot, entry.Name(), "SKILL.md")); err != nil {
 			continue
 		}
 		skills = append(skills, entry.Name())
@@ -119,7 +116,7 @@ func discoverSkills(repoAbs string) ([]string, error) {
 }
 
 // ensureSymlink installs (or repairs) a symlink dst → src, honoring dryRun.
-func ensureSymlink(stdout, stderr io.Writer, src, dst string, dryRun bool) error {
+func ensureSymlink(stdout io.Writer, src, dst string, dryRun bool) error {
 	if _, err := os.Lstat(src); err != nil {
 		return fmt.Errorf("source path missing: %s", src)
 	}
@@ -127,33 +124,35 @@ func ensureSymlink(stdout, stderr io.Writer, src, dst string, dryRun bool) error
 	fi, err := os.Lstat(dst)
 	switch {
 	case err == nil && fi.Mode()&os.ModeSymlink != 0:
-		fmt.Fprintf(stdout, "[adapters] re-linking %s\n", dst)
 		if dryRun {
-			fmt.Fprintf(stdout, "DRY-RUN: rm %q\n", dst)
-		} else {
-			if err := os.Remove(dst); err != nil {
-				return fmt.Errorf("remove existing symlink %q: %w", dst, err)
-			}
+			slog.Info("would re-link", "dst", dst)
+			return nil
 		}
+		if err := os.Remove(dst); err != nil {
+			return fmt.Errorf("remove existing symlink %q: %w", dst, err)
+		}
+		if err := os.Symlink(src, dst); err != nil {
+			return fmt.Errorf("symlink %q -> %q: %w", dst, src, err)
+		}
+		slog.Info("re-linked", "skill", filepath.Base(dst))
+		return nil
 	case err == nil:
-		fmt.Fprintf(stderr, "[adapters] WARN: %s already exists and is not a symlink — skipping (remove it to re-link)\n", dst)
+		slog.Warn("path exists and is not a symlink; skipping", "path", dst)
 		return nil
 	case !os.IsNotExist(err):
 		return fmt.Errorf("stat %q: %w", dst, err)
 	}
 
-	parent := filepath.Dir(dst)
 	if dryRun {
-		fmt.Fprintf(stdout, "DRY-RUN: mkdir -p %q\n", parent)
-		fmt.Fprintf(stdout, "DRY-RUN: ln -s %q %q\n", src, dst)
+		slog.Info("would link", "src", src, "dst", dst)
 		return nil
 	}
-	if err := os.MkdirAll(parent, 0o755); err != nil {
-		return fmt.Errorf("mkdir %q: %w", parent, err)
+	if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
+		return fmt.Errorf("mkdir %q: %w", filepath.Dir(dst), err)
 	}
-	fmt.Fprintf(stdout, "[adapters] ln -s %s %s\n", src, dst)
 	if err := os.Symlink(src, dst); err != nil {
 		return fmt.Errorf("symlink %q -> %q: %w", dst, src, err)
 	}
+	slog.Info("linked", "skill", filepath.Base(dst))
 	return nil
 }

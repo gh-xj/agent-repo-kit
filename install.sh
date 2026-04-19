@@ -21,15 +21,27 @@ MANIFEST="$DIR/adapters/manifest.json"
 RELEASE_OWNER="gh-xj"
 RELEASE_REPO="agent-repo-kit"
 
-log()  { printf '[install] %s\n' "$*"; }
-warn() { printf '[install] WARN: %s\n' "$*" >&2; }
-die()  { printf '[install] ERROR: %s\n' "$*" >&2; exit 1; }
+# Colored level prefixes when stderr is a TTY and NO_COLOR is unset.
+# Matches the tint-backed slog output the Go side emits, so `install.sh`
+# and `ark adapters link` look visually consistent.
+if [ -t 2 ] && [ -z "${NO_COLOR:-}" ]; then
+    _C_INF=$(printf '\033[92mINF\033[0m')
+    _C_WRN=$(printf '\033[93mWRN\033[0m')
+    _C_ERR=$(printf '\033[91mERR\033[0m')
+    _C_DIM=$(printf '\033[2m')
+    _C_OFF=$(printf '\033[0m')
+else
+    _C_INF=INF; _C_WRN=WRN; _C_ERR=ERR; _C_DIM=""; _C_OFF=""
+fi
+
+log()  { printf '%s %s\n' "$_C_INF" "$*" >&2; }
+warn() { printf '%s %s\n' "$_C_WRN" "$*" >&2; }
+die()  { printf '%s %s\n' "$_C_ERR" "$*" >&2; exit 1; }
 
 run() {
     if [ "$DRY_RUN" -eq 1 ]; then
-        log "DRY-RUN: $*"
+        printf '%s %sdry-run%s %s\n' "$_C_INF" "$_C_DIM" "$_C_OFF" "$*" >&2
     else
-        log "$*"
         eval "$@"
     fi
 }
@@ -86,19 +98,15 @@ detect_arch() {
     esac
 }
 
-# auto-detect target (unchanged semantics from v1: lines 62-74)
+# auto-detect target
 if [ -z "$TARGET" ]; then
     if [ -d "$HOME/.claude/skills" ]; then
         TARGET="claude-code"
+    elif [ -d "$HOME/.codex/skills" ] || [ -d "$HOME/.agents/skills" ]; then
+        TARGET="codex"
     else
         TARGET="none"
-        if [ -d "$HOME/.codex" ] || [ -d "$HOME/.agents/skills" ]; then
-            log "detected Codex state, but no packaged Codex adapter is shipped yet"
-        fi
     fi
-    log "auto-detected target: $TARGET"
-else
-    log "using explicit target: $TARGET"
 fi
 
 resolve_strategy() {
@@ -109,7 +117,6 @@ resolve_strategy() {
     else
         STRATEGY=download
     fi
-    log "install strategy: $STRATEGY"
 }
 
 _sha256() {
@@ -140,6 +147,7 @@ install_binary() {
     if [ "$STRATEGY" = source ]; then
         command -v go >/dev/null 2>&1 \
             || die "go toolchain not found; remove --from-source or install Go"
+        log "building ark" "prefix=$PREFIX"
         run "(cd \"$DIR/cli\" && mkdir -p \"$PREFIX\" && go build -o \"$PREFIX/ark\" .)"
         return 0
     fi
@@ -191,21 +199,22 @@ link_adapters() {
     fi
     dry_flag=""
     [ "$DRY_RUN" -eq 1 ] && dry_flag=" --dry-run"
+    log "wiring skills" "target=$TARGET"
     run "\"$ARK_BIN\" adapters link --target \"$TARGET\" --manifest \"$MANIFEST\" --repo-root \"$DIR\"$dry_flag"
 }
 
 main() {
     detect_os
     detect_arch
-    log "platform: $OS/$ARCH"
     resolve_strategy
+    log "starting install" "os=$OS arch=$ARCH target=$TARGET strategy=$STRATEGY prefix=$PREFIX"
     install_binary
 
     case "$TARGET" in
         claude-code)
             link_adapters
-            log "done. ark installed at $PREFIX/ark"
-            log "restart your Claude Code session to pick up the skills."
+            log "install complete" "binary=$PREFIX/ark"
+            log "restart Claude Code to pick up the skills"
             ;;
         none)
             cat <<EOF
@@ -218,7 +227,7 @@ No harness detected (or --target none). To adopt manually:
      full convention and scoring surfaces.
   4. In the target repo, run: task verify
 EOF
-            log "done. ark installed at $PREFIX/ark"
+            log "install complete" "binary=$PREFIX/ark"
             ;;
         *)
             die "unknown target: $TARGET (expected claude-code|none)"
