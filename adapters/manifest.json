@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "harnesses": [
+    {
+      "name": "claude-code",
+      "skill_root": "~/.claude/skills",
+      "links": [
+        {
+          "source": "convention-engineering",
+          "dest": "convention-engineering"
+        },
+        { "source": "convention-evaluator", "dest": "convention-evaluator" },
+        { "source": "skill-builder", "dest": "skill-builder" },
+        { "source": "taskfile-authoring", "dest": "taskfile-authoring" }
+      ]
+    },
+    {
+      "name": "codex",
+      "skill_root": "~/.codex/skills",
+      "links": [
+        {
+          "source": "convention-engineering",
+          "dest": "convention-engineering"
+        },
+        { "source": "convention-evaluator", "dest": "convention-evaluator" },
+        { "source": "skill-builder", "dest": "skill-builder" },
+        { "source": "taskfile-authoring", "dest": "taskfile-authoring" }
+      ]
+    }
+  ]
+}

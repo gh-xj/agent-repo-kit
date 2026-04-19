@@ -68,27 +68,35 @@ func TestRunInitEmbedsBootstrapSourceRootAndUpdatedFallbacks(t *testing.T) {
 
 	script := readFileForTest(t, root, ConventionsCheckPath)
 	bootstrapRoot := conventionEngineeringRootForTest(t)
+	// New resolution chain (install-v2.md decision 4):
+	//   $ARK_BINARY -> ark on $PATH -> `go run -C $repo_kit_root/cli .` fallback.
 	for _, marker := range []string{
 		"bootstrap_source=" + shellSingleQuote(bootstrapRoot),
-		"$HOME/.agents/skills/agent-repo-kit/cli/bin/ark",
-		"$HOME/.codex/skills/agent-repo-kit/cli/bin/ark",
-		"$HOME/.claude/skills/agent-repo-kit/cli/bin/ark",
-		"legacy fallback: ~/.codex/skills",
 		"${ARK_BINARY:-}",
+		`command -v ark`,
+		`go run -C "$repo_kit_root/cli" .`,
 	} {
 		if !strings.Contains(script, marker) {
 			t.Fatalf("expected generated check script to contain %q, got:\n%s", marker, script)
 		}
 	}
-	if strings.Contains(script, "install agent-repo-kit into ~/.claude/skills or ~/.codex/skills.") {
-		t.Fatalf("expected stale codex fallback help text to be removed, got:\n%s", script)
+	// Dropped surfaces (decision 4: no candidate-list shim):
+	for _, stale := range []string{
+		"$HOME/.claude/skills/agent-repo-kit/cli/bin/ark",
+		"$HOME/.codex/skills/agent-repo-kit/cli/bin/ark",
+		"$HOME/.agents/skills/agent-repo-kit/cli/bin/ark",
+		"legacy fallback:",
+	} {
+		if strings.Contains(script, stale) {
+			t.Fatalf("expected dropped fallback %q to be absent, got:\n%s", stale, script)
+		}
 	}
 
 	envIdx := strings.Index(script, "${ARK_BINARY:-}")
-	sourceIdx := strings.Index(script, "bootstrap_source="+shellSingleQuote(bootstrapRoot))
-	agentsIdx := strings.Index(script, "$HOME/.agents/skills/agent-repo-kit")
-	if envIdx < 0 || sourceIdx < 0 || agentsIdx <= sourceIdx {
-		t.Fatalf("expected fallback order env -> embedded source -> agent-repo-kit home path, got:\n%s", script)
+	pathIdx := strings.Index(script, "command -v ark")
+	goRunIdx := strings.Index(script, "go run -C")
+	if envIdx < 0 || pathIdx < envIdx || goRunIdx < pathIdx {
+		t.Fatalf("expected fallback order env -> PATH -> go run, got:\n%s", script)
 	}
 }
 
