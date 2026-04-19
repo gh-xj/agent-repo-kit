@@ -3,90 +3,74 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"path/filepath"
-	"strings"
-
-	"github.com/spf13/cobra"
 
 	"github.com/gh-xj/agent-repo-kit/cli/internal/appctx"
 	"github.com/gh-xj/agent-repo-kit/cli/internal/tasklint"
 )
 
-func init() {
-	registerTaskfileCommand("lint", TaskfileLintCommand())
+// TaskfileLintCmd runs the fixed structural ruleset on a Taskfile.yml.
+// V1 has no --strict or --config flag.
+//
+// Path can come from either the --path flag or a positional argument.
+// The positional wins if both are set, preserving the original
+// cobra-era behavior.
+type TaskfileLintCmd struct {
+	RepoRoot string `name:"repo-root" help:"path to the repository root (for .gitignore lookup)" default:"."`
+	Path     string `help:"path to the Taskfile.yml to lint (relative to repo-root or absolute)" default:"Taskfile.yml"`
+	PathArg  string `arg:"" optional:"" name:"taskfile" help:"taskfile path (overrides --path when set)"`
 }
 
-// TaskfileLintCommand wires tasklint.Lint as `ark taskfile lint`.
-// V1 runs the fixed structural ruleset — no --strict or --config flags.
-func TaskfileLintCommand() command {
-	return command{
-		Description: "lint Taskfile.yml against structural rules",
-		Configure: func(command *cobra.Command) {
-			command.Flags().String("repo-root", ".", "path to the repository root (for .gitignore lookup)")
-			command.Flags().String("path", "Taskfile.yml", "path to the Taskfile.yml to lint (relative to repo-root or absolute)")
-		},
-		Run: func(app *appctx.AppContext, command *cobra.Command, args []string) error {
-			if len(args) > 1 {
-				return fmt.Errorf("unexpected positional args: %s", strings.Join(args, " "))
-			}
-
-			repoRoot, _ := command.Flags().GetString("repo-root")
-			taskfilePath, _ := command.Flags().GetString("path")
-			if len(args) == 1 {
-				taskfilePath = args[0]
-			}
-
-			jsonMode, _ := app.Values["json"].(bool)
-
-			absRoot, err := filepath.Abs(repoRoot)
-			if err != nil {
-				return fmt.Errorf("resolve repo-root: %w", err)
-			}
-
-			absPath := taskfilePath
-			if !filepath.IsAbs(absPath) {
-				absPath = filepath.Join(absRoot, absPath)
-			}
-
-			findings, err := tasklint.Lint(absPath, tasklint.Options{RepoRoot: absRoot})
-			if err != nil {
-				// I/O failures (e.g. file not found) map to ExitUsage (2)
-				// via ResolveExitCode's default; we wrap to preserve the
-				// message but make the exit code explicit regardless of
-				// output mode.
-				return appctx.NewExitError(appctx.ExitUsage, err.Error())
-			}
-
-			// Emit findings first so both JSON and human modes produce
-			// output before the exit-code decision. Keeping emit and
-			// exit-code mapping independent means `--json` exits 1 on
-			// findings just like the human mode does.
-			if jsonMode {
-				if emitErr := emitFindingsJSON(command, findings); emitErr != nil {
-					return emitErr
-				}
-			} else {
-				emitFindingsHuman(command, findings)
-			}
-
-			if len(findings) == 0 {
-				return nil
-			}
-			// Parse errors (YAML-level failures that short-circuit the
-			// rules) surface as ExitUsage to signal "fix your input
-			// first"; all other findings are normal lint failures.
-			for _, f := range findings {
-				if f.RuleID == "parse-error" {
-					return appctx.NewExitError(appctx.ExitUsage, "")
-				}
-			}
-			return appctx.NewExitError(appctx.ExitError, "")
-		},
+func (c *TaskfileLintCmd) Run(globals *CLI) error {
+	taskfilePath := c.Path
+	if c.PathArg != "" {
+		taskfilePath = c.PathArg
 	}
+
+	absRoot, err := filepath.Abs(c.RepoRoot)
+	if err != nil {
+		return fmt.Errorf("resolve repo-root: %w", err)
+	}
+
+	absPath := taskfilePath
+	if !filepath.IsAbs(absPath) {
+		absPath = filepath.Join(absRoot, absPath)
+	}
+
+	findings, err := tasklint.Lint(absPath, tasklint.Options{RepoRoot: absRoot})
+	if err != nil {
+		// I/O failures (e.g. file not found) map to ExitUsage (2).
+		return appctx.NewExitError(appctx.ExitUsage, err.Error())
+	}
+
+	// Emit findings first so both JSON and human modes produce output
+	// before the exit-code decision. Keeping emit and exit-code mapping
+	// independent means `--json` exits 1 on findings just like human mode.
+	out := globals.stdout()
+	if globals.JSON {
+		if emitErr := emitFindingsJSON(out, findings); emitErr != nil {
+			return emitErr
+		}
+	} else {
+		emitFindingsHuman(out, findings)
+	}
+
+	if len(findings) == 0 {
+		return nil
+	}
+	// Parse errors (YAML-level failures that short-circuit the rules)
+	// surface as ExitUsage to signal "fix your input first"; all other
+	// findings are normal lint failures.
+	for _, f := range findings {
+		if f.RuleID == "parse-error" {
+			return appctx.NewExitError(appctx.ExitUsage, "")
+		}
+	}
+	return appctx.NewExitError(appctx.ExitError, "")
 }
 
-func emitFindingsHuman(command *cobra.Command, findings []tasklint.Finding) {
-	out := command.OutOrStdout()
+func emitFindingsHuman(out io.Writer, findings []tasklint.Finding) {
 	if len(findings) == 0 {
 		fmt.Fprintln(out, "taskfile lint: clean")
 		return
@@ -123,7 +107,7 @@ type reportJSON struct {
 	Count    int           `json:"count"`
 }
 
-func emitFindingsJSON(command *cobra.Command, findings []tasklint.Finding) error {
+func emitFindingsJSON(out io.Writer, findings []tasklint.Finding) error {
 	report := reportJSON{
 		Findings: make([]findingJSON, 0, len(findings)),
 		Count:    len(findings),
@@ -141,7 +125,7 @@ func emitFindingsJSON(command *cobra.Command, findings []tasklint.Finding) error
 			Docs:     f.Docs,
 		})
 	}
-	enc := json.NewEncoder(command.OutOrStdout())
+	enc := json.NewEncoder(out)
 	enc.SetIndent("", "  ")
 	return enc.Encode(report)
 }
