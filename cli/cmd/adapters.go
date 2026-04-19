@@ -43,7 +43,7 @@ func newAdaptersCmd() *cobra.Command {
 
 func adaptersLinkCommand() command {
 	return command{
-		Description: "install skill symlinks for a harness from adapters/manifest.json",
+		Description: "symlink every skill under skills/ into a harness's skill root",
 		Configure: func(command *cobra.Command) {
 			command.Flags().String("target", "", "harness target name (e.g. claude-code, codex)")
 			command.Flags().String("manifest", "", "path to adapters/manifest.json (default: <repo-root>/adapters/manifest.json)")
@@ -72,7 +72,7 @@ func adaptersLinkCommand() command {
 
 func adaptersListLinksCommand() command {
 	return command{
-		Description: "print resolved <source>\\t<dest> per link for a harness",
+		Description: "print <srcAbs>\\t<dstAbs> per discovered skill for a harness",
 		Configure: func(command *cobra.Command) {
 			command.Flags().String("target", "", "harness target name (e.g. claude-code, codex)")
 			command.Flags().String("manifest", "", "path to adapters/manifest.json (default: <repo-root>/adapters/manifest.json)")

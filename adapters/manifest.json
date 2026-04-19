@@ -1,45 +1,7 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "harnesses": [
-    {
-      "name": "claude-code",
-      "skill_root": "~/.claude/skills",
-      "links": [
-        {
-          "source": "skills/convention-engineering",
-          "dest": "convention-engineering"
-        },
-        {
-          "source": "skills/convention-evaluator",
-          "dest": "convention-evaluator"
-        },
-        { "source": "skills/skill-builder", "dest": "skill-builder" },
-        { "source": "skills/taskfile-authoring", "dest": "taskfile-authoring" },
-        {
-          "source": "skills/attack-architecture",
-          "dest": "attack-architecture"
-        }
-      ]
-    },
-    {
-      "name": "codex",
-      "skill_root": "~/.codex/skills",
-      "links": [
-        {
-          "source": "skills/convention-engineering",
-          "dest": "convention-engineering"
-        },
-        {
-          "source": "skills/convention-evaluator",
-          "dest": "convention-evaluator"
-        },
-        { "source": "skills/skill-builder", "dest": "skill-builder" },
-        { "source": "skills/taskfile-authoring", "dest": "taskfile-authoring" },
-        {
-          "source": "skills/attack-architecture",
-          "dest": "attack-architecture"
-        }
-      ]
-    }
+    { "name": "claude-code", "skill_root": "~/.claude/skills" },
+    { "name": "codex", "skill_root": "~/.codex/skills" }
   ]
 }

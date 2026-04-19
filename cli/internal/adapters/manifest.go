@@ -1,6 +1,8 @@
 // Package adapters loads the adapters/manifest.json contract and provides
-// helpers to expand skill-root paths. The manifest is the single source of
-// truth for which skills `ark adapters link` wires into each harness.
+// helpers to expand skill-root paths. The manifest declares which harnesses
+// exist and where their skill roots live; the set of skills to link is
+// auto-derived from the `skills/` directory at the repo root — every
+// subdirectory there that contains a SKILL.md is a skill.
 package adapters
 
 import (
@@ -10,6 +12,10 @@ import (
 	"strings"
 )
 
+// SkillsDir is the repo-root-relative directory that holds skill sources.
+// Every immediate subdirectory with a SKILL.md is treated as a skill.
+const SkillsDir = "skills"
+
 // Manifest is the top-level shape of adapters/manifest.json.
 type Manifest struct {
 	SchemaVersion int       `json:"schema_version"`
@@ -17,18 +23,10 @@ type Manifest struct {
 }
 
 // Harness describes a single harness (e.g. claude-code, codex) and the
-// set of skill symlinks to install under its skill root.
+// skill root under which skill symlinks are installed.
 type Harness struct {
 	Name      string `json:"name"`
 	SkillRoot string `json:"skill_root"`
-	Links     []Link `json:"links"`
-}
-
-// Link is a single source→dest symlink entry. Source is repo-root-relative;
-// dest is skill-root-relative.
-type Link struct {
-	Source string `json:"source"`
-	Dest   string `json:"dest"`
 }
 
 // Load reads and parses a manifest from disk.
