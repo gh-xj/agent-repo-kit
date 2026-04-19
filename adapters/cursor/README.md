@@ -20,7 +20,7 @@ cd agent-repo-kit
 (cd cli && go build -o bin/ark .)
 
 # 2. Regenerate the Cursor mirrors from canonical (normally already in sync).
-./cli/bin/ark skill sync --manifest .agent-repo-kit.json --repo-root .
+./cli/bin/ark skill sync --repo-root .
 
 # 3. Copy or symlink the three mirrors into your own repo's Cursor config.
 #    Example for a target repo at $TARGET:

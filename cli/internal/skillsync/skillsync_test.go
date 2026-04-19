@@ -158,83 +158,136 @@ func TestRenderRejectsUnknownMode(t *testing.T) {
 	}
 }
 
-// writeManifestFixture builds a manifest plus canonical skill source on disk
-// and returns the repo root.
-func writeManifestFixture(t *testing.T) string {
+// writeRepoFixture builds a repo-root layout with one "primary" skill and
+// one ordinary skill, plus a v2 config naming the primary.
+func writeRepoFixture(t *testing.T) string {
 	t.Helper()
 	root := t.TempDir()
 
-	sourceDir := filepath.Join(root, "demo-skill")
-	if err := os.MkdirAll(sourceDir, 0o755); err != nil {
-		t.Fatalf("mkdir source: %v", err)
+	writeSkill := func(name string) {
+		dir := filepath.Join(root, SkillsDir, name)
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			t.Fatalf("mkdir %s: %v", dir, err)
+		}
+		if err := os.WriteFile(filepath.Join(dir, SkillRouterFilename), []byte(sampleSourceWithFrontmatter), 0o644); err != nil {
+			t.Fatalf("write skill %s: %v", name, err)
+		}
 	}
-	if err := os.WriteFile(filepath.Join(sourceDir, "SKILL.md"), []byte(sampleSourceWithFrontmatter), 0o644); err != nil {
-		t.Fatalf("write source: %v", err)
-	}
+	writeSkill("primary-skill")
+	writeSkill("other-skill")
 
-	manifest := `{
-		"schema_version": 1,
-		"skills": [
-			{
-				"id": "demo-skill",
-				"source": "demo-skill/SKILL.md",
-				"targets": [
-					{"adapter": "claude-code", "path": "adapters/claude-code/SKILL.md", "mode": "frontmatter+body"},
-					{"adapter": "codex", "path": "adapters/codex/SKILL.md", "mode": "body-only"},
-					{"adapter": "cursor", "path": "adapters/cursor/demo-skill.md", "mode": "body-only"}
-				]
-			}
-		]
-	}`
-	if err := os.WriteFile(filepath.Join(root, ManifestDefaultPath), []byte(manifest), 0o644); err != nil {
-		t.Fatalf("write manifest: %v", err)
+	cfg := `{"schema_version": 2, "primary_skill": "primary-skill"}`
+	if err := os.WriteFile(filepath.Join(root, ConfigDefaultPath), []byte(cfg), 0o644); err != nil {
+		t.Fatalf("write config: %v", err)
 	}
 	return root
 }
 
-func TestSyncWritesAllTargetsAndIsIdempotent(t *testing.T) {
-	root := writeManifestFixture(t)
-	m, err := LoadManifest(filepath.Join(root, ManifestDefaultPath))
+func loadPlan(t *testing.T, root string) Plan {
+	t.Helper()
+	cfg, err := LoadConfig(filepath.Join(root, ConfigDefaultPath))
 	if err != nil {
-		t.Fatalf("LoadManifest: %v", err)
+		t.Fatalf("LoadConfig: %v", err)
+	}
+	plan, err := BuildPlan(root, cfg)
+	if err != nil {
+		t.Fatalf("BuildPlan: %v", err)
+	}
+	return plan
+}
+
+func TestBuildPlanAutoDiscoversSkillsAndAdapters(t *testing.T) {
+	root := writeRepoFixture(t)
+	plan := loadPlan(t, root)
+
+	if len(plan.Skills) != 2 {
+		t.Fatalf("expected 2 skills, got %d", len(plan.Skills))
 	}
 
-	if err := Sync(root, m); err != nil {
+	// Skills come back sorted alphabetically.
+	if plan.Skills[0].ID != "other-skill" || plan.Skills[1].ID != "primary-skill" {
+		t.Fatalf("unexpected skill order: %s, %s", plan.Skills[0].ID, plan.Skills[1].ID)
+	}
+
+	want := map[string]map[string]struct {
+		path string
+		mode string
+	}{
+		"primary-skill": {
+			"claude-code": {"adapters/claude-code/SKILL.md", ModeFrontmatterBody},
+			"codex":       {"adapters/codex/SKILL.md", ModeBodyOnly},
+			"cursor":      {"adapters/cursor/primary-skill.md", ModeBodyOnly},
+		},
+		"other-skill": {
+			"claude-code": {"adapters/claude-code/other-skill/SKILL.md", ModeFrontmatterBody},
+			"codex":       {"adapters/codex/other-skill/SKILL.md", ModeBodyOnly},
+			"cursor":      {"adapters/cursor/other-skill.md", ModeBodyOnly},
+		},
+	}
+	for _, skill := range plan.Skills {
+		for _, target := range skill.Targets {
+			exp, ok := want[skill.ID][target.Adapter]
+			if !ok {
+				t.Fatalf("unexpected adapter %q on skill %q", target.Adapter, skill.ID)
+			}
+			if filepath.ToSlash(target.Path) != exp.path {
+				t.Fatalf("skill %q adapter %q: want path %q, got %q",
+					skill.ID, target.Adapter, exp.path, target.Path)
+			}
+			if target.Mode != exp.mode {
+				t.Fatalf("skill %q adapter %q: want mode %q, got %q",
+					skill.ID, target.Adapter, exp.mode, target.Mode)
+			}
+		}
+	}
+}
+
+func TestSyncWritesAllTargetsAndIsIdempotent(t *testing.T) {
+	root := writeRepoFixture(t)
+	plan := loadPlan(t, root)
+
+	if err := Sync(root, plan); err != nil {
 		t.Fatalf("first Sync: %v", err)
 	}
 	// All target files must exist.
-	for _, target := range m.Skills[0].Targets {
-		if _, err := os.Stat(filepath.Join(root, target.Path)); err != nil {
-			t.Fatalf("target %s not written: %v", target.Adapter, err)
+	for _, skill := range plan.Skills {
+		for _, target := range skill.Targets {
+			if _, err := os.Stat(filepath.Join(root, target.Path)); err != nil {
+				t.Fatalf("skill %s target %s not written: %v", skill.ID, target.Adapter, err)
+			}
 		}
 	}
 
-	// Snapshot modification times and content.
+	// Snapshot content.
 	before := make(map[string][]byte)
-	for _, target := range m.Skills[0].Targets {
-		data, err := os.ReadFile(filepath.Join(root, target.Path))
-		if err != nil {
-			t.Fatalf("read target: %v", err)
+	for _, skill := range plan.Skills {
+		for _, target := range skill.Targets {
+			data, err := os.ReadFile(filepath.Join(root, target.Path))
+			if err != nil {
+				t.Fatalf("read target: %v", err)
+			}
+			before[target.Path] = data
 		}
-		before[target.Path] = data
 	}
 
 	// Second Sync must be a byte-for-byte no-op.
-	if err := Sync(root, m); err != nil {
+	if err := Sync(root, plan); err != nil {
 		t.Fatalf("second Sync: %v", err)
 	}
-	for _, target := range m.Skills[0].Targets {
-		data, err := os.ReadFile(filepath.Join(root, target.Path))
-		if err != nil {
-			t.Fatalf("read target: %v", err)
-		}
-		if string(data) != string(before[target.Path]) {
-			t.Fatalf("second Sync changed %s content", target.Path)
+	for _, skill := range plan.Skills {
+		for _, target := range skill.Targets {
+			data, err := os.ReadFile(filepath.Join(root, target.Path))
+			if err != nil {
+				t.Fatalf("read target: %v", err)
+			}
+			if string(data) != string(before[target.Path]) {
+				t.Fatalf("second Sync changed %s content", target.Path)
+			}
 		}
 	}
 
 	// Check should report zero drift immediately after Sync.
-	drifts, err := Check(root, m)
+	drifts, err := Check(root, plan)
 	if err != nil {
 		t.Fatalf("Check: %v", err)
 	}
@@ -243,36 +296,20 @@ func TestSyncWritesAllTargetsAndIsIdempotent(t *testing.T) {
 	}
 }
 
-func TestCheckReturnsEmptyWhenInSync(t *testing.T) {
-	root := writeManifestFixture(t)
-	m, err := LoadManifest(filepath.Join(root, ManifestDefaultPath))
-	if err != nil {
-		t.Fatalf("LoadManifest: %v", err)
-	}
-	if err := Sync(root, m); err != nil {
-		t.Fatalf("Sync: %v", err)
-	}
-	drifts, err := Check(root, m)
-	if err != nil {
-		t.Fatalf("Check: %v", err)
-	}
-	if len(drifts) != 0 {
-		t.Fatalf("expected zero drifts, got %v", drifts)
-	}
-}
-
 func TestCheckReportsMissingTarget(t *testing.T) {
-	root := writeManifestFixture(t)
-	m, err := LoadManifest(filepath.Join(root, ManifestDefaultPath))
-	if err != nil {
-		t.Fatalf("LoadManifest: %v", err)
-	}
-	drifts, err := Check(root, m)
+	root := writeRepoFixture(t)
+	plan := loadPlan(t, root)
+	drifts, err := Check(root, plan)
 	if err != nil {
 		t.Fatalf("Check: %v", err)
 	}
-	if len(drifts) != len(m.Skills[0].Targets) {
-		t.Fatalf("expected %d drifts, got %d", len(m.Skills[0].Targets), len(drifts))
+	// Every target missing until we run Sync.
+	wantTargets := 0
+	for _, skill := range plan.Skills {
+		wantTargets += len(skill.Targets)
+	}
+	if len(drifts) != wantTargets {
+		t.Fatalf("expected %d drifts, got %d", wantTargets, len(drifts))
 	}
 	for _, d := range drifts {
 		if d.Reason != "missing" {
@@ -282,21 +319,18 @@ func TestCheckReportsMissingTarget(t *testing.T) {
 }
 
 func TestCheckReportsStaleTarget(t *testing.T) {
-	root := writeManifestFixture(t)
-	m, err := LoadManifest(filepath.Join(root, ManifestDefaultPath))
-	if err != nil {
-		t.Fatalf("LoadManifest: %v", err)
-	}
-	if err := Sync(root, m); err != nil {
+	root := writeRepoFixture(t)
+	plan := loadPlan(t, root)
+	if err := Sync(root, plan); err != nil {
 		t.Fatalf("Sync: %v", err)
 	}
 	// Introduce drift in one target.
-	staleTarget := m.Skills[0].Targets[0]
+	staleTarget := plan.Skills[0].Targets[0]
 	p := filepath.Join(root, staleTarget.Path)
 	if err := os.WriteFile(p, []byte("stray edit\n"), 0o644); err != nil {
 		t.Fatalf("write stale: %v", err)
 	}
-	drifts, err := Check(root, m)
+	drifts, err := Check(root, plan)
 	if err != nil {
 		t.Fatalf("Check: %v", err)
 	}
@@ -314,86 +348,67 @@ func TestCheckReportsStaleTarget(t *testing.T) {
 	}
 }
 
-func TestLoadManifestRejectsUnknownMode(t *testing.T) {
+func TestLoadConfigRejectsWrongSchemaVersion(t *testing.T) {
 	root := t.TempDir()
-	manifest := `{
-		"schema_version": 1,
-		"skills": [
-			{
-				"id": "demo",
-				"source": "demo/SKILL.md",
-				"targets": [
-					{"adapter": "claude-code", "path": "out.md", "mode": "garbage"}
-				]
-			}
-		]
-	}`
-	path := filepath.Join(root, "m.json")
-	if err := os.WriteFile(path, []byte(manifest), 0o644); err != nil {
+	cfg := `{"schema_version": 1, "primary_skill": "x"}`
+	path := filepath.Join(root, ConfigDefaultPath)
+	if err := os.WriteFile(path, []byte(cfg), 0o644); err != nil {
 		t.Fatalf("write: %v", err)
 	}
-	_, err := LoadManifest(path)
+	_, err := LoadConfig(path)
 	if err == nil {
-		t.Fatal("expected error for unknown mode")
+		t.Fatal("expected error for schema_version != 2")
 	}
-	if !strings.Contains(err.Error(), "unknown mode") {
-		t.Fatalf("error should mention unknown mode, got: %v", err)
+	if !strings.Contains(err.Error(), "schema_version") {
+		t.Fatalf("error should mention schema_version, got: %v", err)
 	}
 }
 
-func TestLoadManifestRejectsDuplicateSkillID(t *testing.T) {
+func TestLoadConfigRejectsEmptyPrimarySkill(t *testing.T) {
 	root := t.TempDir()
-	manifest := `{
-		"schema_version": 1,
-		"skills": [
-			{"id": "dup", "source": "a/SKILL.md", "targets": [{"adapter":"codex","path":"a.md","mode":"body-only"}]},
-			{"id": "dup", "source": "b/SKILL.md", "targets": [{"adapter":"codex","path":"b.md","mode":"body-only"}]}
-		]
-	}`
-	path := filepath.Join(root, "m.json")
-	if err := os.WriteFile(path, []byte(manifest), 0o644); err != nil {
+	cfg := `{"schema_version": 2}`
+	path := filepath.Join(root, ConfigDefaultPath)
+	if err := os.WriteFile(path, []byte(cfg), 0o644); err != nil {
 		t.Fatalf("write: %v", err)
 	}
-	_, err := LoadManifest(path)
+	_, err := LoadConfig(path)
 	if err == nil {
-		t.Fatal("expected error for duplicate skill id")
+		t.Fatal("expected error when primary_skill is empty")
 	}
-	if !strings.Contains(err.Error(), "duplicate") {
-		t.Fatalf("error should mention duplicate, got: %v", err)
+	if !strings.Contains(err.Error(), "primary_skill") {
+		t.Fatalf("error should mention primary_skill, got: %v", err)
 	}
 }
 
-func TestLoadManifestRejectsUnknownAdapter(t *testing.T) {
+func TestBuildPlanFailsWhenPrimarySkillMissing(t *testing.T) {
 	root := t.TempDir()
-	manifest := `{
-		"schema_version": 1,
-		"skills": [
-			{"id": "demo", "source": "demo/SKILL.md", "targets": [{"adapter":"atom","path":"a.md","mode":"body-only"}]}
-		]
-	}`
-	path := filepath.Join(root, "m.json")
-	if err := os.WriteFile(path, []byte(manifest), 0o644); err != nil {
-		t.Fatalf("write: %v", err)
+	dir := filepath.Join(root, SkillsDir, "only-skill")
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatalf("mkdir: %v", err)
 	}
-	_, err := LoadManifest(path)
+	if err := os.WriteFile(filepath.Join(dir, SkillRouterFilename), []byte(sampleSourceWithFrontmatter), 0o644); err != nil {
+		t.Fatalf("write skill: %v", err)
+	}
+	_, err := BuildPlan(root, Config{SchemaVersion: 2, PrimarySkill: "nonexistent"})
 	if err == nil {
-		t.Fatal("expected error for unknown adapter")
+		t.Fatal("expected error when primary_skill is not discoverable")
 	}
-	if !strings.Contains(err.Error(), "unknown adapter") {
-		t.Fatalf("error should mention unknown adapter, got: %v", err)
+	if !strings.Contains(err.Error(), "primary_skill") {
+		t.Fatalf("error should mention primary_skill, got: %v", err)
 	}
 }
 
-func TestLoadManifestRejectsWrongSchemaVersion(t *testing.T) {
+func TestBuildPlanFailsWhenNoSkillsDiscovered(t *testing.T) {
 	root := t.TempDir()
-	manifest := `{"schema_version": 2, "skills": []}`
-	path := filepath.Join(root, "m.json")
-	if err := os.WriteFile(path, []byte(manifest), 0o644); err != nil {
-		t.Fatalf("write: %v", err)
+	if err := os.MkdirAll(filepath.Join(root, SkillsDir), 0o755); err != nil {
+		t.Fatalf("mkdir: %v", err)
 	}
-	_, err := LoadManifest(path)
+	_, err := BuildPlan(root, Config{SchemaVersion: 2, PrimarySkill: "anything"})
 	if err == nil {
-		t.Fatal("expected error for schema_version != 1")
+		t.Fatal("expected error when skills dir is empty")
+	}
+	if !strings.Contains(err.Error(), "no skills") {
+		t.Fatalf("error should mention 'no skills', got: %v", err)
 	}
 }
 

@@ -2,32 +2,26 @@ package cmd
 
 import (
 	"fmt"
-	"path/filepath"
 
 	"github.com/gh-xj/agent-repo-kit/cli/internal/appctx"
 	"github.com/gh-xj/agent-repo-kit/cli/internal/skillsync"
 )
 
 // SkillCheckCmd re-renders every adapter target in memory and reports
-// drift without writing to disk.
+// drift without writing to disk. Skills and targets are auto-discovered
+// from <repo-root>/skills/.
 type SkillCheckCmd struct {
-	Manifest string `help:"path to the skill-sync manifest" default:"${skillsync_manifest_default}"`
 	RepoRoot string `name:"repo-root" help:"path to the repository root" default:"."`
 }
 
 func (c *SkillCheckCmd) Run(globals *CLI) error {
-	manifestPath := c.Manifest
-	if !filepath.IsAbs(manifestPath) {
-		manifestPath = filepath.Join(c.RepoRoot, manifestPath)
-	}
-
-	manifest, err := skillsync.LoadManifest(manifestPath)
+	plan, err := loadSkillPlan(c.RepoRoot)
 	if err != nil {
 		fmt.Fprintln(globals.stderr(), err.Error())
 		return appctx.NewExitError(appctx.ExitUsage, "")
 	}
 
-	drifts, err := skillsync.Check(c.RepoRoot, manifest)
+	drifts, err := skillsync.Check(c.RepoRoot, plan)
 	if err != nil {
 		fmt.Fprintln(globals.stderr(), err.Error())
 		return appctx.NewExitError(appctx.ExitUsage, "")
