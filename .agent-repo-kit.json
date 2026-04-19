@@ -105,6 +105,27 @@
           "mode": "body-only"
         }
       ]
+    },
+    {
+      "id": "go-scripting",
+      "source": "skills/go-scripting/SKILL.md",
+      "targets": [
+        {
+          "adapter": "claude-code",
+          "path": "adapters/claude-code/go-scripting/SKILL.md",
+          "mode": "frontmatter+body"
+        },
+        {
+          "adapter": "codex",
+          "path": "adapters/codex/go-scripting/SKILL.md",
+          "mode": "body-only"
+        },
+        {
+          "adapter": "cursor",
+          "path": "adapters/cursor/go-scripting.md",
+          "mode": "body-only"
+        }
+      ]
     }
   ]
 }
