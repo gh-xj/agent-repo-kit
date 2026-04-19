@@ -11,8 +11,9 @@ import (
 	"github.com/gh-xj/agent-repo-kit/cli/internal/appctx"
 )
 
-const (
-	binaryName = "ark"
+const binaryName = "ark"
+
+var (
 	appVersion = "dev"
 	appCommit  = "none"
 	appDate    = "unknown"
