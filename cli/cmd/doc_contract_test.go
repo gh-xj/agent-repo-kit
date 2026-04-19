@@ -9,9 +9,16 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/spf13/cobra"
+	"github.com/alecthomas/kong"
+
+	"github.com/gh-xj/agent-repo-kit/cli/internal/skillsync"
 )
 
+// TestSkillBuilderDocsMatchCLIContract guards that every `ark ...`
+// command string mentioned in the skill-builder skill's docs resolves
+// to a real kong-defined command. If you add or rename a subcommand,
+// update the docs; if you drop a docs mention, drop the command — or
+// rethink the contract.
 func TestSkillBuilderDocsMatchCLIContract(t *testing.T) {
 	skillDir := skillBuilderSkillDir(t)
 	skillDoc := mustReadDoc(t, filepath.Join(skillDir, "SKILL.md"))
@@ -33,7 +40,7 @@ func TestSkillBuilderDocsMatchCLIContract(t *testing.T) {
 	}
 
 	documented := documentedCommands(skillDoc)
-	supported := cliCommands(buildRootCmd())
+	supported := kongCommands(t)
 
 	var unsupported []string
 	for command := range documented {
@@ -47,8 +54,36 @@ func TestSkillBuilderDocsMatchCLIContract(t *testing.T) {
 	}
 }
 
-func buildRootCmd() *cobra.Command {
-	return newRootCmd()
+// kongCommands walks the kong model tree and returns the set of
+// commands expressible as space-joined paths (e.g. "ark skill init").
+func kongCommands(t *testing.T) map[string]bool {
+	t.Helper()
+
+	var cli CLI
+	parser, err := kong.New(&cli,
+		kong.Name(binaryName),
+		kong.Vars{
+			"version":                    appVersion,
+			"skillsync_manifest_default": skillsync.ManifestDefaultPath,
+		},
+	)
+	if err != nil {
+		t.Fatalf("build kong parser: %v", err)
+	}
+
+	commands := make(map[string]bool)
+	var walk func(prefix []string, nodes []*kong.Node)
+	walk = func(prefix []string, nodes []*kong.Node) {
+		for _, child := range nodes {
+			path := append(append([]string{}, prefix...), child.Name)
+			commands[strings.Join(path, " ")] = true
+			walk(path, child.Children)
+		}
+	}
+	root := []string{binaryName}
+	commands[binaryName] = true
+	walk(root, parser.Model.Node.Children)
+	return commands
 }
 
 func skillBuilderSkillDir(t *testing.T) string {
@@ -58,7 +93,8 @@ func skillBuilderSkillDir(t *testing.T) string {
 	if !ok {
 		t.Fatal("resolve runtime caller")
 	}
-	// filename lives at cli/cmd/doc_contract_test.go; skill dir is at <repo>/skills/skill-builder
+	// filename lives at cli/cmd/doc_contract_test.go; skill dir is at
+	// <repo>/skills/skill-builder.
 	return filepath.Clean(filepath.Join(filepath.Dir(filename), "..", "..", "skills", "skill-builder"))
 }
 
@@ -78,23 +114,6 @@ func documentedCommands(content string) map[string]bool {
 	for _, match := range pattern.FindAllStringSubmatch(content, -1) {
 		commands[strings.Join(strings.Fields(match[1]), " ")] = true
 	}
-	return commands
-}
-
-func cliCommands(root *cobra.Command) map[string]bool {
-	commands := make(map[string]bool)
-
-	var walk func(prefix []string, current *cobra.Command)
-	walk = func(prefix []string, current *cobra.Command) {
-		tokens := strings.Fields(current.Use)
-		full := append(append([]string{}, prefix...), tokens...)
-		commands[strings.Join(full, " ")] = true
-		for _, child := range current.Commands() {
-			walk(full, child)
-		}
-	}
-
-	walk(nil, root)
 	return commands
 }
 

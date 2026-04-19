@@ -1,10 +1,7 @@
 package cmd
 
 import (
-	"bytes"
 	"encoding/json"
-	"errors"
-	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -12,37 +9,13 @@ import (
 	"github.com/gh-xj/agent-repo-kit/cli/internal/appctx"
 )
 
-// runArk drives the root command with the given args and returns the
-// resolved exit code plus the captured stdout+stderr. It mirrors
-// Execute() but does not call os.Exit.
-func runArk(t *testing.T, args ...string) (int, string, string) {
-	t.Helper()
-	root := newRootCmd()
-	var stdout, stderr bytes.Buffer
-	root.SetArgs(args)
-	root.SetOut(&stdout)
-	root.SetErr(&stderr)
-	err := root.Execute()
-	return resolveCode(err), stdout.String(), stderr.String()
-}
-
-func writeFile(t *testing.T, path, contents string) {
-	t.Helper()
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		t.Fatalf("mkdir: %v", err)
-	}
-	if err := os.WriteFile(path, []byte(contents), 0o644); err != nil {
-		t.Fatalf("write %s: %v", path, err)
-	}
-}
-
 func TestTaskfileLintJSONExitCodeOnFindings(t *testing.T) {
 	// Bug 1 regression: `--json` must still exit 1 when findings exist.
 	dir := t.TempDir()
 	taskfilePath := filepath.Join(dir, "Taskfile.yml")
 	writeFile(t, taskfilePath, "version: \"3\"\ntasks:\n  foo:\n    cmd: a\n    cmds: [b]\n")
 
-	code, stdout, _ := runArk(t, "taskfile", "lint", "--json", "--repo-root", dir, "--path", taskfilePath)
+	code, stdout, _ := runArk(t, "--json", "taskfile", "lint", "--repo-root", dir, "--path", taskfilePath)
 	if code != appctx.ExitError {
 		t.Fatalf("expected exit %d on findings with --json, got %d (stdout=%q)", appctx.ExitError, code, stdout)
 	}
@@ -76,7 +49,7 @@ func TestTaskfileLintJSONExitCodeOnClean(t *testing.T) {
 	taskfilePath := filepath.Join(dir, "Taskfile.yml")
 	writeFile(t, taskfilePath, "version: \"3\"\ntasks:\n  foo:\n    cmds: [echo hi]\n")
 
-	code, _, _ := runArk(t, "taskfile", "lint", "--json", "--repo-root", dir, "--path", taskfilePath)
+	code, _, _ := runArk(t, "--json", "taskfile", "lint", "--repo-root", dir, "--path", taskfilePath)
 	if code != appctx.ExitSuccess {
 		t.Fatalf("expected exit 0 on clean file with --json, got %d", code)
 	}
@@ -116,13 +89,5 @@ func TestTaskfileLintExitCodeOnSchemaError(t *testing.T) {
 	}
 	if !strings.Contains(stdout, "schema-error") {
 		t.Errorf("expected stdout to contain schema-error rule id, got %q", stdout)
-	}
-}
-
-func TestResolveCodeExitErrorUnwrap(t *testing.T) {
-	// Guard: a wrapped ExitCodeError (code 1) must still resolve to 1.
-	wrapped := errors.Join(errors.New("context"), appctx.NewExitError(appctx.ExitError, ""))
-	if got := resolveCode(wrapped); got != appctx.ExitError {
-		t.Fatalf("expected %d, got %d", appctx.ExitError, got)
 	}
 }

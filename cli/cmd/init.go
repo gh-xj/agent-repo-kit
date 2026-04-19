@@ -8,16 +8,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/spf13/cobra"
-
 	"github.com/gh-xj/agent-repo-kit/cli/internal/appctx"
 	"github.com/gh-xj/agent-repo-kit/cli/internal/prompt"
 	"github.com/gh-xj/agent-repo-kit/cli/internal/scaffold"
 )
-
-func init() {
-	registerCommand("init", InitCommand())
-}
 
 // Wizard option lists match scaffold.normalizeOptions' allowlists
 // (cli/internal/scaffold/scaffold.go) and scaffold.detectProfiles
@@ -29,56 +23,39 @@ var (
 	wizardRiskOptions    = []string{"standard", "elevated", "critical"}
 )
 
-// InitCommand wires the scaffold.RunInit entry point as the top-level
-// `ark init` command.
+// InitCmd scaffolds the tracked convention contract into a repo.
 //
-// It has two modes:
-//   - Non-interactive (--non-interactive, non-TTY stdin, or any of the
-//     value flags set): the historical flag-driven path runs unchanged.
-//   - Interactive: a tiny stdlib-prompt wizard collects profiles,
-//     operations, and repo-risk, then calls scaffold.RunInit with the
-//     same Options struct.
-func InitCommand() command {
-	return command{
-		Description: "scaffold tracked convention contract into a repo",
-		Configure: func(command *cobra.Command) {
-			command.Flags().String("profiles", "", "comma-separated repo profiles (auto-detect if empty)")
-			command.Flags().String("ops", "tickets,wiki", "comma-separated operations to scaffold")
-			command.Flags().String("repo-risk", "standard", "repository risk classification")
-			command.Flags().String("repo-root", ".", "path to the repository root")
-			command.Flags().Bool("non-interactive", false, "skip wizard even when stdin is a TTY")
-		},
-		Run: func(app *appctx.AppContext, command *cobra.Command, args []string) error {
-			if len(args) != 0 {
-				return fmt.Errorf("unexpected positional args: %s", strings.Join(args, " "))
-			}
-
-			nonInteractive, _ := command.Flags().GetBool("non-interactive")
-			repoRoot, _ := command.Flags().GetString("repo-root")
-
-			if nonInteractive || !prompt.IsInteractive(os.Stdin) {
-				return runNonInteractiveInit(command, repoRoot, os.Stdout, os.Stderr)
-			}
-			return runInteractiveInit(command, repoRoot, os.Stdin, os.Stdout, os.Stderr)
-		},
-	}
+// Two modes:
+//   - Non-interactive (--batch, non-TTY stdin, or any value flag set):
+//     the flag-driven path runs unchanged.
+//   - Interactive: a stdlib-prompt wizard collects profiles, operations,
+//     and repo-risk, then calls scaffold.RunInit with the same Options.
+type InitCmd struct {
+	Profiles string `help:"comma-separated repo profiles (auto-detect if empty)"`
+	Ops      string `help:"comma-separated operations to scaffold" default:"tickets,wiki"`
+	RepoRisk string `name:"repo-risk" help:"repository risk classification" default:"standard"`
+	RepoRoot string `name:"repo-root" help:"path to the repository root" default:"."`
+	Batch    bool   `help:"skip wizard even when stdin is a TTY"`
 }
 
-func runNonInteractiveInit(command *cobra.Command, repoRoot string, stdout, stderr io.Writer) error {
-	profiles, _ := command.Flags().GetString("profiles")
-	ops, _ := command.Flags().GetString("ops")
-	repoRisk, _ := command.Flags().GetString("repo-risk")
+func (c *InitCmd) Run(globals *CLI) error {
+	if c.Batch || !prompt.IsInteractive(os.Stdin) {
+		return c.runNonInteractive(globals.stdout(), globals.stderr())
+	}
+	return c.runInteractive(os.Stdin, globals.stdout(), globals.stderr())
+}
 
+func (c *InitCmd) runNonInteractive(stdout, stderr io.Writer) error {
 	opts := scaffold.Options{
-		Profiles:   []string{profiles},
-		Operations: []string{ops},
-		RepoRisk:   repoRisk,
+		Profiles:   []string{c.Profiles},
+		Operations: []string{c.Ops},
+		RepoRisk:   c.RepoRisk,
 	}
-	return invokeScaffold(repoRoot, opts, stdout, stderr)
+	return invokeScaffold(c.RepoRoot, opts, stdout, stderr)
 }
 
-func runInteractiveInit(command *cobra.Command, repoRoot string, stdin io.Reader, stdout, stderr io.Writer) error {
-	absRoot, err := filepath.Abs(repoRoot)
+func (c *InitCmd) runInteractive(stdin io.Reader, stdout, stderr io.Writer) error {
+	absRoot, err := filepath.Abs(c.RepoRoot)
 	if err != nil {
 		return fmt.Errorf("resolve repo root: %w", err)
 	}
@@ -145,7 +122,7 @@ func runInteractiveInit(command *cobra.Command, repoRoot string, stdin io.Reader
 		Operations: ops,
 		RepoRisk:   risk,
 	}
-	if err := invokeScaffold(repoRoot, opts, stdout, stderr); err != nil {
+	if err := invokeScaffold(c.RepoRoot, opts, stdout, stderr); err != nil {
 		return err
 	}
 

@@ -2,58 +2,43 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"strings"
 
-	"github.com/spf13/cobra"
-
-	"github.com/gh-xj/agent-repo-kit/cli/internal/appctx"
 	appio "github.com/gh-xj/agent-repo-kit/cli/internal/io"
 	skillop "github.com/gh-xj/agent-repo-kit/cli/internal/skillbuilder"
 )
 
-func SkillInitCommand() command {
-	return command{
-		Description: "scaffold a skill router",
-		Configure: func(command *cobra.Command) {
-			command.Flags().String("skill-dir", "", "path to the skill directory to create")
-			command.Flags().String("name", "", "skill name for SKILL.md frontmatter")
-			command.Flags().String("description", "", "trigger-oriented skill description")
-		},
-		Run: func(app *appctx.AppContext, command *cobra.Command, args []string) error {
-			if len(args) != 0 {
-				return fmt.Errorf("unexpected positional args: %s", strings.Join(args, " "))
-			}
+// SkillInitCmd scaffolds a skill router.
+type SkillInitCmd struct {
+	SkillDir    string `name:"skill-dir" help:"path to the skill directory to create"`
+	Name        string `help:"skill name for SKILL.md frontmatter"`
+	Description string `help:"trigger-oriented skill description"`
+}
 
-			skillDir, _ := command.Flags().GetString("skill-dir")
-			name, _ := command.Flags().GetString("name")
-			description, _ := command.Flags().GetString("description")
-
-			result, err := skillop.InitSkill(skillop.InitConfig{
-				SkillDir:    skillDir,
-				Name:        name,
-				Description: description,
-			})
-			if err != nil {
-				return err
-			}
-
-			if jsonOutput, _ := app.Values["json"].(bool); jsonOutput {
-				return appio.WriteJSON(os.Stdout, map[string]any{
-					"command":    "skill init",
-					"ok":         true,
-					"skill_dir":  result.SkillDir,
-					"skill_path": result.SkillPath,
-					"created":    result.Created,
-					"cli_path":   result.CLIPath,
-				})
-			}
-
-			fmt.Fprintf(os.Stdout, "[ark skill init] created %s\n", result.SkillPath)
-			if result.CLIPath != "" {
-				fmt.Fprintf(os.Stdout, "[ark skill init] scaffolded %s\n", result.CLIPath)
-			}
-			return nil
-		},
+func (c *SkillInitCmd) Run(globals *CLI) error {
+	result, err := skillop.InitSkill(skillop.InitConfig{
+		SkillDir:    c.SkillDir,
+		Name:        c.Name,
+		Description: c.Description,
+	})
+	if err != nil {
+		return err
 	}
+
+	out := globals.stdout()
+	if globals.JSON {
+		return appio.WriteJSON(out, map[string]any{
+			"command":    "skill init",
+			"ok":         true,
+			"skill_dir":  result.SkillDir,
+			"skill_path": result.SkillPath,
+			"created":    result.Created,
+			"cli_path":   result.CLIPath,
+		})
+	}
+
+	fmt.Fprintf(out, "[ark skill init] created %s\n", result.SkillPath)
+	if result.CLIPath != "" {
+		fmt.Fprintf(out, "[ark skill init] scaffolded %s\n", result.CLIPath)
+	}
+	return nil
 }

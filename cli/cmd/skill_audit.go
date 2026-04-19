@@ -3,80 +3,68 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"os"
+	"io"
 	"sort"
-	"strings"
 
-	"github.com/spf13/cobra"
-
-	"github.com/gh-xj/agent-repo-kit/cli/internal/appctx"
 	appio "github.com/gh-xj/agent-repo-kit/cli/internal/io"
 	skillop "github.com/gh-xj/agent-repo-kit/cli/internal/skillbuilder"
 )
 
-func SkillAuditCommand() command {
-	return command{
-		Description: "audit a skill router, references, and local CLI layout",
-		Configure: func(command *cobra.Command) {
-			command.Flags().String("skill-dir", "", "path to the skill directory to audit")
-		},
-		Run: func(app *appctx.AppContext, command *cobra.Command, args []string) error {
-			if len(args) != 0 {
-				return fmt.Errorf("unexpected positional args: %s", strings.Join(args, " "))
-			}
-
-			skillDir, _ := command.Flags().GetString("skill-dir")
-
-			result, err := skillop.AuditSkill(skillop.AuditConfig{SkillDir: skillDir})
-			if err != nil {
-				return err
-			}
-
-			if jsonOutput, _ := app.Values["json"].(bool); jsonOutput {
-				if err := appio.WriteJSON(os.Stdout, map[string]any{
-					"command":          "skill audit",
-					"ok":               !result.HasErrors(),
-					"skill_dir":        result.SkillDir,
-					"skill_path":       result.SkillPath,
-					"name":             result.Name,
-					"description":      result.Description,
-					"line_count":       result.LineCount,
-					"has_cli":          result.HasCLI,
-					"referenced_files": result.Referenced,
-					"findings":         result.Findings,
-				}); err != nil {
-					return err
-				}
-			} else {
-				printAuditResult(result)
-			}
-
-			if result.HasErrors() {
-				return errors.New("skill audit failed")
-			}
-			return nil
-		},
-	}
+// SkillAuditCmd audits a skill router, references, and local CLI layout.
+type SkillAuditCmd struct {
+	SkillDir string `name:"skill-dir" help:"path to the skill directory to audit"`
 }
 
-func printAuditResult(result skillop.AuditResult) {
-	fmt.Fprintf(os.Stdout, "[ark skill audit] %s\n", result.SkillPath)
-	fmt.Fprintf(os.Stdout, "  line_count: %d\n", result.LineCount)
-	fmt.Fprintf(os.Stdout, "  has_cli: %t\n", result.HasCLI)
+func (c *SkillAuditCmd) Run(globals *CLI) error {
+	result, err := skillop.AuditSkill(skillop.AuditConfig{SkillDir: c.SkillDir})
+	if err != nil {
+		return err
+	}
+
+	out := globals.stdout()
+	if globals.JSON {
+		if err := appio.WriteJSON(out, map[string]any{
+			"command":          "skill audit",
+			"ok":               !result.HasErrors(),
+			"skill_dir":        result.SkillDir,
+			"skill_path":       result.SkillPath,
+			"name":             result.Name,
+			"description":      result.Description,
+			"line_count":       result.LineCount,
+			"has_cli":          result.HasCLI,
+			"referenced_files": result.Referenced,
+			"findings":         result.Findings,
+		}); err != nil {
+			return err
+		}
+	} else {
+		printAuditResult(out, result)
+	}
+
+	if result.HasErrors() {
+		return errors.New("skill audit failed")
+	}
+	return nil
+}
+
+func printAuditResult(out io.Writer, result skillop.AuditResult) {
+	fmt.Fprintf(out, "[ark skill audit] %s\n", result.SkillPath)
+	fmt.Fprintf(out, "  line_count: %d\n", result.LineCount)
+	fmt.Fprintf(out, "  has_cli: %t\n", result.HasCLI)
 	if result.Name != "" {
-		fmt.Fprintf(os.Stdout, "  name: %s\n", result.Name)
+		fmt.Fprintf(out, "  name: %s\n", result.Name)
 	}
 	if result.Description != "" {
-		fmt.Fprintf(os.Stdout, "  description: %s\n", result.Description)
+		fmt.Fprintf(out, "  description: %s\n", result.Description)
 	}
 	if len(result.Referenced) > 0 {
-		fmt.Fprintf(os.Stdout, "  referenced_files:\n")
+		fmt.Fprintf(out, "  referenced_files:\n")
 		for _, ref := range result.Referenced {
-			fmt.Fprintf(os.Stdout, "    - %s\n", ref)
+			fmt.Fprintf(out, "    - %s\n", ref)
 		}
 	}
 	if len(result.Findings) == 0 {
-		fmt.Fprintln(os.Stdout, "  findings: none")
+		fmt.Fprintln(out, "  findings: none")
 		return
 	}
 
@@ -88,12 +76,12 @@ func printAuditResult(result skillop.AuditResult) {
 		return findings[i].Code < findings[j].Code
 	})
 
-	fmt.Fprintf(os.Stdout, "  findings:\n")
+	fmt.Fprintf(out, "  findings:\n")
 	for _, finding := range findings {
 		if finding.Path != "" {
-			fmt.Fprintf(os.Stdout, "    - [%s] %s: %s (%s)\n", finding.Level, finding.Code, finding.Message, finding.Path)
+			fmt.Fprintf(out, "    - [%s] %s: %s (%s)\n", finding.Level, finding.Code, finding.Message, finding.Path)
 			continue
 		}
-		fmt.Fprintf(os.Stdout, "    - [%s] %s: %s\n", finding.Level, finding.Code, finding.Message)
+		fmt.Fprintf(out, "    - [%s] %s: %s\n", finding.Level, finding.Code, finding.Message)
 	}
 }
