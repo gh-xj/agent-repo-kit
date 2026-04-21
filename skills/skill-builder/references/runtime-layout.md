@@ -6,8 +6,8 @@ Use this file when the main question is where a skill belongs, what the portable
 
 | Aspect | Claude Code | Codex |
 | --- | --- | --- |
-| Personal skills | `~/.claude/skills/<name>/` | `~/.codex/skills/<name>/` |
-| Project skills | `.claude/skills/<name>/` | `.codex/skills/<name>/` |
+| Personal skills | `~/.claude/skills/<name>/` | `~/.agents/skills/<name>/` |
+| Project skills | `.claude/skills/<name>/` | `.agents/skills/<name>/` |
 | Global instructions | `~/.claude/CLAUDE.md` | `~/.codex/AGENTS.md` |
 | Invocation | `Skill` tool or slash commands | Auto-discovery by `description` |
 | Portable core | `SKILL.md`, `references/`, `scripts/`, `assets/` | `SKILL.md`, `references/`, `scripts/`, `assets/` |
@@ -16,6 +16,13 @@ Use this file when the main question is where a skill belongs, what the portable
 If another file disagrees with this table, fix the other file.
 
 ## Portable Core
+
+For managed installs, prefer the open skills CLI instead of hand-copying
+files:
+
+```bash
+npx skills add <source> -g -a claude-code -a codex --skill '*' -y
+```
 
 Portable custom skills should default to:
 
@@ -50,8 +57,8 @@ Implications:
 
 | Scope | Place It Here |
 | --- | --- |
-| Personal reusable skill | `~/.claude/skills/` and or `~/.codex/skills/` |
-| Repo-specific workflow | `.claude/skills/` and or `.codex/skills/` |
+| Personal reusable skill | `~/.claude/skills/` and/or `~/.agents/skills/` |
+| Repo-specific workflow | `.claude/skills/` and/or `.agents/skills/` |
 | Runtime-specific UI metadata | `agents/openai.yaml` or runtime-only sibling files |
 | Repo automation logic | `tools/` or `scripts/`, not the portable skill core |
 

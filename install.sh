@@ -1,25 +1,28 @@
 #!/bin/sh
-# install.sh — install agent-repo-kit into a supported harness
+# install.sh — install the ark binary for agent-repo-kit
 #
-# Default flow: download the prebuilt ark binary for your OS/arch from the
-# latest GitHub release, verify its SHA-256 checksum, install it to --prefix,
-# then shell out to `ark adapters link` to wire skill symlinks into the
-# detected harness.
+# Skill distribution is handled separately via the open `skills` CLI:
+#   npx skills add gh-xj/agent-repo-kit -g -a claude-code -a codex --skill '*' -y
+#
+# This script now owns the ark binary only. It downloads the prebuilt ark
+# binary for your OS/arch from the latest GitHub release, verifies its
+# SHA-256 checksum, and installs it to --prefix.
 #
 # Pass --from-source to build from the local checkout instead (requires Go
-# and a .git directory). Pass --skip-symlinks to install the binary only.
+# and a .git directory).
 
 set -eu
 
 DIR=$(cd "$(dirname "$0")" && pwd)
-TARGET=""
 DRY_RUN=0
 FROM_SOURCE=0
-SKIP_SYMLINKS=0
 PREFIX="$HOME/.local/bin"
-MANIFEST="$DIR/adapters/manifest.json"
 RELEASE_OWNER="gh-xj"
 RELEASE_REPO="agent-repo-kit"
+SKILLS_SOURCE="gh-xj/agent-repo-kit"
+TARGET=""
+SKIP_SYMLINKS=0
+MANIFEST=""
 
 # Colored level prefixes when stderr is a TTY and NO_COLOR is unset.
 # Matches the tint-backed slog output the Go side emits, so `install.sh`
@@ -51,16 +54,18 @@ usage() {
 Usage: ./install.sh [options]
 
 Options:
-  --target <name>     install target: claude-code or none (auto-detected)
   --prefix <dir>      binary install directory (default: ~/.local/bin)
-  --manifest <path>   adapter manifest (default: <repo>/adapters/manifest.json)
   --from-source       build ark from local checkout instead of downloading
-  --skip-symlinks     install binary only; skip the adapter link step
   --dry-run           preview actions without making changes
+  --target <name>     deprecated no-op; use `npx skills add ...` for skills
+  --manifest <path>   deprecated no-op; use `npx skills add ...` for skills
+  --skip-symlinks     deprecated no-op; skill wiring moved to `npx skills`
   -h, --help          show this message and exit
 
 Default behavior:
-  - Auto-detect target: ~/.claude/skills exists -> claude-code, else none.
+  - Install only the `ark` binary.
+  - Install skills separately with:
+      npx skills add gh-xj/agent-repo-kit -g -a claude-code -a codex --skill '*' -y
   - Strategy: if --from-source, or (go on PATH AND .git present) -> source
               else -> download latest release archive and verify checksum.
 EOF
@@ -70,9 +75,9 @@ while [ $# -gt 0 ]; do
     case "$1" in
         --target=*)   TARGET="${1#*=}";   shift ;;
         --prefix=*)   PREFIX="${1#*=}";   [ -n "$PREFIX" ]   || die "empty --prefix";   shift ;;
-        --manifest=*) MANIFEST="${1#*=}"; [ -n "$MANIFEST" ] || die "empty --manifest"; shift ;;
         --target)     [ $# -ge 2 ] || die "missing value for --target";   TARGET="$2";   shift 2 ;;
         --prefix)     [ $# -ge 2 ] && [ -n "$2" ] || die "missing value for --prefix";   PREFIX="$2";   shift 2 ;;
+        --manifest=*) MANIFEST="${1#*=}"; [ -n "$MANIFEST" ] || die "empty --manifest"; shift ;;
         --manifest)   [ $# -ge 2 ] && [ -n "$2" ] || die "missing value for --manifest"; MANIFEST="$2"; shift 2 ;;
         --from-source)   FROM_SOURCE=1;   shift ;;
         --skip-symlinks) SKIP_SYMLINKS=1; shift ;;
@@ -97,17 +102,6 @@ detect_arch() {
         *) die "unsupported arch: $(uname -m)" ;;
     esac
 }
-
-# auto-detect target
-if [ -z "$TARGET" ]; then
-    if [ -d "$HOME/.claude/skills" ]; then
-        TARGET="claude-code"
-    elif [ -d "$HOME/.codex/skills" ] || [ -d "$HOME/.agents/skills" ]; then
-        TARGET="codex"
-    else
-        TARGET="none"
-    fi
-fi
 
 resolve_strategy() {
     if [ "$FROM_SOURCE" -eq 1 ]; then
@@ -184,55 +178,43 @@ install_binary() {
     run "chmod +x \"$PREFIX/ark\""
 }
 
-link_adapters() {
+warn_deprecated_flags() {
+    used=0
+    if [ -n "$TARGET" ]; then
+        warn "--target is deprecated and now ignored: skill installation moved to \`npx skills add\`"
+        used=1
+    fi
+    if [ -n "$MANIFEST" ]; then
+        warn "--manifest is deprecated and now ignored: skill installation moved to \`npx skills add\`"
+        used=1
+    fi
     if [ "$SKIP_SYMLINKS" -eq 1 ]; then
-        log "skipping adapter link step (--skip-symlinks)"
-        return 0
+        warn "--skip-symlinks is deprecated and now ignored: install.sh no longer wires skills"
+        used=1
     fi
-    if [ "$TARGET" = none ]; then
-        return 0
+    if [ "$used" -eq 1 ]; then
+        warn "install skills separately with: npx skills add $SKILLS_SOURCE -g -a claude-code -a codex --skill '*' -y"
     fi
-    ARK_BIN=$(command -v ark 2>/dev/null || true)
-    [ -n "$ARK_BIN" ] || ARK_BIN="$PREFIX/ark"
-    if [ "$DRY_RUN" -eq 0 ] && [ ! -x "$ARK_BIN" ]; then
-        die "ark binary not found at $ARK_BIN"
-    fi
-    dry_flag=""
-    [ "$DRY_RUN" -eq 1 ] && dry_flag=" --dry-run"
-    log "wiring skills" "target=$TARGET"
-    run "\"$ARK_BIN\" adapters link --target \"$TARGET\" --manifest \"$MANIFEST\" --repo-root \"$DIR\"$dry_flag"
 }
 
 main() {
     detect_os
     detect_arch
     resolve_strategy
-    log "starting install" "os=$OS arch=$ARCH target=$TARGET strategy=$STRATEGY prefix=$PREFIX"
+    log "starting install" "os=$OS arch=$ARCH strategy=$STRATEGY prefix=$PREFIX"
     install_binary
-
-    case "$TARGET" in
-        claude-code)
-            link_adapters
-            log "install complete" "binary=$PREFIX/ark"
-            log "restart Claude Code to pick up the skills"
-            ;;
-        none)
-            cat <<EOF
-No harness detected (or --target none). To adopt manually:
+    warn_deprecated_flags
+    cat <<EOF
+Next steps:
 
   1. Ensure $PREFIX is on PATH (or copy ark onto PATH yourself).
-  2. Scaffold the tracked contract into your repo:
+  2. Install skills with the open skills CLI:
+       npx skills add $SKILLS_SOURCE -g -a claude-code -a codex --skill '*' -y
+  3. Scaffold the tracked contract into your repo:
        ark init --repo-root /path/to/your-repo
-  3. Read convention-engineering/ and convention-evaluator/ for the
-     full convention and scoring surfaces.
   4. In the target repo, run: task verify
 EOF
-            log "install complete" "binary=$PREFIX/ark"
-            ;;
-        *)
-            die "unknown target: $TARGET (expected claude-code|none)"
-            ;;
-    esac
+    log "install complete" "binary=$PREFIX/ark"
 }
 
 main

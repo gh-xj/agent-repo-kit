@@ -46,6 +46,6 @@ Do not treat extra frontmatter fields as the shared default for portable Claude/
 | Changes not reflected      | Session cache or stale managed copy | Restart Claude Code or Codex, then re-materialize managed copies if this runtime is repo-managed |
 | File not read              | Not referenced         | Add explicit read instruction in SKILL.md |
 | SKILL.md too long          | Too much detail        | Move to `references/` files               |
-| Skill works in Claude Code but not Codex | Wrong path or weak trigger wording | Verify the Codex copy exists under `~/.codex/skills/<name>/` and make the `description` more trigger-specific |
+| Skill works in Claude Code but not Codex | Wrong path or weak trigger wording | Verify the Codex copy exists under `.agents/skills/<name>/SKILL.md` or `~/.agents/skills/<name>/SKILL.md`; `npx skills ls` can confirm managed installs but may omit manual maintainer symlinks. Then make the `description` more trigger-specific |
 | Codex ignores skill        | Description not specific enough | Codex relies solely on description for auto-activation — add explicit trigger phrases |
 | Skill works in Codex but not Claude Code | Not in Claude's skill path | Verify `~/.claude/skills/<name>/SKILL.md` exists |

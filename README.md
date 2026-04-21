@@ -9,9 +9,9 @@
 `agent-repo-kit` is a drop-in set of repo conventions and tooling for
 AI-agent-assisted development. The convention surfaces are
 **harness-agnostic** and can be adopted from any editor or agent runtime.
-This repo ships installable adapters for `claude-code` and `codex`;
-`cursor/` remains placeholder adapter docs. The kit gives any repo three
-things out of the box:
+This repo ships canonical open-skill surfaces plus thin compatibility
+adapters for `claude-code` and `codex`; `cursor/` remains placeholder
+adapter docs. The kit gives any repo three things out of the box:
 
 1. A flat-file **work tracker** (`.tickets/`) — state machine, verb surface,
    Taskfile.
@@ -22,15 +22,23 @@ things out of the box:
 
 ## Install
 
-One-liner (default: Claude Code, prebuilt binary, `~/.local/bin`):
+Install the skills:
+
+```bash
+npx skills add gh-xj/agent-repo-kit -g -a claude-code -a codex --skill '*' -y
+```
+
+This step requires Node.js so `npx` is available.
+
+Install the `ark` binary (prebuilt by default, `~/.local/bin`):
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/gh-xj/agent-repo-kit/main/install.sh | sh
 ```
 
-This downloads the prebuilt `ark` binary for your OS/arch from the latest
-GitHub Release, installs it to `~/.local/bin/ark`, then wires the skill
-directories into your harness via `ark adapters link`.
+`npx skills` installs the canonical repo skills under the supported agent
+runtime roots. `install.sh` now installs only the `ark` binary from the
+latest GitHub Release into `~/.local/bin/ark`.
 
 ### From source
 
@@ -55,8 +63,8 @@ sure the chosen prefix is on your `PATH`.
 Other useful flags:
 
 ```bash
-./install.sh --target claude-code   # override harness auto-detect
-./install.sh --skip-symlinks        # install binary only; skip harness wiring
+./install.sh --prefix /usr/local/bin
+./install.sh --from-source
 ./install.sh --dry-run              # preview without changes
 ```
 
@@ -66,20 +74,51 @@ Other useful flags:
 ark upgrade
 ```
 
-`ark upgrade` auto-detects how it was installed: if the binary lives
-inside a git clone it runs `git pull` + rebuild; otherwise it downloads
-the latest release archive and replaces itself in place.
+`ark upgrade` upgrades only the `ark` binary. If the binary lives inside
+a git clone it runs `git pull` + rebuild; otherwise it downloads the
+latest release archive and replaces itself in place.
+
+Refresh installed skills separately with `npx skills update -g`, or re-run
+the `npx skills add gh-xj/agent-repo-kit ...` command above.
 
 ### Supported harnesses
 
-- **claude-code** — auto-detected when `~/.claude/skills` exists; symlinks
-  the convention skills under that directory.
-- **codex** — skill root `~/.codex/skills`; pass `--target codex` to
-  select it explicitly.
+- **claude-code** — install with
+  `npx skills add gh-xj/agent-repo-kit -g -a claude-code --skill '*' -y`
+- **codex** — install with
+  `npx skills add gh-xj/agent-repo-kit -g -a codex --skill '*' -y`
 
-`adapters/manifest.json` is the single source of truth for which skills
-get linked into which harness. Pass `--target <name>` to `install.sh` or
-`ark upgrade` to override auto-detection.
+`adapters/manifest.json` and `ark adapters link` remain available as a
+low-level compatibility path for local or legacy symlink workflows. They
+are no longer the recommended end-user install path.
+
+### Maintainer Setup
+
+If you are actively editing this repo's `skills/` sources, prefer the local
+symlink workflow over `npx skills add /path/to/repo ...`.
+
+Why: installing from a local filesystem path with `npx skills add` copies the
+skill directories into the managed runtime roots. That is useful for smoke
+tests and release verification, but edits in your checkout do not live-update
+the installed skills.
+
+For day-to-day maintenance from a local clone, run:
+
+```bash
+task skills:link-dev
+```
+
+That helper:
+
+- symlinks the six shipped repo skills into `~/.agents/skills/`
+- symlinks Claude entries from `~/.claude/skills/` to `~/.agents/skills/`
+- does not modify `~/.codex/skills/`, which can keep runtime-owned entries
+  such as `.system`
+
+After linking, restart Codex and Claude Code so they rescan the skill roots.
+Manual maintainer symlinks may not appear in `npx skills ls`; validate them
+by checking the filesystem directly (for example
+`~/.agents/skills/<name>/SKILL.md`).
 
 ## Bootstrap A Repo
 
@@ -102,7 +141,7 @@ task verify
 
 Prerequisites:
 
-- `ark` on `PATH` (installed by `./install.sh`) for bootstrap and convention checks
+- `ark` on `PATH` (installed by `./install.sh` or built from source) for bootstrap and convention checks
 - `task`, `bash`, and standard Unix tools for `task verify`
 
 ## What you get
@@ -122,7 +161,7 @@ Prerequisites:
 - **`examples/demo-repo/`** — a working repo showing `.tickets/` + `.wiki/`
   adoption end to end, wired to CI.
 - **`adapters/`** — thin wrappers that expose `skills/` to a specific
-  harness. `claude-code/` and `codex/` are shipped as install targets
+  harness. `claude-code/` and `codex/` are shipped as compatibility targets
   (see `adapters/manifest.json`); `cursor/` is placeholder docs today.
 
 ## Quick example

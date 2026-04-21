@@ -5,3 +5,12 @@ includes:
     taskfile: .convention-engineering/Taskfile.yml
     dir: .convention-engineering
     flatten: true
+
+tasks:
+  skills:link-dev:
+    desc: Symlink the shipped repo skills into ~/.agents/skills and ~/.claude/skills for local maintenance
+    preconditions:
+      - sh: test -x "{{.TASKFILE_DIR}}/scripts/link-dev-skills.sh"
+        msg: "scripts/link-dev-skills.sh is missing or not executable"
+    cmds:
+      - "{{.TASKFILE_DIR}}/scripts/link-dev-skills.sh"

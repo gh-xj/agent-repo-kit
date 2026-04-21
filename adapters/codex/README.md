@@ -1,44 +1,57 @@
 # adapters/codex/
 
-No packaged Codex adapter is shipped yet — `install.sh` does not accept
-`--target codex`. The section below is the manual-adoption recipe so a
-Codex user can consume the repo-root skill surfaces without waiting for
-a packaged adapter.
-
-## Manual adoption
-
-Codex discovers skills under `~/.agents/skills/<skill>/SKILL.md`. The
-pattern is identical to the Claude Code adapter under
-`../claude-code/`, minus the YAML frontmatter block (Codex reads the
-skill name from the directory and the description from the body).
+Prefer the open skills CLI for Codex installs:
 
 ```sh
-# 1. Clone the kit and build ark (skip build if you already have it).
+npx skills add gh-xj/agent-repo-kit -g -a codex --skill '*' -y
+```
+
+That installs the canonical skill directories under [`skills/`](../../skills)
+using the runtime's supported layout. Restart Codex after install so it picks
+up the new skills.
+
+## Maintainer Development Flow
+
+If you are actively editing this repo's `skills/` sources from a local clone,
+prefer the maintainer symlink workflow:
+
+```sh
+task skills:link-dev
+```
+
+That keeps the repo checkout as the live source of truth by:
+
+- linking the six shipped repo skills into `~/.agents/skills/`
+- linking Claude compatibility entries from `~/.claude/skills/` to the shared
+  `~/.agents/skills/` roots
+- leaving `~/.codex/skills/` untouched, so runtime-owned entries such as
+  `.system` remain separate
+
+Restart Codex after linking so it rescans the skill root. Manual maintainer
+symlinks may not appear in `npx skills ls`; verify the installed paths
+directly if you need to confirm the layout.
+
+## Legacy Low-Level Flow
+
+If you are working from a local checkout and explicitly want the repo's
+low-level linker instead of `npx skills`, build `ark` and run:
+
+```sh
 git clone https://github.com/gh-xj/agent-repo-kit.git
 cd agent-repo-kit
 (cd cli && go build -o bin/ark .)
-
-# 2. Symlink each repo-root skill surface into ~/.agents/skills/.
-mkdir -p ~/.agents/skills
-for name in convention-engineering convention-evaluator skill-builder; do
-  ln -sf "$PWD/$name" "$HOME/.agents/skills/$name"
-done
-
-# 3. Restart your Codex session to pick them up.
+./bin/ark adapters link --target codex --repo-root "$PWD"
 ```
 
-The manifest at `../../.agent-repo-kit.json` already declares Codex
-targets under `adapters/codex/` — running `ark skill sync` regenerates
-those files. If you want frontmatter-free copies that do not rely on
-the symlinked directory layout, render them explicitly and copy the
-`adapters/codex/<skill>/SKILL.md` files into place.
+That path is mainly for legacy compatibility workflows. The adapter files in
+this directory are generated compatibility mirrors; they are not the primary
+skill source.
 
-## Guardrails for a future packaged adapter
+## Guardrails
 
-- Keep adapter files thin. They point at the skill surfaces under
-  `skills/` rather than duplicating content.
-- Do not introduce Codex-specific skill authoring rules here — those
-  belong in the portable `skills/skill-builder/` skill.
-- When wiring a new skill into this adapter, add a link entry to
-  `adapters/manifest.json` so `ark adapters link --target codex` picks
-  it up automatically.
+- Keep adapter files thin. They point at the skill surfaces under `skills/`
+  rather than duplicating content.
+- Do not introduce Codex-specific skill authoring rules here — those belong
+  in the portable `skills/skill-builder/` skill.
+- When wiring a new skill into this adapter, keep `adapters/manifest.json`
+  aligned so `ark adapters link --target codex` stays functional.
