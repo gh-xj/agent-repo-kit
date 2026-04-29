@@ -3,8 +3,11 @@ package workcli
 import (
 	"fmt"
 	"io"
+	"path/filepath"
 	"reflect"
 	"strings"
+
+	"github.com/gh-xj/agent-repo-kit/cli/internal/work"
 
 	appio "github.com/gh-xj/agent-repo-kit/cli/internal/io"
 )
@@ -81,4 +84,15 @@ func fieldString(value any, names ...string) string {
 		}
 	}
 	return ""
+}
+
+func workspacePayload(storePath string, item work.WorkItem) map[string]any {
+	if strings.TrimSpace(item.Type) == "" || strings.TrimSpace(item.ID) == "" {
+		return nil
+	}
+	return map[string]any{
+		"path":       filepath.Join(storePath, "spaces", item.ID),
+		"type":       item.Type,
+		"scaffolded": true,
+	}
 }

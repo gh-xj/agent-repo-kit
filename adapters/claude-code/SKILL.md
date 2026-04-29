@@ -1,6 +1,6 @@
 ---
 name: convention-engineering
-description: "Use when auditing or bootstrapping repo conventions: agent docs, docs taxonomy, verification gates, layer boundaries, dependency hygiene, repo-local skill placement, work tracker (.work/), or optional wiki (.wiki/). Triggers: init work, new work item, work inbox, work triage, work status, work view, init wiki, ingest source, wiki lint, knowledge base, scaffold repo conventions."
+description: "Use when changing or evaluating repo convention surfaces: agent docs, docs taxonomy, verification gates, layer boundaries, dependency hygiene, repo-local skill placement, `.work/` layout or CLI contract, `.work` migration docs, or `.wiki/` rules. Do not use for general product naming, domain architecture, or one-off work discussion unless a convention file, tracker layout, CLI contract, migration path, or verification gate is being changed or evaluated."
 ---
 
 <!-- agent-repo-kit:skill-sync — do not edit; regenerate with `ark skill sync` -->
@@ -28,6 +28,16 @@ Not owned:
 - Domain-specific architecture knowledge (stays in domain-specific references).
 - Build system internals (repo-specific).
 - Product behavior decisions.
+
+## Trigger Discipline
+
+Use this skill strongly when the request changes or evaluates convention files,
+`.work/` layout, work CLI contract, migration docs, `.wiki/` rules, or
+verification gates.
+
+Use this skill lightly, or skip it, for naming/product philosophy questions when
+no convention surface is being changed. In those cases, prefer product research
+or local implementation context and treat this skill only as background.
 
 ## Routing Table
 

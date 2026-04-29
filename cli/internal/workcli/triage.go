@@ -14,6 +14,7 @@ type TriageCmd struct {
 type TriageAcceptCmd struct {
 	ID          string   `arg:"" help:"inbox item id"`
 	Title       string   `help:"work item title override"`
+	Type        string   `help:"work type id"`
 	Description string   `help:"work item description override"`
 	Status      string   `help:"initial work status" enum:"ready,active,blocked,done,cancelled" default:"ready"`
 	Priority    string   `help:"priority label"`
@@ -30,6 +31,7 @@ func (c *TriageAcceptCmd) Run(globals *CLI) error {
 		ID: c.ID,
 		Options: work.AcceptInboxOptions{
 			Title:       c.Title,
+			Type:        c.Type,
 			Description: c.Description,
 			Status:      work.WorkStatus(c.Status),
 			Priority:    c.Priority,
@@ -42,10 +44,14 @@ func (c *TriageAcceptCmd) Run(globals *CLI) error {
 	}
 	out := globals.stdout()
 	if globals.JSON {
-		return emitJSON(out, map[string]any{
+		payload := map[string]any{
 			"store": globals.Store,
 			"item":  item,
-		})
+		}
+		if workspace := workspacePayload(globals.Store, item); workspace != nil {
+			payload["workspace"] = workspace
+		}
+		return emitJSON(out, payload)
 	}
 	if id := fieldString(item, "ID", "Id"); id != "" {
 		_, err = fmt.Fprintf(out, "accepted %s\n", id)

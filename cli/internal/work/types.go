@@ -53,6 +53,7 @@ type InboxItemInput struct {
 type WorkItem struct {
 	ID            string            `yaml:"id" json:"id"`
 	Title         string            `yaml:"title" json:"title"`
+	Type          string            `yaml:"type,omitempty" json:"type,omitempty"`
 	Description   string            `yaml:"description,omitempty" json:"description,omitempty"`
 	Status        WorkStatus        `yaml:"status" json:"status"`
 	Priority      string            `yaml:"priority,omitempty" json:"priority,omitempty"`
@@ -67,6 +68,7 @@ type WorkItem struct {
 // WorkItemInput describes a work item to create.
 type WorkItemInput struct {
 	Title         string
+	Type          string
 	Description   string
 	Status        WorkStatus
 	Priority      string
@@ -79,6 +81,7 @@ type WorkItemInput struct {
 // AcceptInboxOptions controls how an inbox item becomes a work item.
 type AcceptInboxOptions struct {
 	Title       string
+	Type        string
 	Description string
 	Status      WorkStatus
 	Priority    string

@@ -21,7 +21,7 @@ task skills:link-dev
 
 That keeps the repo checkout as the live source of truth by:
 
-- linking the six shipped repo skills into `~/.agents/skills/`
+- linking every `skills/*/SKILL.md` repo skill into `~/.agents/skills/`
 - linking Claude compatibility entries from `~/.claude/skills/` to the shared
   `~/.agents/skills/` roots
 - leaving `~/.codex/skills/` untouched, so runtime-owned entries such as

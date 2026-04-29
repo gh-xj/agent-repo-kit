@@ -91,9 +91,7 @@
     "docs/planning/README.md",
     "docs/plans/README.md",
     "docs/implementation/README.md",
-    "docs/taxonomy/README.md",
-    ".work/.gitignore",
-    ".work/config.yaml"
+    "docs/taxonomy/README.md"
   ],
   "taskfile_checks": {
     ".convention-engineering/Taskfile.yml": [

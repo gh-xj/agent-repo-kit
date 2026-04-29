@@ -24,6 +24,16 @@ Not owned:
 - Build system internals (repo-specific).
 - Product behavior decisions.
 
+## Trigger Discipline
+
+Use this skill strongly when the request changes or evaluates convention files,
+`.work/` layout, work CLI contract, migration docs, `.wiki/` rules, or
+verification gates.
+
+Use this skill lightly, or skip it, for naming/product philosophy questions when
+no convention surface is being changed. In those cases, prefer product research
+or local implementation context and treat this skill only as background.
+
 ## Routing Table
 
 ### Core Patterns

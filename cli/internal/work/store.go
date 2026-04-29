@@ -120,7 +120,7 @@ func (s *Store) Init() error {
 			}
 		}
 
-		return nil
+		return s.installBuiltinWorkTypes()
 	})
 }
 
@@ -238,6 +238,7 @@ func (s *Store) AcceptInboxItem(id string, opts AcceptInboxOptions) (WorkItem, e
 		labels := mergeStrings(inbox.Labels, opts.Labels)
 		input := WorkItemInput{
 			Title:         title,
+			Type:          opts.Type,
 			Description:   description,
 			Status:        opts.Status,
 			Priority:      opts.Priority,
@@ -338,6 +339,17 @@ func (s *Store) createWorkItemLocked(input WorkItemInput) (WorkItem, error) {
 	if title == "" {
 		return WorkItem{}, errors.New("work item title is required")
 	}
+	workType, err := normalizeWorkType(input.Type)
+	if err != nil {
+		return WorkItem{}, err
+	}
+	var manifest workTypeManifest
+	if workType != "" {
+		manifest, err = s.readWorkTypeManifest(workType)
+		if err != nil {
+			return WorkItem{}, err
+		}
+	}
 	status := input.Status
 	if status == "" {
 		status = WorkStatusReady
@@ -347,10 +359,16 @@ func (s *Store) createWorkItemLocked(input WorkItemInput) (WorkItem, error) {
 	if err != nil {
 		return WorkItem{}, err
 	}
+	if workType != "" {
+		if _, err := s.createWorkItemSpaceLocked(id, manifest); err != nil {
+			return WorkItem{}, err
+		}
+	}
 	now := s.timestamp()
 	item := WorkItem{
 		ID:            id,
 		Title:         title,
+		Type:          workType,
 		Description:   strings.TrimSpace(input.Description),
 		Status:        status,
 		Priority:      strings.TrimSpace(input.Priority),
@@ -362,6 +380,9 @@ func (s *Store) createWorkItemLocked(input WorkItemInput) (WorkItem, error) {
 		UpdatedAt:     now,
 	}
 	if err := writeNewYAMLFile(s.workItemPath(id), item); err != nil {
+		if workType != "" {
+			_ = os.RemoveAll(s.workItemSpacePath(id))
+		}
 		return WorkItem{}, err
 	}
 	return item, nil
@@ -737,6 +758,14 @@ func (s *Store) itemsDir() string {
 	return filepath.Join(s.root, "items")
 }
 
+func (s *Store) workTypesDir() string {
+	return filepath.Join(s.root, "types")
+}
+
+func (s *Store) spacesDir() string {
+	return filepath.Join(s.root, "spaces")
+}
+
 func (s *Store) lockPath() string {
 	return filepath.Join(s.root, ".lock")
 }
@@ -747,6 +776,10 @@ func (s *Store) inboxPath(id string) string {
 
 func (s *Store) workItemPath(id string) string {
 	return filepath.Join(s.itemsDir(), id+".yaml")
+}
+
+func (s *Store) workItemSpacePath(id string) string {
+	return filepath.Join(s.spacesDir(), id)
 }
 
 func cloneStrings(in []string) []string {

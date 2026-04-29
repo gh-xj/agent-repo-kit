@@ -112,7 +112,7 @@ task skills:link-dev
 
 That helper:
 
-- symlinks the six shipped repo skills into `~/.agents/skills/`
+- symlinks every `skills/*/SKILL.md` repo skill into `~/.agents/skills/`
 - symlinks Claude entries from `~/.claude/skills/` to `~/.agents/skills/`
 - does not modify `~/.codex/skills/`, which can keep runtime-owned entries
   such as `.system`

@@ -94,7 +94,7 @@ func TestExecuteTriageAcceptMapsID(t *testing.T) {
 	fake, restore := installFakeStore(t)
 	defer restore()
 
-	code, _, stderr := runWork(t, "triage", "accept", "inbox-1")
+	code, _, stderr := runWork(t, "triage", "accept", "inbox-1", "--type", "research")
 	if code != appctx.ExitSuccess {
 		t.Fatalf("expected exit 0, got %d (stderr=%q)", code, stderr)
 	}
@@ -104,13 +104,16 @@ func TestExecuteTriageAcceptMapsID(t *testing.T) {
 	if fake.acceptInput.ID != "inbox-1" {
 		t.Fatalf("expected inbox id to be mapped, got %#v", fake.acceptInput)
 	}
+	if fake.acceptInput.Options.Type != "research" {
+		t.Fatalf("expected type to be mapped, got %#v", fake.acceptInput)
+	}
 }
 
 func TestExecuteNewMapsTitle(t *testing.T) {
 	fake, restore := installFakeStore(t)
 	defer restore()
 
-	code, _, stderr := runWork(t, "new", "ship v0")
+	code, _, stderr := runWork(t, "new", "ship v0", "--type", "research")
 	if code != appctx.ExitSuccess {
 		t.Fatalf("expected exit 0, got %d (stderr=%q)", code, stderr)
 	}
@@ -119,6 +122,9 @@ func TestExecuteNewMapsTitle(t *testing.T) {
 	}
 	if fake.createInput.Title != "ship v0" {
 		t.Fatalf("expected title to be mapped, got %#v", fake.createInput)
+	}
+	if fake.createInput.Type != "research" {
+		t.Fatalf("expected type to be mapped, got %#v", fake.createInput)
 	}
 }
 

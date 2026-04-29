@@ -155,6 +155,11 @@ func scaffoldTrackedRepo(root, repoName string, opts Options) error {
 	if err := ensureWork(root, hasOperation(opts.Operations, "work")); err != nil {
 		return err
 	}
+	if hasOperation(opts.Operations, "work") {
+		if err := ensureGitignorePattern(root, "/.work"); err != nil {
+			return err
+		}
+	}
 	if err := ensureWiki(root, hasOperation(opts.Operations, "wiki")); err != nil {
 		return err
 	}

@@ -12,6 +12,11 @@ tasks:
     cmds:
       - go run -C cli ./cmd/work --store ../.work {{.CLI_ARGS}}
 
+  work:qa:
+    desc: Run black-box QA against the source work CLI
+    cmds:
+      - go run ./.codex/skills/work-cli-qa/cli/main.go --repo-root . {{.CLI_ARGS}}
+
   skills:link-dev:
     desc: Symlink the shipped repo skills into ~/.agents/skills and ~/.claude/skills for local maintenance
     preconditions:

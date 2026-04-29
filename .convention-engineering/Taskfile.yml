@@ -4,13 +4,8 @@ tasks:
   work:check:
     desc: Validate the repo work tracker store
     cmds:
-      - test -f ../.work/config.yaml
-      - |
-        if [ -x ../cli/bin/work ]; then
-          ../cli/bin/work --store ../.work view ready --json >/dev/null
-        else
-          go run -C ../cli ./cmd/work --store ../.work view ready --json >/dev/null
-        fi
+      - go run -C ../cli ./cmd/work --store ../.work init >/dev/null
+      - go run -C ../cli ./cmd/work --store ../.work view ready --json >/dev/null
 
   check:conventions:
     desc: Validate the tracked convention contract

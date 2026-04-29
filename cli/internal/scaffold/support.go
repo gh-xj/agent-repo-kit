@@ -20,6 +20,29 @@ func ensureConventionSupportFiles(root, sourceRoot string, opts Options) error {
 	return nil
 }
 
+func ensureGitignorePattern(root string, pattern string) error {
+	path := filepath.Join(root, ".gitignore")
+	content, err := os.ReadFile(path)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			return err
+		}
+		return os.WriteFile(path, []byte(pattern+"\n"), 0o644)
+	}
+
+	text := string(content)
+	for _, line := range strings.Split(text, "\n") {
+		if strings.TrimSpace(line) == pattern {
+			return nil
+		}
+	}
+	if text != "" && !strings.HasSuffix(text, "\n") {
+		text += "\n"
+	}
+	text += pattern + "\n"
+	return os.WriteFile(path, []byte(text), 0o644)
+}
+
 func renderConventionCheckScript(sourceRoot string) string {
 	// sourceRoot is preserved as a "go run" fallback for development
 	// setups where ark is not yet built/installed. At runtime the
@@ -83,12 +106,12 @@ func renderConventionTaskfile(opts Options) string {
 			"  work:check:",
 			"    desc: Validate the repo work tracker store",
 			"    cmds:",
-			"      - test -f ../.work/config.yaml",
 			"      - |",
 			"        if command -v work >/dev/null 2>&1; then",
+			"          work --store ../.work init >/dev/null",
 			"          work --store ../.work view ready --json >/dev/null",
 			"        else",
-			"          echo \"work binary not found; checked .work files only\"",
+			"          echo \"work binary not found; skipping .work runtime check\"",
 			"        fi",
 			"",
 		)
@@ -251,7 +274,7 @@ func renderAgentConventionBlock(opts Options) string {
 	if hasOperation(opts.Operations, "work") {
 		lines = append(lines,
 			"- **Work** — local-first work tracker at `.work/`. The repo-local CLI is",
-			"  exposed through `task work -- ...`; canonical state lives in",
+			"  exposed through `task work -- ...`; local state lives in the ignored",
 			"  `.work/config.yaml` and `.work/items/*.yaml`. Daily commands:",
 			"  `task work -- inbox`, `task work -- inbox add \"title\"`, `task work -- triage accept IN-0001`,",
 			"  `task work -- view ready`, and `task work -- show W-0001`.",

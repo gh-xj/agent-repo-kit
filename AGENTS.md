@@ -77,6 +77,12 @@ task verify      # repo conventions and work tracker
 task -d cli ci   # CLI lint, tests, build, and smoke checks
 ```
 
+The `work-cli-qa` project skill is a self-evolving release gate for this
+repo's source `work` CLI. When a chaotic workflow, regression, or missing
+scenario appears, enrich the skill playbook, encode deterministic checks in its
+harness, run and evaluate the QA ledger, and refine until the new scenario
+passes.
+
 CI runs CLI checks and demo convention checks on every push and PR (see
 `.github/workflows/ci.yml`).
 
@@ -86,7 +92,7 @@ CI runs CLI checks and demo convention checks on every push and PR (see
 - **Docs** — tracked repo docs live under `docs/` using the `requests/`,
   `planning/`, `plans/`, `implementation/`, and `taxonomy/` folders.
 - **Work** — local-first work tracker at `.work/`. The repo-local CLI is
-  exposed through `task work -- ...`; canonical state lives in
+  exposed through `task work -- ...`; local state lives in the ignored
   `.work/config.yaml` and `.work/items/*.yaml`. Daily commands:
   `task work -- inbox`, `task work -- inbox add "title"`, `task work -- triage accept IN-0001`,
   `task work -- view ready`, and `task work -- show W-0001`.

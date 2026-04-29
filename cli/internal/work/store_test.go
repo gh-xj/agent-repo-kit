@@ -25,10 +25,21 @@ func TestInitCreatesLocalFirstLayout(t *testing.T) {
 		"config.yaml",
 		"inbox",
 		"items",
+		"types",
+		"types/research/type.yaml",
+		"types/research/scaffold/README.md",
+		"types/research/scaffold/RULES.md",
+		"types/research/scaffold/notes.md",
+		"types/research/scaffold/findings.md",
+		"types/research/scaffold/raw/.keep",
+		"types/research/scaffold/pages/.keep",
 	} {
 		if _, err := os.Stat(filepath.Join(store.Root(), rel)); err != nil {
 			t.Fatalf("expected %s to exist: %v", rel, err)
 		}
+	}
+	if _, err := os.Stat(filepath.Join(store.Root(), "spaces")); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("expected spaces to be created lazily, got %v", err)
 	}
 	gitignore, err := os.ReadFile(filepath.Join(store.Root(), ".gitignore"))
 	if err != nil {
@@ -36,6 +47,36 @@ func TestInitCreatesLocalFirstLayout(t *testing.T) {
 	}
 	if !bytes.Contains(gitignore, []byte(".lock")) || !bytes.Contains(gitignore, []byte(".*.tmp")) {
 		t.Fatalf("expected .work/.gitignore to ignore lock and temp paths, got:\n%s", gitignore)
+	}
+	readme, err := os.ReadFile(filepath.Join(store.Root(), "types/research/scaffold/README.md"))
+	if err != nil {
+		t.Fatalf("read research README: %v", err)
+	}
+	if !bytes.Contains(readme, []byte("Scaffold version: 1")) {
+		t.Fatalf("expected research README to include scaffold version, got:\n%s", readme)
+	}
+}
+
+func TestInitDoesNotOverwriteExistingResearchType(t *testing.T) {
+	store := newTestStore(t)
+	customPath := filepath.Join(store.Root(), "types", "research", "type.yaml")
+	if err := os.MkdirAll(filepath.Dir(customPath), 0o755); err != nil {
+		t.Fatalf("mkdir custom research type: %v", err)
+	}
+	custom := []byte("schema_version: 1\nid: research\ndescription: Custom research\n")
+	if err := os.WriteFile(customPath, custom, 0o644); err != nil {
+		t.Fatalf("write custom research type: %v", err)
+	}
+
+	if err := store.Init(); err != nil {
+		t.Fatalf("Init() error = %v", err)
+	}
+	got, err := os.ReadFile(customPath)
+	if err != nil {
+		t.Fatalf("read custom research type: %v", err)
+	}
+	if !bytes.Equal(got, custom) {
+		t.Fatalf("expected Init not to overwrite custom research type, got:\n%s", got)
 	}
 }
 
@@ -195,6 +236,118 @@ func TestCreateListAndGetWorkItems(t *testing.T) {
 	}
 	if got.ID != "W-0002" || got.Title != "Ship docs" {
 		t.Fatalf("unexpected W-0002: %#v", got)
+	}
+}
+
+func TestCreateTypedWorkItemUsesWorkTypeScaffold(t *testing.T) {
+	store := newInitializedTestStore(t)
+
+	item, err := store.CreateWorkItem(WorkItemInput{
+		Title: "Understand filesystem research",
+		Type:  "research",
+	})
+	if err != nil {
+		t.Fatalf("CreateWorkItem() typed error = %v", err)
+	}
+	if item.ID != "W-0001" || item.Type != "research" {
+		t.Fatalf("unexpected typed item: %#v", item)
+	}
+
+	for _, rel := range []string{
+		"spaces/W-0001/README.md",
+		"spaces/W-0001/RULES.md",
+		"spaces/W-0001/notes.md",
+		"spaces/W-0001/findings.md",
+		"spaces/W-0001/raw/.keep",
+		"spaces/W-0001/pages/.keep",
+	} {
+		if _, err := os.Stat(filepath.Join(store.Root(), rel)); err != nil {
+			t.Fatalf("expected scaffold path %s: %v", rel, err)
+		}
+	}
+	itemYAML, err := os.ReadFile(filepath.Join(store.Root(), "items", "W-0001.yaml"))
+	if err != nil {
+		t.Fatalf("read item yaml: %v", err)
+	}
+	if !bytes.Contains(itemYAML, []byte("type: research")) {
+		t.Fatalf("expected item yaml to record work type, got:\n%s", itemYAML)
+	}
+
+	if err := os.RemoveAll(filepath.Join(store.Root(), "types", "research")); err != nil {
+		t.Fatalf("remove work type: %v", err)
+	}
+	got, err := store.GetWorkItem("W-0001")
+	if err != nil {
+		t.Fatalf("GetWorkItem() should not require work type to remain installed: %v", err)
+	}
+	if got.Type != "research" {
+		t.Fatalf("expected persisted type after work type removal, got %#v", got)
+	}
+}
+
+func TestCreateTypedWorkItemFailsBeforeItemWhenWorkTypeMissing(t *testing.T) {
+	store := newInitializedTestStore(t)
+
+	if _, err := store.CreateWorkItem(WorkItemInput{
+		Title: "Missing work type",
+		Type:  "missing-type",
+	}); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("expected ErrNotFound for unknown work type, got %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(store.Root(), "items", "W-0001.yaml")); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("expected no item to be created, got %v", err)
+	}
+
+	item, err := store.CreateWorkItem(WorkItemInput{Title: "Plain work"})
+	if err != nil {
+		t.Fatalf("CreateWorkItem() plain error = %v", err)
+	}
+	if item.ID != "W-0001" {
+		t.Fatalf("expected failed work type lookup not to consume id, got %s", item.ID)
+	}
+}
+
+func TestCreateTypedWorkItemDoesNotExposeItemWhenScaffoldFails(t *testing.T) {
+	store := newInitializedTestStore(t)
+	typeDir := filepath.Join(store.Root(), "types", "broken-research")
+	if err := os.MkdirAll(typeDir, 0o755); err != nil {
+		t.Fatalf("mkdir work type: %v", err)
+	}
+	manifest := []byte("schema_version: 1\nid: broken-research\nscaffold: missing-scaffold\n")
+	if err := os.WriteFile(filepath.Join(typeDir, "type.yaml"), manifest, 0o644); err != nil {
+		t.Fatalf("write work type manifest: %v", err)
+	}
+
+	if _, err := store.CreateWorkItem(WorkItemInput{
+		Title: "Broken scaffold",
+		Type:  "broken-research",
+	}); err == nil {
+		t.Fatalf("expected scaffold failure")
+	}
+	if _, err := os.Stat(filepath.Join(store.Root(), "items", "W-0001.yaml")); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("expected failed scaffold not to expose item, got %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(store.Root(), "spaces", "W-0001")); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("expected failed scaffold not to publish workspace, got %v", err)
+	}
+}
+
+func TestAcceptInboxItemWithTypeCreatesScaffold(t *testing.T) {
+	store := newInitializedTestStore(t)
+	inbox, err := store.AddInboxItem(InboxItemInput{Title: "Research request"})
+	if err != nil {
+		t.Fatalf("AddInboxItem() error = %v", err)
+	}
+
+	item, err := store.AcceptInboxItem(inbox.ID, AcceptInboxOptions{Type: "research"})
+	if err != nil {
+		t.Fatalf("AcceptInboxItem() typed error = %v", err)
+	}
+	if item.Type != "research" {
+		t.Fatalf("expected typed accepted item, got %#v", item)
+	}
+	if _, err := os.Stat(filepath.Join(store.Root(), "spaces", item.ID, "RULES.md")); err != nil {
+		t.Fatalf("expected accepted typed item workspace: %v", err)
 	}
 }
 

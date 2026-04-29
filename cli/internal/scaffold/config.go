@@ -23,12 +23,6 @@ func buildInitConfig(_ string, opts Options) ([]byte, error) {
 		"docs/implementation/README.md",
 		"docs/taxonomy/README.md",
 	}
-	if hasOperation(opts.Operations, "work") {
-		requiredFiles = append(requiredFiles,
-			".work/.gitignore",
-			".work/config.yaml",
-		)
-	}
 	if hasOperation(opts.Operations, "wiki") {
 		requiredFiles = append(requiredFiles,
 			".wiki/RULES.md",

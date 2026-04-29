@@ -1,0 +1,81 @@
+---
+name: work-cli
+description: "Use when operating a repo-local `.work/` tracker with the `work` CLI: initialize a store, capture inbox entries, triage them into work items, create/show/view work items, or use typed work items. Do not use for changing the work CLI implementation or redesigning the `.work/` convention."
+---
+
+<!-- agent-repo-kit:skill-sync — do not edit; regenerate with `ark skill sync` -->
+
+# Work CLI
+
+Operate the local-first `.work/` tracker as an agent-facing work ledger.
+
+## When To Use
+
+Use this skill when the task is to:
+
+- Inspect or operate a repo's `.work/` state.
+- Capture an untriaged request with `work inbox add`.
+- Promote accepted work with `work triage accept`.
+- Create a direct work item with `work new`.
+- Show work records or scan views with `work show` and `work view`.
+- Use a typed work item with `--type`.
+
+Do not use this skill for:
+
+- Changing `cmd/work`, `internal/work`, or `internal/workcli`.
+- Redesigning the `.work/` filesystem contract.
+- Adding verification gates or repo convention docs.
+
+Use `convention-engineering` for convention design and `go-scripting` for CLI
+implementation work.
+
+## First Actions
+
+1. Find the repo root and check whether the work store config exists.
+2. Prefer the repo wrapper when present:
+
+```bash
+task work -- view ready
+```
+
+3. Otherwise call the binary directly:
+
+```bash
+work --store .work view ready
+```
+
+4. Use `--json` whenever another tool or agent will parse the result.
+
+## Operating Loop
+
+Read `references/operator-workflow.md` before making changes to `.work/`.
+
+Default flow:
+
+1. Capture uncertain requests in the inbox.
+2. Triage only when the repo should track the work.
+3. Work from canonical records under `.work/items/*.yaml`.
+4. Use views as derived read models, not as storage.
+5. Run the repo's verification gate before claiming completion.
+
+## Core Commands
+
+```bash
+work init
+work inbox
+work inbox add "Title" --body "Context" --source "user"
+work triage accept IN-0001 --area cli --priority P1
+work new "Title" --area docs --priority P2
+work view ready
+work show W-0001
+```
+
+## Boundaries
+
+- Say "work item" in user-facing text; avoid bare "item" when clarity matters.
+- Inbox entries are demand signals, not accepted work.
+- Work items are the durable source of truth.
+- Artifacts, logs, browser captures, and large evidence payloads belong outside
+  `.work/`; store only pointers in work item metadata.
+- Do not create legacy compatibility paths unless the user explicitly asks for
+  migration documentation.

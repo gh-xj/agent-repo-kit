@@ -9,10 +9,10 @@ than a full project-management system.
 
 ## Product Principles
 
-1. **Local-first Linear for agents.** The source of truth lives under `.work/`
-   in the repository. The CLI should be useful without a hosted service,
-   browser session, or account sync. Its primary operators are agents and
-   terminal workflows.
+1. **Local-first Linear for agents.** The source of truth lives under the
+   repo-local `.work/` directory, which is ignored by git by default. The CLI
+   should be useful without a hosted service, browser session, or account sync.
+   Its primary operators are agents and terminal workflows.
 2. **Inbox before commitment.** Raw requests, observations, and imported
    legacy notes enter `.work/inbox/`. They are not canonical work until triage
    accepts them.
@@ -36,7 +36,7 @@ Global flags:
 
 | Command | Purpose |
 | --- | --- |
-| `work init` | Create the `.work/` store layout and default config. It must not import `.tickets/` automatically. |
+| `work init` | Create the `.work/` store layout, default config, and built-in type presets. It initializes only the current store. |
 | `work inbox` | List inbox entries waiting for triage. |
 | `work inbox add` | Capture a raw request into `.work/inbox/` with title, body/context, source metadata, and optional priority hints. |
 | `work triage accept` | Promote an inbox entry into a canonical work item under `.work/items/`, preserving source metadata and marking the inbox entry accepted. |
@@ -46,6 +46,15 @@ Global flags:
 
 The command surface deliberately does not include migration commands,
 dependency commands, relation commands, or proof-gated closure commands in v0.
+
+Typed work items are scaffold-backed, not native. `work new "Understand X" --type
+research` and `work triage accept IN-0001 --type research` resolve
+`.work/types/research/type.yaml`, create the generic item with
+`type: research`, and scaffold `.work/spaces/W-NNNN/` from the work type.
+Core `work` does not know what `research` means after scaffold creation.
+
+`research` is the built-in v0 preset. `work init` installs it when absent and
+leaves an existing `.work/types/research/` directory untouched.
 
 Default v0 views:
 
@@ -62,18 +71,50 @@ Default v0 views:
 |-- .lock
 |-- inbox/
 |   `-- IN-0001.yaml
-`-- items/
-    `-- W-0001.yaml
+|-- items/
+|   `-- W-0001.yaml
+`-- types/
+    `-- research/
+        |-- type.yaml
+        `-- scaffold/
+            |-- README.md
+            |-- RULES.md
+            |-- notes.md
+            |-- findings.md
+            |-- raw/.keep
+            `-- pages/.keep
 ```
 
 - `.work/config.yaml` stores the work schema version, ID prefixes/allocation
   settings, default state names, and repo-local defaults.
+- The repo root `.gitignore` should include `/.work`; the ledger is local
+  operational state, not release source.
 - `.work/.lock` is a short-lived mutation lock. It prevents parallel agents
   from allocating the same IDs or publishing partial multi-file writes.
 - `.work/inbox/` stores captured requests before triage. Inbox records may be
   incomplete, duplicated, stale, or exploratory.
 - `.work/items/*.yaml` stores canonical work items. These are the records agents
   plan against and mutate after triage.
+- `.work/types/research/` is the built-in research preset installed by
+  `work init` if it does not already exist.
+- `.work/types/<type>/type.yaml` declares an optional additional work type
+  extension when a repo chooses to use typed work beyond the preset.
+- `.work/spaces/<W-NNNN>/` stores type-owned files for a typed item and is
+  created lazily. The path is derived from the work ID and is not persisted in
+  the item record.
+
+Minimal work type manifest:
+
+```yaml
+schema_version: 1
+id: research
+description: Research workspace
+scaffold: scaffold
+```
+
+Required fields: `schema_version`, `id`. Optional fields: `description` and
+`scaffold`. The built-in research scaffold records its human-readable version
+in `scaffold/README.md`.
 
 ## Canonical State
 
@@ -87,13 +128,14 @@ Views are read models over canonical state. The v0 built-ins filter by status,
 and each result is recomputed from records instead of written back as
 board-specific state.
 
-## `.tickets` Migration Stance
+Typed item records stay flat:
 
-There is no automatic `.tickets` importer in v0. Legacy tickets should either:
+```yaml
+id: W-0001
+title: Understand X
+type: research
+status: ready
+```
 
-- go through `work inbox add` followed by `work triage accept`, or
-- be manually recreated as canonical work items with `work new`.
-
-Migration should preserve useful legacy metadata such as `legacy_id` and
-`legacy_path`, but should not blindly promote every old ticket into a new work
-item.
+Type-specific state belongs inside `.work/spaces/W-0001/`, not in nested
+fields under `.work/items/W-0001.yaml`.

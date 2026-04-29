@@ -28,6 +28,7 @@ func TestRunInitScaffoldsRepoAndTaskVerifyPasses(t *testing.T) {
 
 	checkTaskfile(t, root, "Taskfile.yml", ConventionsTaskfile, "work:")
 	checkTaskfile(t, root, ConventionsTaskfile, "check:conventions:", "work:check:", "verify:")
+	checkTaskfile(t, root, ".gitignore", "/.work")
 	if _, statErr := os.Stat(filepath.Join(root, ".wiki")); !os.IsNotExist(statErr) {
 		t.Fatalf("expected wiki to be opt-in and absent by default, got %v", statErr)
 	}
