@@ -70,17 +70,16 @@ Default output is a reviewable proposal:
 
 - short summary of the durable lesson
 - recommended destination(s)
+- compact statement of the learning
 - reasoning tied to routing dimensions
 - confidence and risks
-- verification command or manual check
-- explicit approval requirement
 
 For multi-item proposals, include a structured block using the schema in
-`references/proposal-format.md`.
+`references/proposal-format.md` only when another tool or agent will parse the
+result. Use readable markdown sections for human review.
 
 ## Gaps
 
 This is a v0 proposal skill. It does not yet own a script, CLI, load verifier,
 or automatic mutation workflow. Add code only after the proposal pattern has
 worked across multiple real sessions.
-
