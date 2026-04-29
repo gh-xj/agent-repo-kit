@@ -62,6 +62,23 @@ Implications:
 | Runtime-specific UI metadata | `agents/openai.yaml` or runtime-only sibling files |
 | Repo automation logic | `tools/` or `scripts/`, not the portable skill core |
 
+## Dual-Runtime Mirrors
+
+When a project-local skill must be discoverable by both Claude Code and Codex,
+prefer one canonical portable core plus runtime discovery adapters.
+
+Recommended pattern:
+
+- Choose one source-of-truth skill directory for the portable core.
+- Expose the other runtime root with a symlink or generated adapter when the
+  environment supports it.
+- Document which path is canonical and which path is a discovery mirror in the
+  repo's agent instructions or convention contract.
+- Audit the skill through every discovery path that agents are expected to use.
+
+Avoid hand-maintained duplicate skill copies unless runtime behavior genuinely
+differs. If copies are unavoidable, add a sync or drift check.
+
 ## Trigger Writing
 
 Codex relies primarily on `description`, so write it as trigger guidance:

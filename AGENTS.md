@@ -29,6 +29,10 @@ north star for this repo; this file is the operational map.
     Runs parallel lens attacks, ToT expansion, and attacker/defender debate
     against an existing codebase and writes a report under
     `.docs/arch-attacks/`.
+  - `skills/harness-router/` — proposal-only router for deciding where
+    session learnings, user corrections, and harness improvements should
+    persist across instructions, skills, docs, work records, memory, and
+    verification surfaces.
 - `examples/demo-repo/` — a working repo that shows the conventions applied
   end to end; the CI exercises it.
 - `adapters/<harness>/` — thin shims that expose every skill under

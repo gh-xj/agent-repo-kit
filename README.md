@@ -161,6 +161,10 @@ Prerequisites:
     used by `ark taskfile lint`.
   - `skills/attack-architecture/` — adversarial architecture-review skill
     (parallel lens attacks + debate).
+  - `skills/harness-router/` — proposal-only router for deciding where
+    session learnings and harness improvements should persist across
+    instructions, skills, docs, work records, memory, and verification
+    surfaces.
 - **`examples/demo-repo/`** — a working repo showing lean `.work/` adoption
   end to end, wired to CI.
 - **`adapters/`** — thin wrappers that expose `skills/` to a specific
