@@ -1,6 +1,6 @@
 ---
 name: convention-engineering
-description: "Use when auditing or bootstrapping repo conventions: agent docs, docs taxonomy, verification gates, layer boundaries, dependency hygiene, repo-local skill placement, work tracker (.work/), or wiki (.wiki/). Triggers: init work, new work item, work inbox, work triage, work status, work view, init wiki, ingest source, wiki lint, knowledge base, scaffold repo conventions."
+description: "Use when auditing or bootstrapping repo conventions: agent docs, docs taxonomy, verification gates, layer boundaries, dependency hygiene, repo-local skill placement, work tracker (.work/), or optional wiki (.wiki/). Triggers: init work, new work item, work inbox, work triage, work status, work view, init wiki, ingest source, wiki lint, knowledge base, scaffold repo conventions."
 ---
 
 <!-- agent-repo-kit:skill-sync — do not edit; regenerate with `ark skill sync` -->

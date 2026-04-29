@@ -75,7 +75,7 @@ func normalizeOptions(root string, opts Options) (Options, error) {
 		normalized.RepoRisk = "standard"
 	}
 	if len(normalized.Operations) == 0 {
-		normalized.Operations = []string{"work", "wiki"}
+		normalized.Operations = []string{"work"}
 	}
 	if len(normalized.Profiles) == 0 {
 		detected, err := detectProfiles(root)

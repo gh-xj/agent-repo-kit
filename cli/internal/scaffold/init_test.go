@@ -19,7 +19,7 @@ func TestRunInitScaffoldsRepoAndTaskVerifyPasses(t *testing.T) {
 	var err bytes.Buffer
 	exitCode := RunInit(root, Options{
 		Profiles:   []string{"go"},
-		Operations: []string{"work", "wiki"},
+		Operations: []string{"work"},
 		RepoRisk:   "standard",
 	}, &out, &err)
 	if exitCode != 0 {
@@ -27,16 +27,26 @@ func TestRunInitScaffoldsRepoAndTaskVerifyPasses(t *testing.T) {
 	}
 
 	checkTaskfile(t, root, "Taskfile.yml", ConventionsTaskfile, "work:")
-	checkTaskfile(t, root, ConventionsTaskfile, "check:conventions:", "work:check:", "verify:", "../.wiki/Taskfile.yml")
+	checkTaskfile(t, root, ConventionsTaskfile, "check:conventions:", "work:check:", "verify:")
+	if _, statErr := os.Stat(filepath.Join(root, ".wiki")); !os.IsNotExist(statErr) {
+		t.Fatalf("expected wiki to be opt-in and absent by default, got %v", statErr)
+	}
 
 	freshHome := filepath.Join(t.TempDir(), "home")
 	if err := os.MkdirAll(freshHome, 0o755); err != nil {
 		t.Fatalf("mkdir fresh home: %v", err)
 	}
+	taskPath, lookErr := exec.LookPath("task")
+	if lookErr != nil {
+		t.Fatalf("task binary not found: %v", lookErr)
+	}
 	cmd := exec.Command("task", "verify")
 	cmd.Dir = root
 	cmd.Env = testEnv(
-		map[string]string{"HOME": freshHome},
+		map[string]string{
+			"HOME": freshHome,
+			"PATH": filepath.Dir(taskPath) + string(os.PathListSeparator) + "/bin" + string(os.PathListSeparator) + "/usr/bin",
+		},
 		"CODEX_HOME",
 		"CONVENTION_ENGINEERING_DIR",
 	)
@@ -54,7 +64,7 @@ func TestRunInitEmbedsBootstrapSourceRootAndUpdatedFallbacks(t *testing.T) {
 	var err bytes.Buffer
 	exitCode := RunInit(root, Options{
 		Profiles:   []string{"go"},
-		Operations: []string{"work", "wiki"},
+		Operations: []string{"work"},
 		RepoRisk:   "standard",
 	}, &out, &err)
 	if exitCode != 0 {
@@ -112,7 +122,7 @@ func TestRunInitPreservesExistingAgentDocsAndAvoidsDuplicateManagedBlocks(t *tes
 		var err bytes.Buffer
 		exitCode := RunInit(root, Options{
 			Profiles:   []string{"go"},
-			Operations: []string{"work", "wiki"},
+			Operations: []string{"work"},
 			RepoRisk:   "standard",
 		}, &out, &err)
 		if exitCode != 0 {

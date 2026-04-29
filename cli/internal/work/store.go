@@ -1,8 +1,6 @@
 package work
 
 import (
-	"bufio"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -27,7 +25,6 @@ var (
 var (
 	inboxIDPattern = regexp.MustCompile(`^IN-\d{4,}$`)
 	workIDPattern  = regexp.MustCompile(`^W-\d{4,}$`)
-	eventIDPattern = regexp.MustCompile(`^EV-\d{4,}$`)
 )
 
 type Store struct {
@@ -45,12 +42,6 @@ type configFile struct {
 type counters struct {
 	LastInbox int `yaml:"last_inbox"`
 	LastWork  int `yaml:"last_work"`
-	LastEvent int `yaml:"last_event"`
-}
-
-type viewsFile struct {
-	Version int    `yaml:"version"`
-	Views   []View `yaml:"views"`
 }
 
 type idKind struct {
@@ -61,7 +52,6 @@ type idKind struct {
 var (
 	inboxIDKind = idKind{prefix: "IN", key: "inbox"}
 	workIDKind  = idKind{prefix: "W", key: "work"}
-	eventIDKind = idKind{prefix: "EV", key: "event"}
 )
 
 const (
@@ -71,7 +61,6 @@ const (
 
 const defaultStoreGitignore = `.lock
 .*.tmp
-items/.*.tmp/
 `
 
 // New returns a Store rooted at storePath. An empty storePath uses .work.
@@ -90,8 +79,8 @@ func (s *Store) Root() string {
 	return s.root
 }
 
-// Init creates the local work store layout. Existing config and view files are
-// left intact, making Init safe to run repeatedly.
+// Init creates the local work store layout. Existing files are left intact,
+// making Init safe to run repeatedly.
 func (s *Store) Init() error {
 	return s.withMutationLock(func() error {
 		now := s.timestamp()
@@ -117,16 +106,6 @@ func (s *Store) Init() error {
 				Counters:  counters{},
 			}
 			if err := writeYAMLFile(cfgPath, cfg); err != nil {
-				return err
-			}
-		}
-
-		viewsPath := s.viewsPath()
-		if _, err := os.Stat(viewsPath); err != nil {
-			if !errors.Is(err, os.ErrNotExist) {
-				return err
-			}
-			if err := writeYAMLFile(viewsPath, viewsFile{Version: 1, Views: defaultViews()}); err != nil {
 				return err
 			}
 		}
@@ -258,18 +237,16 @@ func (s *Store) AcceptInboxItem(id string, opts AcceptInboxOptions) (WorkItem, e
 		}
 		labels := mergeStrings(inbox.Labels, opts.Labels)
 		input := WorkItemInput{
-			Title:              title,
-			Description:        description,
-			Status:             opts.Status,
-			Priority:           opts.Priority,
-			Area:               opts.Area,
-			Labels:             labels,
-			AcceptanceCriteria: cloneStrings(opts.AcceptanceCriteria),
-			Relations:          cloneRelations(opts.Relations),
-			SourceInboxID:      inbox.ID,
-			Metadata:           cloneStringMap(opts.Metadata),
+			Title:         title,
+			Description:   description,
+			Status:        opts.Status,
+			Priority:      opts.Priority,
+			Area:          opts.Area,
+			Labels:        labels,
+			SourceInboxID: inbox.ID,
+			Metadata:      cloneStringMap(opts.Metadata),
 		}
-		workItem, err = s.createWorkItemLocked(input, EventInboxAccepted, map[string]any{"inbox_id": inbox.ID})
+		workItem, err = s.createWorkItemLocked(input)
 		if err != nil {
 			return err
 		}
@@ -286,7 +263,7 @@ func (s *Store) CreateWorkItem(input WorkItemInput) (WorkItem, error) {
 			return err
 		}
 		var err error
-		item, err = s.createWorkItemLocked(input, EventWorkCreated, nil)
+		item, err = s.createWorkItemLocked(input)
 		return err
 	})
 	return item, err
@@ -304,10 +281,11 @@ func (s *Store) ListWorkItems(filter WorkItemFilter) ([]WorkItem, error) {
 
 	items := make([]WorkItem, 0, len(entries))
 	for _, entry := range entries {
-		if !entry.IsDir() || !workIDPattern.MatchString(entry.Name()) {
+		id := strings.TrimSuffix(entry.Name(), filepath.Ext(entry.Name()))
+		if entry.IsDir() || filepath.Ext(entry.Name()) != ".yaml" || !workIDPattern.MatchString(id) {
 			continue
 		}
-		item, err := s.readWorkItem(entry.Name())
+		item, err := s.readWorkItem(id)
 		if err != nil {
 			return nil, err
 		}
@@ -319,23 +297,19 @@ func (s *Store) ListWorkItems(filter WorkItemFilter) ([]WorkItem, error) {
 	return items, nil
 }
 
-// GetWorkItem returns a work item and its append-only events.
-func (s *Store) GetWorkItem(id string) (WorkItem, []Event, error) {
+// GetWorkItem returns a work item by ID.
+func (s *Store) GetWorkItem(id string) (WorkItem, error) {
 	if !workIDPattern.MatchString(id) {
-		return WorkItem{}, nil, fmt.Errorf("invalid work item id %q", id)
+		return WorkItem{}, fmt.Errorf("invalid work item id %q", id)
 	}
 	if err := s.ensureInitialized(); err != nil {
-		return WorkItem{}, nil, err
+		return WorkItem{}, err
 	}
 	item, err := s.readWorkItem(id)
 	if err != nil {
-		return WorkItem{}, nil, err
+		return WorkItem{}, err
 	}
-	events, err := s.readEvents(id)
-	if err != nil {
-		return WorkItem{}, nil, err
-	}
-	return item, events, nil
+	return item, nil
 }
 
 // ListView materializes the saved view identified by ID or case-insensitive
@@ -359,7 +333,7 @@ func (s *Store) ListView(idOrName string) (ViewResult, error) {
 	return ViewResult{View: view, Items: items}, nil
 }
 
-func (s *Store) createWorkItemLocked(input WorkItemInput, eventType EventType, eventData map[string]any) (WorkItem, error) {
+func (s *Store) createWorkItemLocked(input WorkItemInput) (WorkItem, error) {
 	title := strings.TrimSpace(input.Title)
 	if title == "" {
 		return WorkItem{}, errors.New("work item title is required")
@@ -375,59 +349,21 @@ func (s *Store) createWorkItemLocked(input WorkItemInput, eventType EventType, e
 	}
 	now := s.timestamp()
 	item := WorkItem{
-		ID:                 id,
-		Title:              title,
-		Description:        strings.TrimSpace(input.Description),
-		Status:             status,
-		Priority:           strings.TrimSpace(input.Priority),
-		Area:               strings.TrimSpace(input.Area),
-		Labels:             cloneStrings(input.Labels),
-		AcceptanceCriteria: cloneStrings(input.AcceptanceCriteria),
-		Relations:          cloneRelations(input.Relations),
-		SourceInboxID:      strings.TrimSpace(input.SourceInboxID),
-		Metadata:           cloneStringMap(input.Metadata),
-		CreatedAt:          now,
-		UpdatedAt:          now,
+		ID:            id,
+		Title:         title,
+		Description:   strings.TrimSpace(input.Description),
+		Status:        status,
+		Priority:      strings.TrimSpace(input.Priority),
+		Area:          strings.TrimSpace(input.Area),
+		Labels:        cloneStrings(input.Labels),
+		SourceInboxID: strings.TrimSpace(input.SourceInboxID),
+		Metadata:      cloneStringMap(input.Metadata),
+		CreatedAt:     now,
+		UpdatedAt:     now,
 	}
-
-	eventID, err := s.nextID(eventIDKind)
-	if err != nil {
+	if err := writeNewYAMLFile(s.workItemPath(id), item); err != nil {
 		return WorkItem{}, err
 	}
-	tempDir, err := os.MkdirTemp(s.itemsDir(), "."+id+".*.tmp")
-	if err != nil {
-		return WorkItem{}, err
-	}
-	defer func() {
-		if tempDir != "" {
-			_ = os.RemoveAll(tempDir)
-		}
-	}()
-
-	if err := os.MkdirAll(filepath.Join(tempDir, "evidence"), 0o755); err != nil {
-		return WorkItem{}, err
-	}
-	if err := writeYAMLFile(filepath.Join(tempDir, "item.yaml"), item); err != nil {
-		return WorkItem{}, err
-	}
-	if err := appendEvent(filepath.Join(tempDir, "events.jsonl"), Event{
-		ID:         eventID,
-		WorkItemID: id,
-		Type:       eventType,
-		At:         now,
-		Data:       cloneAnyMap(eventData),
-	}); err != nil {
-		return WorkItem{}, err
-	}
-	if _, err := os.Stat(s.itemDir(id)); err == nil {
-		return WorkItem{}, fmt.Errorf("%w: %s", ErrAlreadyExists, s.itemDir(id))
-	} else if !errors.Is(err, os.ErrNotExist) {
-		return WorkItem{}, err
-	}
-	if err := os.Rename(tempDir, s.itemDir(id)); err != nil {
-		return WorkItem{}, err
-	}
-	tempDir = ""
 	return item, nil
 }
 
@@ -449,10 +385,11 @@ func (s *Store) findWorkItemBySourceInboxID(inboxID string) (WorkItem, bool, err
 		return WorkItem{}, false, err
 	}
 	for _, entry := range entries {
-		if !entry.IsDir() || !workIDPattern.MatchString(entry.Name()) {
+		id := strings.TrimSuffix(entry.Name(), filepath.Ext(entry.Name()))
+		if entry.IsDir() || filepath.Ext(entry.Name()) != ".yaml" || !workIDPattern.MatchString(id) {
 			continue
 		}
-		item, err := s.readWorkItem(entry.Name())
+		item, err := s.readWorkItem(id)
 		if err != nil {
 			return WorkItem{}, false, err
 		}
@@ -490,42 +427,8 @@ func (s *Store) readWorkItem(id string) (WorkItem, error) {
 	return item, nil
 }
 
-func (s *Store) readEvents(workItemID string) ([]Event, error) {
-	path := s.eventsPath(workItemID)
-	file, err := os.Open(path)
-	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			return []Event{}, nil
-		}
-		return nil, err
-	}
-	defer file.Close()
-
-	var events []Event
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if line == "" {
-			continue
-		}
-		var event Event
-		if err := json.Unmarshal([]byte(line), &event); err != nil {
-			return nil, fmt.Errorf("decode event in %s: %w", path, err)
-		}
-		events = append(events, event)
-	}
-	if err := scanner.Err(); err != nil {
-		return nil, err
-	}
-	return events, nil
-}
-
 func (s *Store) readViews() ([]View, error) {
-	var file viewsFile
-	if err := readYAMLFile(s.viewsPath(), &file); err != nil {
-		return nil, err
-	}
-	return file.Views, nil
+	return defaultViews(), nil
 }
 
 func (s *Store) nextID(kind idKind) (string, error) {
@@ -583,8 +486,6 @@ func (s *Store) scanMaxID(kind idKind) (int, error) {
 		return scanMaxFromDir(s.inboxDir(), inboxIDPattern)
 	case "work":
 		return scanMaxFromDir(s.itemsDir(), workIDPattern)
-	case "event":
-		return s.scanMaxEventID()
 	default:
 		return 0, fmt.Errorf("unknown id kind %q", kind.key)
 	}
@@ -615,47 +516,12 @@ func scanMaxFromDir(dir string, pattern *regexp.Regexp) (int, error) {
 	return maxID, nil
 }
 
-func (s *Store) scanMaxEventID() (int, error) {
-	entries, err := os.ReadDir(s.itemsDir())
-	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			return 0, nil
-		}
-		return 0, err
-	}
-	maxID := 0
-	for _, entry := range entries {
-		if !entry.IsDir() || !workIDPattern.MatchString(entry.Name()) {
-			continue
-		}
-		events, err := s.readEvents(entry.Name())
-		if err != nil {
-			return 0, err
-		}
-		for _, event := range events {
-			if !eventIDPattern.MatchString(event.ID) {
-				continue
-			}
-			n, err := numericID(event.ID)
-			if err != nil {
-				return 0, err
-			}
-			if n > maxID {
-				maxID = n
-			}
-		}
-	}
-	return maxID, nil
-}
-
 func (cfg configFile) last(kind idKind) int {
 	switch kind.key {
 	case "inbox":
 		return cfg.Counters.LastInbox
 	case "work":
 		return cfg.Counters.LastWork
-	case "event":
-		return cfg.Counters.LastEvent
 	default:
 		return 0
 	}
@@ -667,8 +533,6 @@ func (cfg *configFile) setLast(kind idKind, n int) {
 		cfg.Counters.LastInbox = n
 	case "work":
 		cfg.Counters.LastWork = n
-	case "event":
-		cfg.Counters.LastEvent = n
 	}
 }
 
@@ -752,37 +616,6 @@ func defaultViews() []View {
 			},
 		},
 	}
-}
-
-func appendEvent(path string, event Event) error {
-	if event.ID == "" {
-		return errors.New("event id is required")
-	}
-	if event.WorkItemID == "" {
-		return errors.New("event work item id is required")
-	}
-	if event.Type == "" {
-		return errors.New("event type is required")
-	}
-	if event.At.IsZero() {
-		return errors.New("event timestamp is required")
-	}
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		return err
-	}
-	data, err := json.Marshal(event)
-	if err != nil {
-		return err
-	}
-	file, err := os.OpenFile(path, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o644)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-	if _, err := file.Write(append(data, '\n')); err != nil {
-		return err
-	}
-	return nil
 }
 
 type storeLock struct {
@@ -892,10 +725,6 @@ func (s *Store) configPath() string {
 	return filepath.Join(s.root, "config.yaml")
 }
 
-func (s *Store) viewsPath() string {
-	return filepath.Join(s.root, "views.yaml")
-}
-
 func (s *Store) gitignorePath() string {
 	return filepath.Join(s.root, ".gitignore")
 }
@@ -916,20 +745,8 @@ func (s *Store) inboxPath(id string) string {
 	return filepath.Join(s.inboxDir(), id+".yaml")
 }
 
-func (s *Store) itemDir(id string) string {
-	return filepath.Join(s.itemsDir(), id)
-}
-
 func (s *Store) workItemPath(id string) string {
-	return filepath.Join(s.itemDir(id), "item.yaml")
-}
-
-func (s *Store) eventsPath(id string) string {
-	return filepath.Join(s.itemDir(id), "events.jsonl")
-}
-
-func (s *Store) evidenceDir(id string) string {
-	return filepath.Join(s.itemDir(id), "evidence")
+	return filepath.Join(s.itemsDir(), id+".yaml")
 }
 
 func cloneStrings(in []string) []string {
@@ -948,25 +765,6 @@ func cloneStringMap(in map[string]string) map[string]string {
 	for k, v := range in {
 		out[k] = v
 	}
-	return out
-}
-
-func cloneAnyMap(in map[string]any) map[string]any {
-	if len(in) == 0 {
-		return nil
-	}
-	out := make(map[string]any, len(in))
-	for k, v := range in {
-		out[k] = v
-	}
-	return out
-}
-
-func cloneRelations(in []Relation) []Relation {
-	if len(in) == 0 {
-		return nil
-	}
-	out := append([]Relation(nil), in...)
 	return out
 }
 

@@ -61,6 +61,8 @@ When tradeoffs conflict:
    model.
 6. Prefer boring, inspectable storage over clever machinery.
 7. Prefer a missing feature over a premature abstraction.
+8. Persist a field or folder only when a current command writes it, a current
+   command reads it, and a current invariant validates it.
 
 ## Anti-Beliefs
 
@@ -71,4 +73,3 @@ When tradeoffs conflict:
 - Do not treat unverified claims as completed work.
 - Do not let a view become a second source of truth.
 - Do not use "future-proof" to justify speculative complexity.
-

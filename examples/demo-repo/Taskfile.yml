@@ -4,11 +4,6 @@ vars:
   ARK: ../../cli/bin/ark
   WORK: ../../cli/bin/work
 
-includes:
-  wiki:
-    taskfile: .wiki/Taskfile.yml
-    dir: .wiki
-
 tasks:
   work:
     desc: Run the repo-local work CLI
@@ -24,7 +19,6 @@ tasks:
     desc: Validate the demo work tracker store
     cmds:
       - test -f .work/config.yaml
-      - test -f .work/views.yaml
       - task: work
         vars:
           CLI_ARGS: view ready --json
@@ -45,16 +39,13 @@ tasks:
       - |
         if [ -x "{{.ARK}}" ]; then
           "{{.ARK}}" taskfile lint --repo-root . --path Taskfile.yml
-          "{{.ARK}}" taskfile lint --repo-root . --path .wiki/Taskfile.yml
         else
           go run -C ../../cli ./cmd/ark taskfile lint --repo-root ../examples/demo-repo --path Taskfile.yml
-          go run -C ../../cli ./cmd/ark taskfile lint --repo-root ../examples/demo-repo --path .wiki/Taskfile.yml
         fi
 
   verify:
     desc: Run the demo repo verification gates
     cmds:
       - task: work:check
-      - task: wiki:lint
       - task: check:conventions
       - task: taskfile:lint

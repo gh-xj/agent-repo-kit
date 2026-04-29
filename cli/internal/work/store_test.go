@@ -23,7 +23,6 @@ func TestInitCreatesLocalFirstLayout(t *testing.T) {
 	for _, rel := range []string{
 		".gitignore",
 		"config.yaml",
-		"views.yaml",
 		"inbox",
 		"items",
 	} {
@@ -35,7 +34,7 @@ func TestInitCreatesLocalFirstLayout(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read .work/.gitignore: %v", err)
 	}
-	if !bytes.Contains(gitignore, []byte(".lock")) || !bytes.Contains(gitignore, []byte("items/.*.tmp/")) {
+	if !bytes.Contains(gitignore, []byte(".lock")) || !bytes.Contains(gitignore, []byte(".*.tmp")) {
 		t.Fatalf("expected .work/.gitignore to ignore lock and temp paths, got:\n%s", gitignore)
 	}
 }
@@ -93,11 +92,10 @@ func TestAcceptInboxItemCreatesWorkItemAndMarksInboxAccepted(t *testing.T) {
 	}
 
 	item, err := store.AcceptInboxItem(inbox.ID, AcceptInboxOptions{
-		Priority:           "high",
-		Area:               "ci",
-		Labels:             []string{"test"},
-		AcceptanceCriteria: []string{"CI passes twice"},
-		Metadata:           map[string]string{"owner": "platform"},
+		Priority: "high",
+		Area:     "ci",
+		Labels:   []string{"test"},
+		Metadata: map[string]string{"owner": "platform"},
 	})
 	if err != nil {
 		t.Fatalf("AcceptInboxItem() error = %v", err)
@@ -128,21 +126,15 @@ func TestAcceptInboxItemCreatesWorkItemAndMarksInboxAccepted(t *testing.T) {
 		t.Fatalf("expected accepted inbox marker, got %#v", accepted)
 	}
 
-	got, events, err := store.GetWorkItem(item.ID)
+	got, err := store.GetWorkItem(item.ID)
 	if err != nil {
 		t.Fatalf("GetWorkItem() error = %v", err)
 	}
 	if got.ID != item.ID {
 		t.Fatalf("expected returned work item %s, got %s", item.ID, got.ID)
 	}
-	if len(events) != 1 {
-		t.Fatalf("expected 1 event, got %d", len(events))
-	}
-	if events[0].ID != "EV-0001" || events[0].Type != EventInboxAccepted || events[0].Data["inbox_id"] != "IN-0001" {
-		t.Fatalf("unexpected accept event: %#v", events[0])
-	}
-	if _, err := os.Stat(filepath.Join(store.Root(), "items", "W-0001", "evidence")); err != nil {
-		t.Fatalf("expected evidence dir: %v", err)
+	if _, err := os.Stat(filepath.Join(store.Root(), "items", "W-0001.yaml")); err != nil {
+		t.Fatalf("expected flat work item file: %v", err)
 	}
 
 	if _, err := store.AcceptInboxItem(inbox.ID, AcceptInboxOptions{}); !errors.Is(err, ErrAlreadyAccepted) {
@@ -197,12 +189,12 @@ func TestCreateListAndGetWorkItems(t *testing.T) {
 		t.Fatalf("expected sorted work items, got %#v", all)
 	}
 
-	_, events, err := store.GetWorkItem("W-0002")
+	got, err := store.GetWorkItem("W-0002")
 	if err != nil {
 		t.Fatalf("GetWorkItem(W-0002) error = %v", err)
 	}
-	if len(events) != 1 || events[0].ID != "EV-0002" || events[0].Type != EventWorkCreated {
-		t.Fatalf("unexpected events for W-0002: %#v", events)
+	if got.ID != "W-0002" || got.Title != "Ship docs" {
+		t.Fatalf("unexpected W-0002: %#v", got)
 	}
 }
 
@@ -279,12 +271,12 @@ func TestConcurrentCreateWorkItemsAllocateUniqueIDs(t *testing.T) {
 			t.Fatalf("duplicate id allocated: %s", id)
 		}
 		seen[id] = true
-		_, events, err := store.GetWorkItem(id)
+		item, err := store.GetWorkItem(id)
 		if err != nil {
 			t.Fatalf("GetWorkItem(%s) error = %v", id, err)
 		}
-		if len(events) != 1 || events[0].Type != EventWorkCreated {
-			t.Fatalf("expected initial create event for %s, got %#v", id, events)
+		if item.ID != id {
+			t.Fatalf("expected item %s, got %#v", id, item)
 		}
 	}
 	if len(seen) != count {

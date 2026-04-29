@@ -70,7 +70,7 @@ rationale and layout details.
 If `.work/` exists:
 
 - [ ] `CLAUDE.md` / `AGENTS.md` contains the work pointer snippet
-- [ ] `.work/config.yaml` and `.work/views.yaml` exist
+- [ ] `.work/config.yaml` exists
 - [ ] root `Taskfile.yml` exposes `work:` when a Taskfile wrapper is expected
 - [ ] `work --store .work view ready --json` or `task work -- view ready --json` passes
 

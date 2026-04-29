@@ -2,14 +2,14 @@
 
 Local-first work tracker for agent-operated repos. `.work/` is the standard
 operational convention for captured work, triage, canonical work items, saved
-views, and machine-readable CLI output.
+views derived from canonical state, and machine-readable CLI output.
 
 ## Adopt
 
 Preferred path:
 
 ```bash
-ark init --repo-root <repo> --ops work,wiki
+ark init --repo-root <repo> --ops work
 ```
 
 Manual path:
@@ -23,7 +23,7 @@ Then add the pointer snippet to `AGENTS.md` and `CLAUDE.md`:
 ```md
 - **Work** - local-first work tracker at `.work/`. The repo-local CLI is
   exposed through `task work -- ...`; canonical state lives in
-  `.work/config.yaml`, `.work/views.yaml`, and `.work/items/`. Daily commands:
+  `.work/config.yaml` and `.work/items/*.yaml`. Daily commands:
   `task work -- inbox`, `task work -- inbox add "title"`, `task work -- triage accept IN-0001`,
   `task work -- view ready`, and `task work -- show W-0001`.
 ```
@@ -35,7 +35,7 @@ Use `.work/` when the repo needs:
 - captured incoming work before commitment
 - human or agent triage before a request becomes canonical
 - simple durable statuses: `ready`, `active`, `blocked`, `done`, `cancelled`
-- saved views over canonical state
+- built-in views over canonical state
 - JSON-native output for agents and shell scripts
 - local-first storage that can be inspected and versioned
 
@@ -68,24 +68,21 @@ task work -- show W-0001
 .work/
 ├── .gitignore
 ├── config.yaml
-├── views.yaml
 ├── inbox/
+│   └── IN-0001.yaml
 └── items/
-    └── W-0001/
-        ├── item.yaml
-        ├── events.jsonl
-        └── evidence/
+    └── W-0001.yaml
 ```
 
 `.work/.gitignore` excludes transient lock and temporary publish paths. The
-canonical state is `config.yaml`, `views.yaml`, and item directories.
+canonical state is `config.yaml` and flat YAML records under `inbox/` and
+`items/`.
 
 ## Verification
 
 At minimum, `task verify` should check:
 
 - `.work/config.yaml` exists
-- `.work/views.yaml` exists
 - `work --store .work view ready --json` succeeds when the `work` binary is
   available
 
@@ -96,4 +93,3 @@ The scaffolded `work:check` task follows this shape.
 `.work/` replaces the legacy `.tickets/` tracker. Do not keep both active in a
 repo. If legacy tickets exist, move only still-relevant items through inbox and
 triage, then remove `.tickets/` from the active tree.
-

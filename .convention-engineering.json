@@ -12,11 +12,11 @@
       "required_markers": [
         "## Conventions",
         "**Docs**",
-        "**Work**",
+        "docs/core-belief.md",
         ".convention-engineering.json",
         "`task verify`",
-        ".work/config.yaml",
-        ".wiki/RULES.md"
+        "**Work**",
+        ".work/config.yaml"
       ]
     },
     {
@@ -25,11 +25,11 @@
       "required_markers": [
         "## Conventions",
         "**Docs**",
-        "**Work**",
+        "docs/core-belief.md",
         ".convention-engineering.json",
         "`task verify`",
-        ".work/config.yaml",
-        ".wiki/RULES.md"
+        "**Work**",
+        ".work/config.yaml"
       ]
     },
     {
@@ -86,31 +86,21 @@
     ".convention-engineering/Taskfile.yml",
     ".convention-engineering/check.sh",
     "docs/README.md",
+    "docs/core-belief.md",
     "docs/requests/README.md",
     "docs/planning/README.md",
     "docs/plans/README.md",
     "docs/implementation/README.md",
     "docs/taxonomy/README.md",
     ".work/.gitignore",
-    ".work/config.yaml",
-    ".work/views.yaml",
-    ".wiki/RULES.md",
-    ".wiki/Taskfile.yml",
-    ".wiki/pages/.gitkeep",
-    ".wiki/raw/.gitkeep",
-    ".wiki/scripts/lint.sh"
+    ".work/config.yaml"
   ],
   "taskfile_checks": {
     ".convention-engineering/Taskfile.yml": [
       "check:conventions:",
-      "work:check:",
       "verify:",
       "check.sh",
-      "../.wiki/Taskfile.yml"
-    ],
-    ".wiki/Taskfile.yml": [
-      "init:",
-      "lint:"
+      "work:check:"
     ],
     "Taskfile.yml": [
       ".convention-engineering/Taskfile.yml",

@@ -16,7 +16,7 @@ north star for this repo; this file is the operational map.
 - `skills/` — canonical, harness-free skill sources. One directory per
   skill:
   - `skills/convention-engineering/` — content describing repo conventions
-    (work tracking, wiki, agent docs, verification gates, etc.). Canonical source.
+    (work tracking, optional wiki, agent docs, verification gates, etc.). Canonical source.
   - `skills/convention-evaluator/` — scoring rubric used to grade a repo's
     adoption against the contract.
   - `skills/skill-builder/` — skill for authoring and auditing agent skills
@@ -73,7 +73,7 @@ north star for this repo; this file is the operational map.
 ## Testing
 
 ```bash
-task verify      # repo conventions, work tracker, and wiki
+task verify      # repo conventions and work tracker
 task -d cli ci   # CLI lint, tests, build, and smoke checks
 ```
 
@@ -81,24 +81,19 @@ CI runs CLI checks and demo convention checks on every push and PR (see
 `.github/workflows/ci.yml`).
 
 <!-- agent-repo-kit:init:start -->
-
 ## Conventions
 
 - **Docs** — tracked repo docs live under `docs/` using the `requests/`,
   `planning/`, `plans/`, `implementation/`, and `taxonomy/` folders.
 - **Work** — local-first work tracker at `.work/`. The repo-local CLI is
   exposed through `task work -- ...`; canonical state lives in
-  `.work/config.yaml`, `.work/views.yaml`, and `.work/items/`. Daily commands:
+  `.work/config.yaml` and `.work/items/*.yaml`. Daily commands:
   `task work -- inbox`, `task work -- inbox add "title"`, `task work -- triage accept IN-0001`,
   `task work -- view ready`, and `task work -- show W-0001`.
-- **Wiki** — LLM-maintained knowledge base at `.wiki/`. Read `.wiki/RULES.md`
-  for page types, frontmatter, and citation rules. Validate with
-  `task wiki:lint` (or `task -d .wiki lint`).
 - **Verification** — run `task verify` from the repo root to execute the
   convention verification gate.
 - **Tracked contract** — `.convention-engineering.json` is the
   machine-readable convention contract for this repo.
 
 Conventions are scaffolded by `agent-repo-kit` under `.convention-engineering/`.
-
 <!-- agent-repo-kit:init:end -->

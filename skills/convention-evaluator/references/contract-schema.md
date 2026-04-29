@@ -103,9 +103,9 @@ Each chunk record is:
 
 Expected contract expressions when a repo claims adoption:
 
-- `required_files`: e.g., `.work/config.yaml`, `.work/views.yaml`, `.wiki/RULES.md`, `.wiki/Taskfile.yml`.
+- `required_files`: e.g., `.work/config.yaml`, `.wiki/RULES.md`, `.wiki/Taskfile.yml`.
 - `taskfile_checks`: e.g., `work:check:`, `task -d .wiki lint` (or `task wiki:lint` when wired into the root Taskfile).
 - `content_checks`: a `## Conventions` pointer snippet must appear in both `CLAUDE.md` and `AGENTS.md`. This is a `grep`-level presence check, not a parse.
-- `invariant_contract`: e.g., `.work/events.jsonl` append-only when work history checks are enabled, `.wiki/raw/` immutability.
+- `invariant_contract`: e.g., `.wiki/raw/` immutability when wiki checks are enabled.
 
 Missing or aspirational claims map to existing rubric dimensions (see `rubric.md`). Do not invent new top-level fields for operational conventions.

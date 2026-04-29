@@ -100,7 +100,7 @@ These adopt via manual template copy plus a `## Conventions` pointer snippet in 
 - missing `.work/` or `.wiki/` directory or required files claimed by the contract → `enforceability`
 - pointer snippet absent from `CLAUDE.md` or `AGENTS.md` (grep-level check, not parse) → `legibility`
 - task invocations claimed but not runnable (`task work -- view ready`, `task -d .wiki lint`, `task wiki:lint`) → `verification`
-- append-only or immutable surfaces drifted (`.work/items/*/events.jsonl`, `.wiki/raw/`) → `drift_resistance`
+- immutable surfaces drifted (`.wiki/raw/`) → `drift_resistance`
 - repo-local agent tooling duplicating what template ownership already covers → `ownership_clarity`
 
 The evaluator judges adoption; it does not generate or repair the scaffolding.

@@ -229,8 +229,8 @@ func (f *fakeWorkStore) ListView(_ context.Context, name string) (work.ViewResul
 	return work.ViewResult{}, nil
 }
 
-func (f *fakeWorkStore) GetWorkItem(_ context.Context, id string) (workItemDetail, error) {
+func (f *fakeWorkStore) GetWorkItem(_ context.Context, id string) (work.WorkItem, error) {
 	f.getCalled = true
 	f.getID = id
-	return workItemDetail{}, nil
+	return work.WorkItem{}, nil
 }

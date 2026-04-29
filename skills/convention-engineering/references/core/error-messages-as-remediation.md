@@ -65,7 +65,7 @@ unknown view
 After:
 
 ```
-unknown view "ready-now"  → fix: run 'work view ready' or inspect .work/views.yaml
+unknown view "ready-now"  → fix: run 'work view ready' or choose one of the built-in views
 ```
 
 Implementations: the `work` CLI, `.wiki/scripts/lint.sh`, and the template

@@ -44,7 +44,7 @@ Use this path when the ticket is already clean, current, and clearly scoped:
 
 1. Read `.tickets/all/T-NN-*/ticket.md`.
 2. Run `work new` with a cleaned title, context, priority, and area.
-3. Copy only the useful summary and acceptance criteria.
+3. Copy only the useful summary.
 4. Add legacy metadata to the new work item.
 
 Example metadata:
@@ -60,10 +60,8 @@ legacy_source: .tickets
 - Do not add a bulk `.tickets` importer.
 - Do not add a migration command that promotes every open ticket into
   `.work/items/`.
-- Do not infer dependency relations from old free-form ticket text. Relations
-  are later work.
-- Do not treat `.tickets` audit history as evidence-gated `work` closure.
-  Evidence is later work.
+- Do not infer dependency relations from old free-form ticket text.
+- Do not treat `.tickets` audit history as proof of completed work.
 
 ## When To Stop Creating `.tickets`
 

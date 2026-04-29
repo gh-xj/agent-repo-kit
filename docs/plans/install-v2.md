@@ -431,7 +431,7 @@ When interactive, build a single `huh.NewForm(...)` with three groups:
 **Group 2 — Configuration:**
 
 - `huh.NewMultiSelect[string]().Title("Profiles").Options(...)` with auto-detected value pre-selected; assigns `&profilesSelection`.
-- `huh.NewMultiSelect[string]().Title("Operations").Options(work, wiki, taskfile).Value(&opsSelection)` with `work,wiki` pre-selected.
+- `huh.NewMultiSelect[string]().Title("Operations").Options(work, wiki, taskfile).Value(&opsSelection)` with `work` pre-selected and `wiki` opt-in.
 - `huh.NewSelect[string]().Title("Repo risk").Options(standard, elevated, critical).Value(&repoRisk)` with `standard` pre-selected.
 
 **Group 3 — Confirmation:**

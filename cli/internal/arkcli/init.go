@@ -32,7 +32,7 @@ var (
 //     and repo-risk, then calls scaffold.RunInit with the same Options.
 type InitCmd struct {
 	Profiles string `help:"comma-separated repo profiles (auto-detect if empty)"`
-	Ops      string `help:"comma-separated operations to scaffold" default:"work,wiki"`
+	Ops      string `help:"comma-separated operations to scaffold" default:"work"`
 	RepoRisk string `name:"repo-risk" help:"repository risk classification" default:"standard"`
 	RepoRoot string `name:"repo-root" help:"path to the repository root" default:"."`
 	Batch    bool   `help:"skip wizard even when stdin is a TTY"`
@@ -83,8 +83,8 @@ func (c *InitCmd) runInteractive(stdin io.Reader, stdout, stderr io.Writer) erro
 	}
 	profiles := pickByIndex(wizardProfileOptions, profilesIdx)
 
-	// 3. Operations (default: work, wiki).
-	defaultOps := []int{0, 1}
+	// 3. Operations (default: work; wiki is opt-in).
+	defaultOps := []int{0}
 	opsIdx, err := prompt.MultiSelect(stdin, stdout,
 		"Which operational tracks to scaffold?",
 		wizardOpsOptions, defaultOps)

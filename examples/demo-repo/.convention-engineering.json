@@ -25,15 +25,10 @@
     "docs/implementation/README.md",
     "docs/taxonomy/README.md",
     ".work/.gitignore",
-    ".work/config.yaml",
-    ".work/views.yaml",
-    ".wiki/RULES.md",
-    ".wiki/Taskfile.yml",
-    ".wiki/scripts/lint.sh"
+    ".work/config.yaml"
   ],
   "taskfile_checks": {
-    "Taskfile.yml": ["check:conventions:", "work:", "work:check:", "verify:", "wiki:"],
-    ".wiki/Taskfile.yml": ["init:", "lint:"]
+    "Taskfile.yml": ["check:conventions:", "work:", "work:check:", "verify:"]
   },
   "mirror_policy": {
     "mode": "mirrored",
@@ -51,7 +46,6 @@
         "**Work**",
         ".convention-engineering.json",
         ".work/config.yaml",
-        ".wiki/RULES.md",
         "`task verify`"
       ]
     },
@@ -64,7 +58,6 @@
         "**Work**",
         ".convention-engineering.json",
         ".work/config.yaml",
-        ".wiki/RULES.md",
         "`task verify`"
       ]
     },
@@ -73,7 +66,6 @@
       "file": "docs/README.md",
       "required_markers": [
         ".convention-engineering.json",
-        ".wiki/",
         "requests/",
         "planning/",
         "plans/"

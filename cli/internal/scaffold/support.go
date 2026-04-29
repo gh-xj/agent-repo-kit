@@ -24,12 +24,12 @@ func renderConventionCheckScript(sourceRoot string) string {
 	// sourceRoot is preserved as a "go run" fallback for development
 	// setups where ark is not yet built/installed. At runtime the
 	// resolution chain is: $ARK_BINARY -> ark on $PATH -> go run
-	// <sourceRoot>/../cli/cmd/ark.
+	// <sourceRoot>/../../cli/cmd/ark.
 	return fmt.Sprintf(`#!/usr/bin/env bash
 set -euo pipefail
 
 bootstrap_source=%s
-repo_kit_root=$(dirname "$bootstrap_source")
+repo_kit_root=$(cd "$(dirname "$bootstrap_source")/.." && pwd)
 
 if [ -n "${ARK_BINARY:-}" ] && [ -x "$ARK_BINARY" ]; then
   exec "$ARK_BINARY" check "$@"
@@ -84,7 +84,6 @@ func renderConventionTaskfile(opts Options) string {
 			"    desc: Validate the repo work tracker store",
 			"    cmds:",
 			"      - test -f ../.work/config.yaml",
-			"      - test -f ../.work/views.yaml",
 			"      - |",
 			"        if command -v work >/dev/null 2>&1; then",
 			"          work --store ../.work view ready --json >/dev/null",
@@ -253,7 +252,7 @@ func renderAgentConventionBlock(opts Options) string {
 		lines = append(lines,
 			"- **Work** — local-first work tracker at `.work/`. The repo-local CLI is",
 			"  exposed through `task work -- ...`; canonical state lives in",
-			"  `.work/config.yaml`, `.work/views.yaml`, and `.work/items/`. Daily commands:",
+			"  `.work/config.yaml` and `.work/items/*.yaml`. Daily commands:",
 			"  `task work -- inbox`, `task work -- inbox add \"title\"`, `task work -- triage accept IN-0001`,",
 			"  `task work -- view ready`, and `task work -- show W-0001`.",
 		)

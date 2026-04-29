@@ -27,7 +27,6 @@ func buildInitConfig(_ string, opts Options) ([]byte, error) {
 		requiredFiles = append(requiredFiles,
 			".work/.gitignore",
 			".work/config.yaml",
-			".work/views.yaml",
 		)
 	}
 	if hasOperation(opts.Operations, "wiki") {

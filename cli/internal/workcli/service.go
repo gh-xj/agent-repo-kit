@@ -14,17 +14,12 @@ type workStore interface {
 	AcceptInboxItem(context.Context, acceptInboxItemInput) (work.WorkItem, error)
 	CreateWorkItem(context.Context, work.WorkItemInput) (work.WorkItem, error)
 	ListView(context.Context, string) (work.ViewResult, error)
-	GetWorkItem(context.Context, string) (workItemDetail, error)
+	GetWorkItem(context.Context, string) (work.WorkItem, error)
 }
 
 type acceptInboxItemInput struct {
 	ID      string
 	Options work.AcceptInboxOptions
-}
-
-type workItemDetail struct {
-	Item   work.WorkItem `json:"item"`
-	Events []work.Event  `json:"events"`
 }
 
 type domainStore struct {
@@ -67,10 +62,6 @@ func (s domainStore) ListView(_ context.Context, name string) (work.ViewResult, 
 	return s.store.ListView(name)
 }
 
-func (s domainStore) GetWorkItem(_ context.Context, id string) (workItemDetail, error) {
-	item, events, err := s.store.GetWorkItem(id)
-	if err != nil {
-		return workItemDetail{}, err
-	}
-	return workItemDetail{Item: item, Events: events}, nil
+func (s domainStore) GetWorkItem(_ context.Context, id string) (work.WorkItem, error) {
+	return s.store.GetWorkItem(id)
 }

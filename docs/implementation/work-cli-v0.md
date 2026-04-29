@@ -16,17 +16,14 @@ than a full project-management system.
 2. **Inbox before commitment.** Raw requests, observations, and imported
    legacy notes enter `.work/inbox/`. They are not canonical work until triage
    accepts them.
-3. **Views over canonical state.** A view is a saved query over `.work/items/`,
-   not a second copy of work state. Reordering, filtering, and grouping belong
-   in `.work/views.yaml`.
-4. **Relations later.** v0 should avoid dependency graphs, related-issue
-   edges, blocked-by trees, and cross-item relation semantics. Items may carry
-   plain-text references, but relation-aware commands are outside v0.
-5. **JSON-native CLI.** Every command that returns records must support stable
+3. **Views over canonical state.** Built-in views are derived from
+   `.work/items/*.yaml`. v0 does not persist custom views.
+4. **JSON-native CLI.** Every command that returns records must support stable
    machine-readable JSON, including a `schema_version`. Human output is a
    convenience view over the same data.
-6. **Evidence later.** v0 should leave room for evidence fields and proof links,
-   but evidence-gated closure is outside this command set.
+5. **No future-shaped persistence.** A persisted field or folder must have a
+   current command that writes it, a current command that reads it, and a
+   current invariant that validates it.
 
 ## Command Surface
 
@@ -39,16 +36,16 @@ Global flags:
 
 | Command | Purpose |
 | --- | --- |
-| `work init` | Create the `.work/` store layout, default config, and default views. It must not import `.tickets/` automatically. |
+| `work init` | Create the `.work/` store layout and default config. It must not import `.tickets/` automatically. |
 | `work inbox` | List inbox entries waiting for triage. |
 | `work inbox add` | Capture a raw request into `.work/inbox/` with title, body/context, source metadata, and optional priority hints. |
 | `work triage accept` | Promote an inbox entry into a canonical work item under `.work/items/`, preserving source metadata and marking the inbox entry accepted. |
 | `work new` | Create a canonical work item directly when the work is already understood and does not need inbox triage. |
-| `work view` | Render a named view from `.work/views.yaml` by querying canonical items. Default view: `ready`. |
+| `work view` | Render a built-in named view by querying canonical items. Default view: `ready`. |
 | `work show` | Show one record by ID, including canonical work items and inbox entries. |
 
 The command surface deliberately does not include migration commands,
-dependency commands, or evidence/closure commands in v0.
+dependency commands, relation commands, or proof-gated closure commands in v0.
 
 Default v0 views:
 
@@ -62,38 +59,33 @@ Default v0 views:
 ```text
 .work/
 |-- config.yaml
-|-- views.yaml
 |-- .lock
 |-- inbox/
+|   `-- IN-0001.yaml
 `-- items/
-    `-- W-0001/
-        |-- item.yaml
-        |-- events.jsonl
-        `-- evidence/
+    `-- W-0001.yaml
 ```
 
 - `.work/config.yaml` stores the work schema version, ID prefixes/allocation
   settings, default state names, and repo-local defaults.
-- `.work/views.yaml` stores named view definitions. Views are queries and
-  presentation settings over canonical state; they do not own item data.
 - `.work/.lock` is a short-lived mutation lock. It prevents parallel agents
   from allocating the same IDs or publishing partial multi-file writes.
 - `.work/inbox/` stores captured requests before triage. Inbox records may be
   incomplete, duplicated, stale, or exploratory.
-- `.work/items/` stores canonical work items. These are the records agents
+- `.work/items/*.yaml` stores canonical work items. These are the records agents
   plan against and mutate after triage.
 
 ## Canonical State
 
-Canonical state lives in `.work/items/`.
+Canonical state lives in `.work/items/*.yaml`.
 
 Inbox entries are evidence of demand, not accepted work. `work triage accept`
 is the boundary between "someone captured this" and "the repo is choosing to
 track this as work."
 
-Views are read models over canonical state. A view may filter by state, area,
-label, priority, recency, or other item fields, but the result should be
-recomputed from records instead of written back as board-specific state.
+Views are read models over canonical state. The v0 built-ins filter by status,
+and each result is recomputed from records instead of written back as
+board-specific state.
 
 ## `.tickets` Migration Stance
 

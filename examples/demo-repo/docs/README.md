@@ -9,4 +9,5 @@ declared in `.convention-engineering.json`.
 - `implementation/` — rollout notes, verification notes, and implementation reports.
 - `taxonomy/` — stable vocabularies, schemas, and mappings.
 
-External-source-backed material belongs in `.wiki/`, not `docs/`.
+If this repo later adopts `.wiki/`, external-source-backed material belongs
+there. Until then, keep repo-authored documentation in `docs/`.

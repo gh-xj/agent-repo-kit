@@ -11,14 +11,15 @@ AI-agent-assisted development. The convention surfaces are
 **harness-agnostic** and can be adopted from any editor or agent runtime.
 This repo ships canonical open-skill surfaces plus thin compatibility
 adapters for `claude-code` and `codex`; `cursor/` remains placeholder
-adapter docs. The kit gives any repo three things out of the box:
+adapter docs. The kit gives any repo a small default core:
 
 1. A local-first **work tracker** (`.work/`) — inbox, triage, views, and a
    JSON-native `work` CLI.
-2. An LLM-maintained **knowledge base** (`.wiki/`) — page types, frontmatter,
-   citation rules, lint.
-3. An **audit / bootstrap workflow** that scores a repo against the contract
+2. An **audit / bootstrap workflow** that scores a repo against the contract
    and guides adoption.
+
+Optional packs, such as `.wiki/`, are available when a repo has source-backed
+knowledge that earns the extra surface area.
 
 ## Install
 
@@ -132,7 +133,7 @@ ark init \
 ```
 
 This writes a tracked `.convention-engineering.json`, `docs/` taxonomy
-READMEs, `.work/`, `.wiki/`, repo-local convention task wiring under
+READMEs, `.work/`, repo-local convention task wiring under
 `.convention-engineering/`, and mirrored `AGENTS.md` / `CLAUDE.md`
 convention blocks. The generated repo then supports:
 
@@ -149,7 +150,8 @@ Prerequisites:
 
 - **`skills/`** — canonical, harness-free skill sources:
   - `skills/convention-engineering/` — repo conventions: agent docs, docs
-    taxonomy, stack profiles, verification gates, work + wiki scaffolds.
+    taxonomy, stack profiles, verification gates, work scaffolds, and optional
+    wiki scaffolds.
   - `skills/convention-evaluator/` — skeptical scoring of a repo's adoption
     of the contract. Produces a graded report with evidence.
   - `skills/skill-builder/` — skill for creating, refactoring, and auditing
@@ -159,8 +161,8 @@ Prerequisites:
     used by `ark taskfile lint`.
   - `skills/attack-architecture/` — adversarial architecture-review skill
     (parallel lens attacks + debate).
-- **`examples/demo-repo/`** — a working repo showing `.work/` + `.wiki/`
-  adoption end to end, wired to CI.
+- **`examples/demo-repo/`** — a working repo showing lean `.work/` adoption
+  end to end, wired to CI.
 - **`adapters/`** — thin wrappers that expose `skills/` to a specific
   harness. `claude-code/` and `codex/` are shipped as compatibility targets
   (see `adapters/manifest.json`); `cursor/` is placeholder docs today.
@@ -173,9 +175,8 @@ ark init \
   --profiles go
 
 cd /path/to/your-repo
-task verify             # conventions + work + wiki
+task verify             # conventions + work
 task work -- view ready # inspect ready work
-task -d .wiki lint      # OK
 ```
 
 ## Architecture
@@ -183,7 +184,7 @@ task -d .wiki lint      # OK
 ```
      +---------+             +-----------------------+
      | skills/ |<------------| examples/demo-repo/   |
-     +----+----+             | (.work, .wiki, CI)    |
+     +----+----+             | (.work, CI)           |
           ^                  +-----------------------+
           |
    +------+-------+

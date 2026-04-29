@@ -28,17 +28,16 @@ func (c *ShowCmd) Run(globals *CLI) error {
 		}
 		return printRecord(out, item)
 	}
-	detail, err := store.GetWorkItem(context.Background(), c.ID)
+	item, err := store.GetWorkItem(context.Background(), c.ID)
 	if err != nil {
 		return err
 	}
 	out := globals.stdout()
 	if globals.JSON {
 		return emitJSON(out, map[string]any{
-			"store":  globals.Store,
-			"item":   detail.Item,
-			"events": detail.Events,
+			"store": globals.Store,
+			"item":  item,
 		})
 	}
-	return printRecord(out, detail.Item)
+	return printRecord(out, item)
 }
