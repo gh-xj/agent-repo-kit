@@ -37,6 +37,9 @@ func TestRunInitScaffoldsRepoAndTaskVerifyPasses(t *testing.T) {
 	if err := os.MkdirAll(freshHome, 0o755); err != nil {
 		t.Fatalf("mkdir fresh home: %v", err)
 	}
+	t.Cleanup(func() {
+		restoreWritePermissionsForTest(t, freshHome)
+	})
 	taskPath, lookErr := exec.LookPath("task")
 	if lookErr != nil {
 		t.Fatalf("task binary not found: %v", lookErr)
@@ -209,6 +212,21 @@ func checkTaskfile(t *testing.T, root, rel string, markers ...string) {
 			continue
 		}
 		t.Fatalf("expected %s to contain %q, got:\n%s", rel, marker, content)
+	}
+}
+
+func restoreWritePermissionsForTest(t *testing.T, root string) {
+	t.Helper()
+	if err := filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return nil
+		}
+		if d.IsDir() {
+			return os.Chmod(path, 0o755)
+		}
+		return os.Chmod(path, 0o644)
+	}); err != nil {
+		t.Fatalf("restore write permissions under %s: %v", root, err)
 	}
 }
 
