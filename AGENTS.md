@@ -5,12 +5,18 @@ _other_ repos to adopt, and it also adopts that same convention on itself
 (see the `## Conventions` block below) — so `ark check --repo-root .` and
 `task verify` both run here.
 
+## Core belief
+
+Before changing conventions, persistent state models, agent workflows, or
+repo-wide architecture, read `docs/core-belief.md`. It is the philosophical
+north star for this repo; this file is the operational map.
+
 ## Entry points
 
 - `skills/` — canonical, harness-free skill sources. One directory per
   skill:
   - `skills/convention-engineering/` — content describing repo conventions
-    (tickets, wiki, agent docs, verification gates, etc.). Canonical source.
+    (work tracking, wiki, agent docs, verification gates, etc.). Canonical source.
   - `skills/convention-evaluator/` — scoring rubric used to grade a repo's
     adoption against the contract.
   - `skills/skill-builder/` — skill for authoring and auditing agent skills
@@ -32,17 +38,16 @@ _other_ repos to adopt, and it also adopts that same convention on itself
   skill directories get symlinked into which harness. Consumed by
   `ark adapters link` and `ark adapters list-links`.
 - `install.sh` — POSIX installer. Default path: download the prebuilt
-  `ark` binary for the current OS/arch from the latest GitHub Release,
-  drop it in `--prefix` (default `~/.local/bin`), then call
-  `ark adapters link --target <harness>` to wire the symlinks. Pass
-  `--from-source` to build `cli/` locally instead.
-- `ark upgrade` — in-place upgrade. Detects whether `ark` lives inside a
-  git clone (runs `git pull` + rebuild) or was installed from a release
-  archive (downloads + atomically replaces the binary), then re-runs
-  `adapters link`.
+  release archive for the current OS/arch, verify its checksum, and install
+  the shipped `ark` and `work` binaries into `--prefix` (default
+  `~/.local/bin`). Pass `--from-source` to build both from `cli/` locally.
+  Skills are installed separately with the open `skills` CLI.
+- `ark upgrade` — in-place binary upgrade. Detects whether `ark` lives
+  inside a git clone (runs `git pull` + rebuilds `ark`/`work`) or was
+  installed from a release archive (downloads + replaces both binaries).
 - `.goreleaser.yml` + `.github/workflows/release.yml` — release pipeline
-  that publishes `ark-{version}-{os}-{arch}.tar.gz` + `checksums.txt` on
-  each `v*` tag.
+  that publishes `ark-{version}-{os}-{arch}.tar.gz` containing both binaries,
+  plus `checksums.txt`, on each `v*` tag.
 
 ## Rules for editing this repo
 
@@ -68,11 +73,12 @@ _other_ repos to adopt, and it also adopts that same convention on itself
 ## Testing
 
 ```bash
-task -d examples/demo-repo/.tickets test   # expect 10/10
-task -d examples/demo-repo/.wiki lint      # expect OK
+task verify      # repo conventions, work tracker, and wiki
+task -d cli ci   # CLI lint, tests, build, and smoke checks
 ```
 
-CI runs both on every push and PR (see `.github/workflows/ci.yml`).
+CI runs CLI checks and demo convention checks on every push and PR (see
+`.github/workflows/ci.yml`).
 
 <!-- agent-repo-kit:init:start -->
 
@@ -80,10 +86,11 @@ CI runs both on every push and PR (see `.github/workflows/ci.yml`).
 
 - **Docs** — tracked repo docs live under `docs/` using the `requests/`,
   `planning/`, `plans/`, `implementation/`, and `taxonomy/` folders.
-- **Tickets** — flat-file work tracker at `.tickets/`. Read `.tickets/README.md`
-  for the verb surface and `.tickets/harness/schema.yaml` for the state
-  machine. Daily commands:
-  `task -d .tickets {new|list|transition|close|test}`.
+- **Work** — local-first work tracker at `.work/`. The repo-local CLI is
+  exposed through `task work -- ...`; canonical state lives in
+  `.work/config.yaml`, `.work/views.yaml`, and `.work/items/`. Daily commands:
+  `task work -- inbox`, `task work -- inbox add "title"`, `task work -- triage accept IN-0001`,
+  `task work -- view ready`, and `task work -- show W-0001`.
 - **Wiki** — LLM-maintained knowledge base at `.wiki/`. Read `.wiki/RULES.md`
   for page types, frontmatter, and citation rules. Validate with
   `task wiki:lint` (or `task -d .wiki lint`).

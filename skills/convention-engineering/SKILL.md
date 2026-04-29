@@ -1,6 +1,6 @@
 ---
 name: convention-engineering
-description: "Use when auditing or bootstrapping repo conventions: agent docs, docs taxonomy, verification gates, layer boundaries, dependency hygiene, repo-local skill placement, ticket tracker (.tickets/), or wiki (.wiki/). Triggers: init tickets, new ticket, list tickets, transition ticket, close ticket, ticket status, init wiki, ingest source, wiki lint, knowledge base, scaffold repo conventions."
+description: "Use when auditing or bootstrapping repo conventions: agent docs, docs taxonomy, verification gates, layer boundaries, dependency hygiene, repo-local skill placement, work tracker (.work/), or wiki (.wiki/). Triggers: init work, new work item, work inbox, work triage, work status, work view, init wiki, ingest source, wiki lint, knowledge base, scaffold repo conventions."
 ---
 
 # Convention Engineering
@@ -60,7 +60,7 @@ Profiles compose: a Go+React repo uses both `references/profiles/go.md` and `ref
 | Audit a repo against conventions                                             | `references/operations/audit-workflow.md`                   |
 | Bootstrap a new repo                                                         | `references/operations/bootstrap-workflow.md`               |
 | Apply conventions to an open-source repo using local `git exclude` + `.docs` | `references/operations/open-source-git-exclude-workflow.md` |
-| Scaffold or operate a ticket tracker (`.tickets/`)                           | `references/operations/tickets.md`                          |
+| Scaffold or operate a work tracker (`.work/`)                                | `references/operations/work.md`                             |
 | Scaffold or operate an LLM-maintained wiki (`.wiki/`)                        | `references/operations/wiki.md`                             |
 
 ### Companion Surfaces

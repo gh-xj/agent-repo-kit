@@ -56,10 +56,29 @@ See `+"`references/missing.md`"+` for details.
 	}
 }
 
+func TestWorkVersionCommand(t *testing.T) {
+	output, err := runWorkCLI(t, "version")
+	if err != nil {
+		t.Fatalf("work version command failed: %v\n%s", err, output)
+	}
+	if !strings.Contains(output, "work ") {
+		t.Fatalf("unexpected output: %s", output)
+	}
+}
+
 func runCLI(t *testing.T, args ...string) (string, error) {
 	t.Helper()
 
-	cmd := exec.Command("go", append([]string{"run", "."}, args...)...)
+	cmd := exec.Command("go", append([]string{"run", "./cmd/ark"}, args...)...)
+	cmd.Dir = projectRoot(t)
+	output, err := cmd.CombinedOutput()
+	return string(output), err
+}
+
+func runWorkCLI(t *testing.T, args ...string) (string, error) {
+	t.Helper()
+
+	cmd := exec.Command("go", append([]string{"run", "./cmd/work"}, args...)...)
 	cmd.Dir = projectRoot(t)
 	output, err := cmd.CombinedOutput()
 	return string(output), err

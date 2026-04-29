@@ -4,6 +4,11 @@
 **Date:** 2026-04-18
 **Workstreams:** W1 (release pipeline), W2 (install.sh v2), W3 (adapters subcommand), W4 (upgrade subcommand), W5 (ark init wizard)
 
+> 2026-04-29 implementation note: this is a historical architecture plan.
+> The current installer ships both `ark` and `work`; skills are installed
+> separately through the open `skills` CLI. Some sections below preserve the
+> original design discussion rather than the final shipped behavior.
+
 ---
 
 ## §1. Release Artifact Naming Scheme
@@ -20,7 +25,7 @@ https://github.com/gh-xj/agent-repo-kit/releases/download/v{version}/ark-{versio
 https://github.com/gh-xj/agent-repo-kit/releases/download/v{version}/checksums.txt
 ```
 
-**Archive contents:** binary `ark` + `LICENSE`. README omitted to prevent stale docs drift.
+**Archive contents:** binaries `ark` and `work` + `LICENSE`. README omitted to prevent stale docs drift.
 
 **POSIX-portable checksum detection in install.sh:**
 
@@ -426,7 +431,7 @@ When interactive, build a single `huh.NewForm(...)` with three groups:
 **Group 2 — Configuration:**
 
 - `huh.NewMultiSelect[string]().Title("Profiles").Options(...)` with auto-detected value pre-selected; assigns `&profilesSelection`.
-- `huh.NewMultiSelect[string]().Title("Operations").Options(tickets, wiki, taskfile).Value(&opsSelection)` with `tickets,wiki` pre-selected.
+- `huh.NewMultiSelect[string]().Title("Operations").Options(work, wiki, taskfile).Value(&opsSelection)` with `work,wiki` pre-selected.
 - `huh.NewSelect[string]().Title("Repo risk").Options(standard, elevated, critical).Value(&repoRisk)` with `standard` pre-selected.
 
 **Group 3 — Confirmation:**

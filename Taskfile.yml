@@ -7,6 +7,11 @@ includes:
     flatten: true
 
 tasks:
+  work:
+    desc: Run the repo-local work CLI
+    cmds:
+      - go run -C cli ./cmd/work --store ../.work {{.CLI_ARGS}}
+
   skills:link-dev:
     desc: Symlink the shipped repo skills into ~/.agents/skills and ~/.claude/skills for local maintenance
     preconditions:

@@ -1,12 +1,12 @@
 #!/bin/sh
-# install.sh — install the ark binary for agent-repo-kit
+# install.sh — install the ark/work binaries for agent-repo-kit
 #
 # Skill distribution is handled separately via the open `skills` CLI:
 #   npx skills add gh-xj/agent-repo-kit -g -a claude-code -a codex --skill '*' -y
 #
-# This script now owns the ark binary only. It downloads the prebuilt ark
-# binary for your OS/arch from the latest GitHub release, verifies its
-# SHA-256 checksum, and installs it to --prefix.
+# This script owns the repo's shipped binaries. It downloads the prebuilt
+# archive for your OS/arch from the latest GitHub release, verifies its
+# SHA-256 checksum, and installs the binaries it contains to --prefix.
 #
 # Pass --from-source to build from the local checkout instead (requires Go
 # and a .git directory).
@@ -55,7 +55,7 @@ Usage: ./install.sh [options]
 
 Options:
   --prefix <dir>      binary install directory (default: ~/.local/bin)
-  --from-source       build ark from local checkout instead of downloading
+  --from-source       build ark/work from local checkout instead of downloading
   --dry-run           preview actions without making changes
   --target <name>     deprecated no-op; use `npx skills add ...` for skills
   --manifest <path>   deprecated no-op; use `npx skills add ...` for skills
@@ -63,7 +63,7 @@ Options:
   -h, --help          show this message and exit
 
 Default behavior:
-  - Install only the `ark` binary.
+  - Install the shipped `ark` and `work` binaries when available.
   - Install skills separately with:
       npx skills add gh-xj/agent-repo-kit -g -a claude-code -a codex --skill '*' -y
   - Strategy: if --from-source, or (go on PATH AND .git present) -> source
@@ -141,8 +141,8 @@ install_binary() {
     if [ "$STRATEGY" = source ]; then
         command -v go >/dev/null 2>&1 \
             || die "go toolchain not found; remove --from-source or install Go"
-        log "building ark" "prefix=$PREFIX"
-        run "(cd \"$DIR/cli\" && mkdir -p \"$PREFIX\" && go build -o \"$PREFIX/ark\" .)"
+        log "building ark and work" "prefix=$PREFIX"
+        run "(cd \"$DIR/cli\" && mkdir -p \"$PREFIX\" && go build -o \"$PREFIX/ark\" ./cmd/ark && go build -o \"$PREFIX/work\" ./cmd/work)"
         return 0
     fi
 
@@ -176,6 +176,13 @@ install_binary() {
     run "mv \"$TMPDIR/ark\" \"$PREFIX/ark.new\""
     run "mv \"$PREFIX/ark.new\" \"$PREFIX/ark\""
     run "chmod +x \"$PREFIX/ark\""
+    if [ -f "$TMPDIR/work" ]; then
+        run "mv \"$TMPDIR/work\" \"$PREFIX/work.new\""
+        run "mv \"$PREFIX/work.new\" \"$PREFIX/work\""
+        run "chmod +x \"$PREFIX/work\""
+    else
+        warn "release archive does not contain work; installed ark only"
+    fi
 }
 
 warn_deprecated_flags() {
@@ -207,14 +214,14 @@ main() {
     cat <<EOF
 Next steps:
 
-  1. Ensure $PREFIX is on PATH (or copy ark onto PATH yourself).
+  1. Ensure $PREFIX is on PATH (or copy ark/work onto PATH yourself).
   2. Install skills with the open skills CLI:
        npx skills add $SKILLS_SOURCE -g -a claude-code -a codex --skill '*' -y
   3. Scaffold the tracked contract into your repo:
        ark init --repo-root /path/to/your-repo
   4. In the target repo, run: task verify
 EOF
-    log "install complete" "binary=$PREFIX/ark"
+    log "install complete" "prefix=$PREFIX"
 }
 
 main

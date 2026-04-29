@@ -15,7 +15,7 @@ Owned:
 - rubric dimensions, score scale, and thresholds
 - handoff, launcher receipt, evidence, and evaluation result contracts
 - skeptical evaluation guidance from fresh context
-- scoring repos that adopt operational conventions (tickets, wiki) via existing rubric dimensions — no dedicated schema fields or dimensions
+- scoring repos that adopt operational conventions (work, wiki) via existing rubric dimensions — no dedicated schema fields or dimensions
 
 Not owned:
 

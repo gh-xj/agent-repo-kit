@@ -64,15 +64,15 @@ ark check --repo-root . --config .docs/convention-engineering.overlay.json --jso
 ### Tier 5: Operational Conventions (conditional)
 
 Only audit each subsection if the corresponding directory exists. See
-`references/operations/tickets.md` and `references/operations/wiki.md` for
+`references/operations/work.md` and `references/operations/wiki.md` for
 rationale and layout details.
 
-If `.tickets/` exists:
+If `.work/` exists:
 
-- [ ] `CLAUDE.md` / `AGENTS.md` contains the tickets pointer snippet
-- [ ] `.tickets/Taskfile.yml`, `.tickets/harness/schema.yaml`, and `.tickets/harness/taxonomy.yaml` exist
-- [ ] `.tickets/audit-log.md` exists (append-only)
-- [ ] `task -d .tickets test` passes
+- [ ] `CLAUDE.md` / `AGENTS.md` contains the work pointer snippet
+- [ ] `.work/config.yaml` and `.work/views.yaml` exist
+- [ ] root `Taskfile.yml` exposes `work:` when a Taskfile wrapper is expected
+- [ ] `work --store .work view ready --json` or `task work -- view ready --json` passes
 
 If `.wiki/` exists:
 

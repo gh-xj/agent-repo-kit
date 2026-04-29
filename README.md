@@ -13,8 +13,8 @@ This repo ships canonical open-skill surfaces plus thin compatibility
 adapters for `claude-code` and `codex`; `cursor/` remains placeholder
 adapter docs. The kit gives any repo three things out of the box:
 
-1. A flat-file **work tracker** (`.tickets/`) — state machine, verb surface,
-   Taskfile.
+1. A local-first **work tracker** (`.work/`) — inbox, triage, views, and a
+   JSON-native `work` CLI.
 2. An LLM-maintained **knowledge base** (`.wiki/`) — page types, frontmatter,
    citation rules, lint.
 3. An **audit / bootstrap workflow** that scores a repo against the contract
@@ -30,15 +30,15 @@ npx skills add gh-xj/agent-repo-kit -g -a claude-code -a codex --skill '*' -y
 
 This step requires Node.js so `npx` is available.
 
-Install the `ark` binary (prebuilt by default, `~/.local/bin`):
+Install the shipped binaries (prebuilt by default, `~/.local/bin`):
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/gh-xj/agent-repo-kit/main/install.sh | sh
 ```
 
 `npx skills` installs the canonical repo skills under the supported agent
-runtime roots. `install.sh` now installs only the `ark` binary from the
-latest GitHub Release into `~/.local/bin/ark`.
+runtime roots. `install.sh` installs shipped binaries such as `ark` and
+`work` into the selected prefix when they are available in the release archive.
 
 ### From source
 
@@ -51,8 +51,9 @@ cd agent-repo-kit
 ./install.sh --from-source
 ```
 
-`--from-source` forces a `go build` of `cli/` into the install prefix
-instead of downloading a release archive. Requires Go ≥ 1.25.
+`--from-source` forces local `go build` of the `ark` and `work` entrypoints
+into the install prefix instead of downloading a release archive. Requires
+Go ≥ 1.25.
 
 ### Prefix and PATH
 
@@ -74,9 +75,9 @@ Other useful flags:
 ark upgrade
 ```
 
-`ark upgrade` upgrades only the `ark` binary. If the binary lives inside
-a git clone it runs `git pull` + rebuild; otherwise it downloads the
-latest release archive and replaces itself in place.
+`ark upgrade` upgrades the shipped `ark` and `work` binaries. If `ark`
+lives inside a git clone it runs `git pull` + rebuild; otherwise it downloads
+the latest release archive and replaces the installed binaries in place.
 
 Refresh installed skills separately with `npx skills update -g`, or re-run
 the `npx skills add gh-xj/agent-repo-kit ...` command above.
@@ -131,7 +132,7 @@ ark init \
 ```
 
 This writes a tracked `.convention-engineering.json`, `docs/` taxonomy
-READMEs, `.tickets/`, `.wiki/`, repo-local convention task wiring under
+READMEs, `.work/`, `.wiki/`, repo-local convention task wiring under
 `.convention-engineering/`, and mirrored `AGENTS.md` / `CLAUDE.md`
 convention blocks. The generated repo then supports:
 
@@ -141,14 +142,14 @@ task verify
 
 Prerequisites:
 
-- `ark` on `PATH` (installed by `./install.sh` or built from source) for bootstrap and convention checks
+- `ark` and `work` on `PATH` (installed by `./install.sh` or built from source) for bootstrap, convention checks, and work views
 - `task`, `bash`, and standard Unix tools for `task verify`
 
 ## What you get
 
 - **`skills/`** — canonical, harness-free skill sources:
   - `skills/convention-engineering/` — repo conventions: agent docs, docs
-    taxonomy, stack profiles, verification gates, tickets + wiki scaffolds.
+    taxonomy, stack profiles, verification gates, work + wiki scaffolds.
   - `skills/convention-evaluator/` — skeptical scoring of a repo's adoption
     of the contract. Produces a graded report with evidence.
   - `skills/skill-builder/` — skill for creating, refactoring, and auditing
@@ -158,7 +159,7 @@ Prerequisites:
     used by `ark taskfile lint`.
   - `skills/attack-architecture/` — adversarial architecture-review skill
     (parallel lens attacks + debate).
-- **`examples/demo-repo/`** — a working repo showing `.tickets/` + `.wiki/`
+- **`examples/demo-repo/`** — a working repo showing `.work/` + `.wiki/`
   adoption end to end, wired to CI.
 - **`adapters/`** — thin wrappers that expose `skills/` to a specific
   harness. `claude-code/` and `codex/` are shipped as compatibility targets
@@ -172,9 +173,9 @@ ark init \
   --profiles go
 
 cd /path/to/your-repo
-task verify           # conventions + tickets + wiki
-task -d .tickets test # 10/10 scenarios pass
-task -d .wiki lint    # OK
+task verify             # conventions + work + wiki
+task work -- view ready # inspect ready work
+task -d .wiki lint      # OK
 ```
 
 ## Architecture
@@ -182,7 +183,7 @@ task -d .wiki lint    # OK
 ```
      +---------+             +-----------------------+
      | skills/ |<------------| examples/demo-repo/   |
-     +----+----+             | (.tickets, .wiki, CI) |
+     +----+----+             | (.work, .wiki, CI)    |
           ^                  +-----------------------+
           |
    +------+-------+

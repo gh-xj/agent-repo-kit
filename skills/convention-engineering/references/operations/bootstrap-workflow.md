@@ -106,10 +106,9 @@ Configure git to use it: `git config core.hooksPath .githooks`
 Decide whether to adopt the repo-scoped operational conventions. Each is
 independent — adopt either, both, or neither.
 
-- **Tickets (`.tickets/`)** — adopt if the repo needs tracked work items with
-  audit trail, state transitions, and schema-validated categories. Skip for
-  casual TODOs. If adopting, follow `references/operations/tickets.md` (3-step
-  adoption).
+- **Work (`.work/`)** — adopt if the repo needs captured work, triage, saved
+  views, and a JSON-native CLI for agents. Skip for casual TODOs. If adopting,
+  follow `references/operations/work.md`.
 - **Wiki (`.wiki/`)** — adopt if the repo needs an LLM-maintained knowledge
   base with source summaries, notes, and wikilink lint. Skip if a plain `docs/`
   tree is enough. If adopting, follow `references/operations/wiki.md` (3-step
@@ -129,8 +128,8 @@ git add CLAUDE.md .convention-engineering.json .golangci.yml Taskfile.yml taskfi
 git commit -m "chore: bootstrap convention files"
 ```
 
-If `.tickets/` or `.wiki/` were adopted, include them in the commit
-(`git add .tickets/ .wiki/`).
+If `.work/` or `.wiki/` were adopted, include them in the commit
+(`git add .work/ .wiki/`).
 
 For open-source/local-only setups, skip commit and keep `.docs/convention-engineering.overlay.json` plus other local-only files under `.git/info/exclude`.
 

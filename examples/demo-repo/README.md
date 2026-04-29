@@ -2,7 +2,7 @@
 
 This is a demo of `agent-repo-kit`'s tracked bootstrap applied to a
 real-shaped repo: a checked-in convention contract, a docs taxonomy, and
-the optional `.tickets/` + `.wiki/` operational conventions. It is the
+the `.work/` + `.wiki/` operational conventions. It is the
 reference a human or agent can point at when asking "what does adoption
 actually look like?"
 
@@ -12,33 +12,33 @@ actually look like?"
   for this tracked example repo.
 - `docs/` — the tracked docs taxonomy for requests, planning, plans,
   implementation notes, and taxonomies.
-- `.tickets/` — the flat-file work tracker. State machine in
-  `harness/schema.yaml`, verb surface in `README.md`, Taskfile wired up.
+- `.work/` — the local-first work tracker. Canonical state lives in
+  `config.yaml`, `views.yaml`, and `items/`.
 - `.wiki/` — the LLM-maintained knowledge base. Page types, frontmatter,
   and citation rules live in `RULES.md`.
 - `AGENTS.md` / `CLAUDE.md` — dual-written pointer blocks telling any
   agent where the conventions live. **Identical content in both files.**
-- `Taskfile.yml` — includes the wiki and tickets taskfiles and exposes
+- `Taskfile.yml` — exposes the `work` wrapper, wiki linting, and
   `task verify` for the full demo gate.
 
 ## Tracked bootstrap outline
 
 1. **Create the tracked contract** — add `.convention-engineering.json`
    and the `docs/` taxonomy to your repo.
-2. **Adopt operational conventions as needed** — copy `.tickets/` and
-   `.wiki/` only if your repo needs tracked work items or source-backed
-   knowledge pages.
+2. **Adopt operational conventions as needed** — initialize `.work/` and
+   `.wiki/` if your repo needs tracked work items or source-backed knowledge
+   pages.
 3. **Mirror the pointer block** — paste the `## Conventions` block from
    `AGENTS.md` into both `AGENTS.md` and `CLAUDE.md` at your repo root.
-4. **Customize and verify** — edit `.tickets/harness/taxonomy.yaml` for
-   your project's categories and run `task verify`.
+4. **Customize and verify** — adjust `.work/views.yaml` for your repo's
+   working views and run `task verify`.
 
 ## Run the tests locally
 
 ```bash
-task verify          # convention contract + tickets + wiki
-task -d .tickets test # expect 10/10
-task -d .wiki lint    # expect OK
+task verify             # convention contract + work + wiki
+task work -- view ready # inspect ready work
+task -d .wiki lint      # expect OK
 ```
 
 Both run in CI on every push and PR — see `.github/workflows/ci.yml` at

@@ -1,0 +1,29 @@
+version: 1
+views:
+    - id: all
+      name: All
+      description: All work items
+    - id: ready
+      name: Ready
+      description: Ready work that can be claimed
+      filter:
+        statuses:
+            - ready
+    - id: active
+      name: Active
+      description: Active work currently in motion
+      filter:
+        statuses:
+            - active
+    - id: blocked
+      name: Blocked
+      description: Work waiting on an unblock condition
+      filter:
+        statuses:
+            - blocked
+    - id: done
+      name: Done
+      description: Completed work
+      filter:
+        statuses:
+            - done

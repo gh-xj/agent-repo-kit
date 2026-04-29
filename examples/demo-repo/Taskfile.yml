@@ -2,32 +2,59 @@ version: "3"
 
 vars:
   ARK: ../../cli/bin/ark
+  WORK: ../../cli/bin/work
 
 includes:
   wiki:
     taskfile: .wiki/Taskfile.yml
     dir: .wiki
-  tickets:
-    taskfile: .tickets/Taskfile.yml
-    dir: .tickets
 
 tasks:
+  work:
+    desc: Run the repo-local work CLI
+    cmds:
+      - |
+        if [ -x "{{.WORK}}" ]; then
+          "{{.WORK}}" --store .work {{.CLI_ARGS}}
+        else
+          go run -C ../../cli ./cmd/work --store ../examples/demo-repo/.work {{.CLI_ARGS}}
+        fi
+
+  work:check:
+    desc: Validate the demo work tracker store
+    cmds:
+      - test -f .work/config.yaml
+      - test -f .work/views.yaml
+      - task: work
+        vars:
+          CLI_ARGS: view ready --json
+
   check:conventions:
     desc: Validate the tracked convention contract for demo-repo
     cmds:
-      - "{{.ARK}} check --repo-root . --config .convention-engineering.json"
+      - |
+        if [ -x "{{.ARK}}" ]; then
+          "{{.ARK}}" check --repo-root . --config .convention-engineering.json
+        else
+          go run -C ../../cli ./cmd/ark check --repo-root ../examples/demo-repo --config .convention-engineering.json
+        fi
 
   taskfile:lint:
     desc: Structural lint of all Taskfiles in this demo repo
     cmds:
-      - "{{.ARK}} taskfile lint --repo-root . --path Taskfile.yml"
-      - "{{.ARK}} taskfile lint --repo-root . --path .tickets/Taskfile.yml"
-      - "{{.ARK}} taskfile lint --repo-root . --path .wiki/Taskfile.yml"
+      - |
+        if [ -x "{{.ARK}}" ]; then
+          "{{.ARK}}" taskfile lint --repo-root . --path Taskfile.yml
+          "{{.ARK}}" taskfile lint --repo-root . --path .wiki/Taskfile.yml
+        else
+          go run -C ../../cli ./cmd/ark taskfile lint --repo-root ../examples/demo-repo --path Taskfile.yml
+          go run -C ../../cli ./cmd/ark taskfile lint --repo-root ../examples/demo-repo --path .wiki/Taskfile.yml
+        fi
 
   verify:
     desc: Run the demo repo verification gates
     cmds:
-      - task: tickets:test
+      - task: work:check
       - task: wiki:lint
       - task: check:conventions
       - task: taskfile:lint

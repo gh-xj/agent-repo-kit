@@ -75,7 +75,7 @@ func normalizeOptions(root string, opts Options) (Options, error) {
 		normalized.RepoRisk = "standard"
 	}
 	if len(normalized.Operations) == 0 {
-		normalized.Operations = []string{"tickets", "wiki"}
+		normalized.Operations = []string{"work", "wiki"}
 	}
 	if len(normalized.Profiles) == 0 {
 		detected, err := detectProfiles(root)
@@ -88,10 +88,10 @@ func normalizeOptions(root string, opts Options) (Options, error) {
 		return Options{}, fmt.Errorf("could not detect repo profiles; pass --profiles")
 	}
 
-	allowedOps := map[string]bool{"tickets": true, "wiki": true}
+	allowedOps := map[string]bool{"work": true, "wiki": true}
 	for _, op := range normalized.Operations {
 		if !allowedOps[op] {
-			return Options{}, fmt.Errorf("unsupported operation %q (allowed: tickets,wiki)", op)
+			return Options{}, fmt.Errorf("unsupported operation %q (allowed: work,wiki)", op)
 		}
 	}
 
@@ -152,7 +152,7 @@ func scaffoldTrackedRepo(root, repoName string, opts Options) error {
 	if err := ensureDocsReadmes(root, repoName, opts); err != nil {
 		return err
 	}
-	if err := ensureTickets(root, repoName, hasOperation(opts.Operations, "tickets")); err != nil {
+	if err := ensureWork(root, hasOperation(opts.Operations, "work")); err != nil {
 		return err
 	}
 	if err := ensureWiki(root, hasOperation(opts.Operations, "wiki")); err != nil {
@@ -161,7 +161,7 @@ func scaffoldTrackedRepo(root, repoName string, opts Options) error {
 	if err := ensureConventionSupportFiles(root, sourceRoot, opts); err != nil {
 		return err
 	}
-	if err := ensureRootTaskfile(root); err != nil {
+	if err := ensureRootTaskfile(root, opts); err != nil {
 		return err
 	}
 	if err := ensureAgentContractFiles(root, opts); err != nil {

@@ -12,9 +12,10 @@
       "required_markers": [
         "## Conventions",
         "**Docs**",
+        "**Work**",
         ".convention-engineering.json",
         "`task verify`",
-        ".tickets/README.md",
+        ".work/config.yaml",
         ".wiki/RULES.md"
       ]
     },
@@ -24,9 +25,10 @@
       "required_markers": [
         "## Conventions",
         "**Docs**",
+        "**Work**",
         ".convention-engineering.json",
         "`task verify`",
-        ".tickets/README.md",
+        ".work/config.yaml",
         ".wiki/RULES.md"
       ]
     },
@@ -40,13 +42,6 @@
         "plans/",
         "implementation/",
         "taxonomy/"
-      ]
-    },
-    {
-      "file": ".tickets/harness/taxonomy.yaml",
-      "name": "tickets-taxonomy-customized",
-      "required_markers": [
-        "project: agent-repo-kit"
       ]
     }
   ],
@@ -96,14 +91,9 @@
     "docs/plans/README.md",
     "docs/implementation/README.md",
     "docs/taxonomy/README.md",
-    ".tickets/.gitignore",
-    ".tickets/README.md",
-    ".tickets/Taskfile.yml",
-    ".tickets/all/.gitkeep",
-    ".tickets/audit-log.md",
-    ".tickets/harness/schema.yaml",
-    ".tickets/harness/taxonomy.yaml",
-    ".tickets/harness/test-ticket-system.sh",
+    ".work/.gitignore",
+    ".work/config.yaml",
+    ".work/views.yaml",
     ".wiki/RULES.md",
     ".wiki/Taskfile.yml",
     ".wiki/pages/.gitkeep",
@@ -113,17 +103,10 @@
   "taskfile_checks": {
     ".convention-engineering/Taskfile.yml": [
       "check:conventions:",
+      "work:check:",
       "verify:",
       "check.sh",
-      "../.tickets/Taskfile.yml",
       "../.wiki/Taskfile.yml"
-    ],
-    ".tickets/Taskfile.yml": [
-      "init:",
-      "new:",
-      "transition:",
-      "close:",
-      "test:"
     ],
     ".wiki/Taskfile.yml": [
       "init:",
@@ -131,7 +114,8 @@
     ],
     "Taskfile.yml": [
       ".convention-engineering/Taskfile.yml",
-      "flatten: true"
+      "flatten: true",
+      "work:"
     ]
   }
 }

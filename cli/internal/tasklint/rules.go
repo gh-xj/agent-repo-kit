@@ -43,15 +43,15 @@ type ruleFunc func(c *ruleContext) []Finding
 // ruleFuncs lists the rules in execution order. Keep in sync with
 // rules_data.go and the per-rule tests.
 var ruleFuncs = []ruleFunc{
-	ruleSchemaError,             // 0 — upstream AST decode error surfacing
-	ruleVersionRequired,         // 1
-	ruleVersionIsThree,          // 2
-	ruleUnknownTopLevelKeys,     // 3
-	ruleUnknownTaskKeys,         // 4
-	ruleCmdAndCmdsMutex,         // 5
-	ruleIncludesPathsResolvable, // 6
-	ruleFlattenNoNameCollision,  // 7
-	ruleMethodValidEnum,         // 8
+	ruleSchemaError,              // 0 — upstream AST decode error surfacing
+	ruleVersionRequired,          // 1
+	ruleVersionIsThree,           // 2
+	ruleUnknownTopLevelKeys,      // 3
+	ruleUnknownTaskKeys,          // 4
+	ruleCmdAndCmdsMutex,          // 5
+	ruleIncludesPathsResolvable,  // 6
+	ruleFlattenNoNameCollision,   // 7
+	ruleMethodValidEnum,          // 8
 	ruleFingerprintDirGitignored, // 9
 	ruleDotenvFilesGitignored,    // 10
 }

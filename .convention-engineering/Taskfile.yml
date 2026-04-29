@@ -1,14 +1,23 @@
 version: "3"
 
 includes:
-  tickets:
-    taskfile: ../.tickets/Taskfile.yml
-    dir: ../.tickets
   wiki:
     taskfile: ../.wiki/Taskfile.yml
     dir: ../.wiki
 
 tasks:
+  work:check:
+    desc: Validate the repo work tracker store
+    cmds:
+      - test -f ../.work/config.yaml
+      - test -f ../.work/views.yaml
+      - |
+        if [ -x ../cli/bin/work ]; then
+          ../cli/bin/work --store ../.work view ready --json >/dev/null
+        else
+          go run -C ../cli ./cmd/work --store ../.work view ready --json >/dev/null
+        fi
+
   check:conventions:
     desc: Validate the tracked convention contract
     cmds:
@@ -17,7 +26,7 @@ tasks:
   verify:
     desc: Run the repo convention verification gates
     cmds:
-      - task: tickets:test
+      - task: work:check
       - task: wiki:lint
       - task: check:conventions
 

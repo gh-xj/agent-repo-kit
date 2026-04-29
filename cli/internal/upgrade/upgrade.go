@@ -74,7 +74,7 @@ func findGitRoot(selfPath string) string {
 	}
 }
 
-// RunUpgrade performs an in-place upgrade of the running ark binary.
+// RunUpgrade performs an in-place upgrade of the ark/work binaries.
 // target selects the harness to re-link after upgrade (empty = skip link).
 // prefix is the directory holding the current binary; empty uses os.Executable.
 func RunUpgrade(target, prefix string, dryRun bool) error {
@@ -91,6 +91,8 @@ func runUpgrade(stdout, stderr io.Writer, target, prefix string, dryRun bool) er
 	}
 	if prefix == "" {
 		prefix = filepath.Dir(selfPath)
+	} else {
+		selfPath = filepath.Join(prefix, filepath.Base(selfPath))
 	}
 
 	// Interrupted-upgrade recovery.
@@ -156,7 +158,8 @@ func runCloneUpgrade(stdout, stderr io.Writer, selfPath, target string, dryRun b
 		dir   string
 	}{
 		{"git pull --ff-only", []string{"git", "-C", repoRoot, "pull", "--ff-only"}, ""},
-		{"go build", []string{"go", "build", "-o", newBin, "."}, cliDir},
+		{"go build ark", []string{"go", "build", "-o", newBin, "./cmd/ark"}, cliDir},
+		{"go build work", []string{"go", "build", "-o", filepath.Join(filepath.Dir(selfPath), "work.new"), "./cmd/work"}, cliDir},
 	}
 
 	for _, s := range steps {
@@ -178,9 +181,13 @@ func runCloneUpgrade(stdout, stderr io.Writer, selfPath, target string, dryRun b
 
 	if dryRun {
 		fmt.Fprintf(stdout, "DRY-RUN: mv %q %q\n", newBin, selfPath)
+		fmt.Fprintf(stdout, "DRY-RUN: mv %q %q\n", filepath.Join(filepath.Dir(selfPath), "work.new"), filepath.Join(filepath.Dir(selfPath), "work"))
 	} else {
 		if err := os.Rename(newBin, selfPath); err != nil {
 			return fmt.Errorf("swap binary: %w", err)
+		}
+		if err := os.Rename(filepath.Join(filepath.Dir(selfPath), "work.new"), filepath.Join(filepath.Dir(selfPath), "work")); err != nil {
+			return fmt.Errorf("swap work binary: %w", err)
 		}
 	}
 
@@ -202,6 +209,8 @@ func runPrebuiltUpgrade(stdout, stderr io.Writer, selfPath, target string, dryRu
 		return fmt.Errorf("prebuilt upgrade unsupported on %s", osName)
 	}
 
+	installDir := filepath.Dir(selfPath)
+	workPath := filepath.Join(installDir, "work")
 	fmt.Fprintf(stdout, "[upgrade] prebuilt flavor, os=%s arch=%s\n", osName, archName)
 
 	latest, err := fetchLatestVersion()
@@ -220,7 +229,7 @@ func runPrebuiltUpgrade(stdout, stderr io.Writer, selfPath, target string, dryRu
 		fmt.Fprintf(stdout, "DRY-RUN: download %s\n", archiveURL)
 		fmt.Fprintf(stdout, "DRY-RUN: download %s\n", checksumURL)
 		fmt.Fprintf(stdout, "DRY-RUN: verify SHA-256\n")
-		fmt.Fprintf(stdout, "DRY-RUN: mv %q %q; extract; mv .new -> selfPath\n", selfPath, selfPath+".old")
+		fmt.Fprintf(stdout, "DRY-RUN: mv %q %q; extract ark/work; mv .new binaries into %s\n", selfPath, selfPath+".old", installDir)
 		if target != "" {
 			fmt.Fprintf(stdout, "DRY-RUN: ark adapters link --target %s\n", target)
 		}
@@ -245,35 +254,71 @@ func runPrebuiltUpgrade(stdout, stderr io.Writer, selfPath, target string, dryRu
 		return fmt.Errorf("verify checksum: %w", err)
 	}
 
-	extractedBin := filepath.Join(tmp, "ark")
-	if err := extractArkFromTarGz(archivePath, extractedBin); err != nil {
-		return fmt.Errorf("extract: %w", err)
+	extractedArk := filepath.Join(tmp, "ark")
+	if err := extractBinaryFromTarGz(archivePath, "ark", extractedArk); err != nil {
+		return fmt.Errorf("extract ark: %w", err)
+	}
+	extractedWork := filepath.Join(tmp, "work")
+	if err := extractBinaryFromTarGz(archivePath, "work", extractedWork); err != nil {
+		return fmt.Errorf("extract work: %w", err)
 	}
 
 	oldPath := selfPath + ".old"
 	newPath := selfPath + ".new"
+	workOldPath := workPath + ".old"
+	workNewPath := workPath + ".new"
 
-	// Move current binary to .old as recovery point.
+	if err := os.Rename(extractedArk, newPath); err != nil {
+		return fmt.Errorf("stage new ark binary: %w", err)
+	}
+	if err := os.Chmod(newPath, 0o755); err != nil {
+		return fmt.Errorf("chmod new ark binary: %w", err)
+	}
+	if err := os.Rename(extractedWork, workNewPath); err != nil {
+		_ = os.Remove(newPath)
+		return fmt.Errorf("stage new work binary: %w", err)
+	}
+	if err := os.Chmod(workNewPath, 0o755); err != nil {
+		_ = os.Remove(newPath)
+		_ = os.Remove(workNewPath)
+		return fmt.Errorf("chmod new work binary: %w", err)
+	}
+
+	// Move current binaries to .old as recovery points.
 	if err := os.Rename(selfPath, oldPath); err != nil {
 		return fmt.Errorf("backup current binary: %w", err)
 	}
+	hadWork := false
+	if _, err := os.Stat(workPath); err == nil {
+		hadWork = true
+		if err := os.Rename(workPath, workOldPath); err != nil {
+			_ = os.Rename(oldPath, selfPath)
+			return fmt.Errorf("backup current work binary: %w", err)
+		}
+	} else if err != nil && !errors.Is(err, os.ErrNotExist) {
+		_ = os.Rename(oldPath, selfPath)
+		return fmt.Errorf("stat work binary: %w", err)
+	}
 
-	// Move extracted binary to .new, then atomic-rename to selfPath.
-	if err := os.Rename(extractedBin, newPath); err != nil {
-		_ = os.Rename(oldPath, selfPath)
-		return fmt.Errorf("stage new binary: %w (restored from .old)", err)
-	}
-	if err := os.Chmod(newPath, 0o755); err != nil {
-		_ = os.Rename(oldPath, selfPath)
-		return fmt.Errorf("chmod new binary: %w (restored from .old)", err)
-	}
 	if err := os.Rename(newPath, selfPath); err != nil {
 		// leave .old in place so operator can recover
 		return fmt.Errorf("swap binary: %w; recover with: mv %s %s", err, oldPath, selfPath)
 	}
+	if err := os.Rename(workNewPath, workPath); err != nil {
+		_ = os.Rename(oldPath, selfPath)
+		if hadWork {
+			_ = os.Rename(workOldPath, workPath)
+		}
+		return fmt.Errorf("swap work binary: %w; restored ark/work from backups", err)
+	}
 
 	if err := os.Remove(oldPath); err != nil {
 		fmt.Fprintf(stderr, "[upgrade] WARN: failed to remove %s: %v\n", oldPath, err)
+	}
+	if hadWork {
+		if err := os.Remove(workOldPath); err != nil {
+			fmt.Fprintf(stderr, "[upgrade] WARN: failed to remove %s: %v\n", workOldPath, err)
+		}
 	}
 
 	if target == "" {
@@ -368,7 +413,7 @@ func verifyChecksum(checksumFile, archivePath, archiveName string) error {
 	return nil
 }
 
-func extractArkFromTarGz(archivePath, destBin string) error {
+func extractBinaryFromTarGz(archivePath, binaryName, destBin string) error {
 	f, err := os.Open(archivePath)
 	if err != nil {
 		return err
@@ -383,12 +428,12 @@ func extractArkFromTarGz(archivePath, destBin string) error {
 	for {
 		hdr, err := tr.Next()
 		if err == io.EOF {
-			return fmt.Errorf("ark binary not found in archive")
+			return fmt.Errorf("%s binary not found in archive", binaryName)
 		}
 		if err != nil {
 			return err
 		}
-		if filepath.Base(hdr.Name) != "ark" || hdr.Typeflag != tar.TypeReg {
+		if filepath.Base(hdr.Name) != binaryName || hdr.Typeflag != tar.TypeReg {
 			continue
 		}
 		out, err := os.OpenFile(destBin, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o755)

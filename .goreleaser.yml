@@ -4,7 +4,7 @@ project_name: ark
 
 before:
   hooks:
-    - go mod tidy
+    - cd cli && go mod tidy
 
 builds:
   - id: ark
@@ -12,16 +12,37 @@ builds:
     dir: cli
     gomod:
       dir: cli
-    main: .
+    main: ./cmd/ark
     env:
       - CGO_ENABLED=0
     flags:
       - -trimpath
     ldflags:
       - -s -w
-      - -X github.com/gh-xj/agent-repo-kit/cli/cmd.appVersion={{.Version}}
-      - -X github.com/gh-xj/agent-repo-kit/cli/cmd.appCommit={{.Commit}}
-      - -X github.com/gh-xj/agent-repo-kit/cli/cmd.appDate={{.Date}}
+      - -X github.com/gh-xj/agent-repo-kit/cli/internal/arkcli.appVersion={{.Version}}
+      - -X github.com/gh-xj/agent-repo-kit/cli/internal/arkcli.appCommit={{.Commit}}
+      - -X github.com/gh-xj/agent-repo-kit/cli/internal/arkcli.appDate={{.Date}}
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm64
+  - id: work
+    binary: work
+    dir: cli
+    gomod:
+      dir: cli
+    main: ./cmd/work
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+      - -X github.com/gh-xj/agent-repo-kit/cli/internal/workcli.appVersion={{.Version}}
+      - -X github.com/gh-xj/agent-repo-kit/cli/internal/workcli.appCommit={{.Commit}}
+      - -X github.com/gh-xj/agent-repo-kit/cli/internal/workcli.appDate={{.Date}}
     goos:
       - darwin
       - linux
@@ -31,7 +52,7 @@ builds:
 
 archives:
   - id: ark
-    builds: [ark]
+    builds: [ark, work]
     name_template: "ark-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
     format: tar.gz
     files:

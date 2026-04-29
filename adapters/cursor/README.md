@@ -17,7 +17,7 @@ synced from the repo-root canonical sources by `ark skill sync`.
 # 1. Clone the kit and build ark.
 git clone https://github.com/gh-xj/agent-repo-kit.git
 cd agent-repo-kit
-(cd cli && go build -o bin/ark .)
+(cd cli && go build -o bin/ark ./cmd/ark)
 
 # 2. Regenerate the Cursor mirrors from canonical (normally already in sync).
 ./cli/bin/ark skill sync --repo-root .

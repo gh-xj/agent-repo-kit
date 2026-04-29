@@ -65,7 +65,7 @@ applies); shape and cadence are the author's call.
 
 - **Tech-debt tracker (flat file).** A single checked-in file (e.g.
   `plans/tech-debt-tracker.md`) enumerates known debt items. Use this for
-  many small related items instead of one ticket per line.
+  many small related items instead of one work item per line.
 
 - **External references (`references/`).** LLM-readable external docs —
   vendor docs, API specs, fetched articles — named by topic. The llms.txt

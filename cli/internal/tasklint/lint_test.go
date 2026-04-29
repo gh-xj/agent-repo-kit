@@ -13,9 +13,9 @@ import (
 // writes a Taskfile (and optional .gitignore + include files) into a
 // temp directory and runs Lint against the result.
 type testFixture struct {
-	t           *testing.T
-	taskfile    string // contents of Taskfile.yml
-	gitignore   string // contents of .gitignore (if non-empty)
+	t            *testing.T
+	taskfile     string            // contents of Taskfile.yml
+	gitignore    string            // contents of .gitignore (if non-empty)
 	includeFiles map[string]string // repo-relative path -> contents
 }
 

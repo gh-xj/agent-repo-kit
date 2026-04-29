@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func buildInitConfig(repoName string, opts Options) ([]byte, error) {
+func buildInitConfig(_ string, opts Options) ([]byte, error) {
 	requiredFiles := []string{
 		"AGENTS.md",
 		"CLAUDE.md",
@@ -23,16 +23,11 @@ func buildInitConfig(repoName string, opts Options) ([]byte, error) {
 		"docs/implementation/README.md",
 		"docs/taxonomy/README.md",
 	}
-	if hasOperation(opts.Operations, "tickets") {
+	if hasOperation(opts.Operations, "work") {
 		requiredFiles = append(requiredFiles,
-			".tickets/.gitignore",
-			".tickets/README.md",
-			".tickets/Taskfile.yml",
-			".tickets/all/.gitkeep",
-			".tickets/audit-log.md",
-			".tickets/harness/schema.yaml",
-			".tickets/harness/taxonomy.yaml",
-			".tickets/harness/test-ticket-system.sh",
+			".work/.gitignore",
+			".work/config.yaml",
+			".work/views.yaml",
 		)
 	}
 	if hasOperation(opts.Operations, "wiki") {
@@ -56,9 +51,9 @@ func buildInitConfig(repoName string, opts Options) ([]byte, error) {
 			"check.sh",
 		},
 	}
-	if hasOperation(opts.Operations, "tickets") {
-		taskfileChecks[ConventionsTaskfile] = append(taskfileChecks[ConventionsTaskfile].([]string), "../.tickets/Taskfile.yml")
-		taskfileChecks[".tickets/Taskfile.yml"] = []string{"init:", "new:", "transition:", "close:", "test:"}
+	if hasOperation(opts.Operations, "work") {
+		taskfileChecks["Taskfile.yml"] = append(taskfileChecks["Taskfile.yml"].([]string), "work:")
+		taskfileChecks[ConventionsTaskfile] = append(taskfileChecks[ConventionsTaskfile].([]string), "work:check:")
 	}
 	if hasOperation(opts.Operations, "wiki") {
 		taskfileChecks[ConventionsTaskfile] = append(taskfileChecks[ConventionsTaskfile].([]string), "../.wiki/Taskfile.yml")
@@ -71,8 +66,8 @@ func buildInitConfig(repoName string, opts Options) ([]byte, error) {
 		ConfigPath,
 		"`task verify`",
 	}
-	if hasOperation(opts.Operations, "tickets") {
-		conventionMarkers = append(conventionMarkers, ".tickets/README.md")
+	if hasOperation(opts.Operations, "work") {
+		conventionMarkers = append(conventionMarkers, "**Work**", ".work/config.yaml")
 	}
 	if hasOperation(opts.Operations, "wiki") {
 		conventionMarkers = append(conventionMarkers, ".wiki/RULES.md")
@@ -102,16 +97,6 @@ func buildInitConfig(repoName string, opts Options) ([]byte, error) {
 			},
 		},
 	}
-	if hasOperation(opts.Operations, "tickets") {
-		contentChecks = append(contentChecks, map[string]any{
-			"name": "tickets-taxonomy-customized",
-			"file": ".tickets/harness/taxonomy.yaml",
-			"required_markers": []string{
-				fmt.Sprintf("project: %s", repoName),
-			},
-		})
-	}
-
 	config := map[string]any{
 		"generated_by":     ManagedMarker,
 		"contract_version": 1,

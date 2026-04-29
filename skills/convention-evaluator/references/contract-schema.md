@@ -99,13 +99,13 @@ Each chunk record is:
 
 ## Operational Conventions
 
-`convention-engineering` scaffolds operational conventions — currently `tickets` (`.tickets/`) and `wiki` (`.wiki/`) — by manual template copy plus a 4-line pointer in `CLAUDE.md` and `AGENTS.md`. The evaluator scores adoption through existing deterministic fields; there is no dedicated `operations` schema key.
+`convention-engineering` scaffolds operational conventions — currently `work` (`.work/`) and `wiki` (`.wiki/`) — by creating tracked local files plus a pointer in `CLAUDE.md` and `AGENTS.md`. The evaluator scores adoption through existing deterministic fields; there is no dedicated `operations` schema key.
 
 Expected contract expressions when a repo claims adoption:
 
-- `required_files`: e.g., `.tickets/README.md`, `.tickets/audit-log.md`, `.tickets/harness/schema.yaml`, `.wiki/RULES.md`, `.wiki/Taskfile.yml`.
-- `taskfile_checks`: e.g., `task -d .tickets test`, `task -d .wiki lint` (or `task wiki:lint` when wired into the root Taskfile).
+- `required_files`: e.g., `.work/config.yaml`, `.work/views.yaml`, `.wiki/RULES.md`, `.wiki/Taskfile.yml`.
+- `taskfile_checks`: e.g., `work:check:`, `task -d .wiki lint` (or `task wiki:lint` when wired into the root Taskfile).
 - `content_checks`: a `## Conventions` pointer snippet must appear in both `CLAUDE.md` and `AGENTS.md`. This is a `grep`-level presence check, not a parse.
-- `invariant_contract`: e.g., `.tickets/audit-log.md` append-only, `.wiki/raw/` immutability.
+- `invariant_contract`: e.g., `.work/events.jsonl` append-only when work history checks are enabled, `.wiki/raw/` immutability.
 
 Missing or aspirational claims map to existing rubric dimensions (see `rubric.md`). Do not invent new top-level fields for operational conventions.

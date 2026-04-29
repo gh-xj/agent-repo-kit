@@ -93,14 +93,14 @@ Treat `evaluation_inputs.repo_risk` as high-risk when one or more of these are t
 - soft-dimension failures remain soft unless `repo_risk` raises the threshold
 - unreadable or invalid handoff artifacts produce `infrastructure_failed`
 
-## Operational Conventions (tickets, wiki)
+## Operational Conventions (work, wiki)
 
 These adopt via manual template copy plus a `## Conventions` pointer snippet in `CLAUDE.md` and `AGENTS.md`. Score them through the existing dimensions — do not add new ones:
 
-- missing `.tickets/` or `.wiki/` directory or required files claimed by the contract → `enforceability`
+- missing `.work/` or `.wiki/` directory or required files claimed by the contract → `enforceability`
 - pointer snippet absent from `CLAUDE.md` or `AGENTS.md` (grep-level check, not parse) → `legibility`
-- task invocations claimed but not runnable (`task -d .tickets test`, `task -d .wiki lint`, `task wiki:lint`) → `verification`
-- append-only or immutable surfaces drifted (`.tickets/audit-log.md`, `.wiki/raw/`) → `drift_resistance`
+- task invocations claimed but not runnable (`task work -- view ready`, `task -d .wiki lint`, `task wiki:lint`) → `verification`
+- append-only or immutable surfaces drifted (`.work/items/*/events.jsonl`, `.wiki/raw/`) → `drift_resistance`
 - repo-local agent tooling duplicating what template ownership already covers → `ownership_clarity`
 
 The evaluator judges adoption; it does not generate or repair the scaffolding.

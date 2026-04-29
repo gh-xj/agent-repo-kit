@@ -8,7 +8,7 @@
     "domain_knowledge_owner": "repo-maintainers",
     "repo_local_skills": {
       "allowed": false,
-      "placement_roots": [".claude/skills", ".codex/skills"],
+      "placement_roots": [".claude/skills", ".agents/skills"],
       "authoring_owner": "agent-repo-kit",
       "requires_justification": true
     }
@@ -24,17 +24,15 @@
     "docs/plans/README.md",
     "docs/implementation/README.md",
     "docs/taxonomy/README.md",
-    ".tickets/README.md",
-    ".tickets/audit-log.md",
-    ".tickets/harness/schema.yaml",
-    ".tickets/harness/taxonomy.yaml",
+    ".work/.gitignore",
+    ".work/config.yaml",
+    ".work/views.yaml",
     ".wiki/RULES.md",
     ".wiki/Taskfile.yml",
     ".wiki/scripts/lint.sh"
   ],
   "taskfile_checks": {
-    "Taskfile.yml": ["check:conventions:", "verify:", "wiki:", "tickets:"],
-    ".tickets/Taskfile.yml": ["init:", "new:", "transition:", "close:", "test:"],
+    "Taskfile.yml": ["check:conventions:", "work:", "work:check:", "verify:", "wiki:"],
     ".wiki/Taskfile.yml": ["init:", "lint:"]
   },
   "mirror_policy": {
@@ -50,8 +48,9 @@
       "required_markers": [
         "## Conventions",
         "**Docs**",
+        "**Work**",
         ".convention-engineering.json",
-        ".tickets/README.md",
+        ".work/config.yaml",
         ".wiki/RULES.md",
         "`task verify`"
       ]
@@ -62,28 +61,11 @@
       "required_markers": [
         "## Conventions",
         "**Docs**",
+        "**Work**",
         ".convention-engineering.json",
-        ".tickets/README.md",
+        ".work/config.yaml",
         ".wiki/RULES.md",
         "`task verify`"
-      ]
-    },
-    {
-      "name": "tickets-readme-customized",
-      "file": ".tickets/README.md",
-      "required_markers": [
-        "`demo-repo`",
-        "agent-repo-kit",
-        "task -d .tickets test"
-      ]
-    },
-    {
-      "name": "tickets-taxonomy-customized",
-      "file": ".tickets/harness/taxonomy.yaml",
-      "required_markers": [
-        "project: demo-repo",
-        "agent-repo-kit",
-        "demo-repo"
       ]
     },
     {

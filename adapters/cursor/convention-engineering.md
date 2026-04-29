@@ -57,7 +57,7 @@ Profiles compose: a Go+React repo uses both `references/profiles/go.md` and `ref
 | Audit a repo against conventions                                             | `references/operations/audit-workflow.md`                   |
 | Bootstrap a new repo                                                         | `references/operations/bootstrap-workflow.md`               |
 | Apply conventions to an open-source repo using local `git exclude` + `.docs` | `references/operations/open-source-git-exclude-workflow.md` |
-| Scaffold or operate a ticket tracker (`.tickets/`)                           | `references/operations/tickets.md`                          |
+| Scaffold or operate a work tracker (`.work/`)                                | `references/operations/work.md`                             |
 | Scaffold or operate an LLM-maintained wiki (`.wiki/`)                        | `references/operations/wiki.md`                             |
 
 ### Companion Surfaces

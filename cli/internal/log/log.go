@@ -1,9 +1,9 @@
-// Package log configures the default slog logger for the ark CLI.
+// Package log configures the default slog logger for repo CLIs.
 //
 // Output is leveled and colored by default (via lmittmann/tint) when
 // stderr is a TTY. Color is auto-disabled when stderr is not a TTY or
 // when NO_COLOR is set in the environment. The --no-color flag and the
-// --verbose flag on the root cobra command both feed into Setup().
+// --verbose flag on each root command both feed into Setup().
 package log
 
 import (

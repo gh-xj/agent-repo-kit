@@ -19,15 +19,15 @@ func TestRunInitScaffoldsRepoAndTaskVerifyPasses(t *testing.T) {
 	var err bytes.Buffer
 	exitCode := RunInit(root, Options{
 		Profiles:   []string{"go"},
-		Operations: []string{"tickets", "wiki"},
+		Operations: []string{"work", "wiki"},
 		RepoRisk:   "standard",
 	}, &out, &err)
 	if exitCode != 0 {
 		t.Fatalf("expected init to succeed, got %d stderr=%s stdout=%s", exitCode, err.String(), out.String())
 	}
 
-	checkTaskfile(t, root, "Taskfile.yml", ConventionsTaskfile)
-	checkTaskfile(t, root, ConventionsTaskfile, "check:conventions:", "verify:", "../.tickets/Taskfile.yml", "../.wiki/Taskfile.yml")
+	checkTaskfile(t, root, "Taskfile.yml", ConventionsTaskfile, "work:")
+	checkTaskfile(t, root, ConventionsTaskfile, "check:conventions:", "work:check:", "verify:", "../.wiki/Taskfile.yml")
 
 	freshHome := filepath.Join(t.TempDir(), "home")
 	if err := os.MkdirAll(freshHome, 0o755); err != nil {
@@ -54,7 +54,7 @@ func TestRunInitEmbedsBootstrapSourceRootAndUpdatedFallbacks(t *testing.T) {
 	var err bytes.Buffer
 	exitCode := RunInit(root, Options{
 		Profiles:   []string{"go"},
-		Operations: []string{"tickets", "wiki"},
+		Operations: []string{"work", "wiki"},
 		RepoRisk:   "standard",
 	}, &out, &err)
 	if exitCode != 0 {
@@ -69,12 +69,12 @@ func TestRunInitEmbedsBootstrapSourceRootAndUpdatedFallbacks(t *testing.T) {
 	script := readFileForTest(t, root, ConventionsCheckPath)
 	bootstrapRoot := conventionEngineeringRootForTest(t)
 	// New resolution chain (install-v2.md decision 4):
-	//   $ARK_BINARY -> ark on $PATH -> `go run -C $repo_kit_root/cli .` fallback.
+	//   $ARK_BINARY -> ark on $PATH -> `go run -C $repo_kit_root/cli ./cmd/ark` fallback.
 	for _, marker := range []string{
 		"bootstrap_source=" + shellSingleQuote(bootstrapRoot),
 		"${ARK_BINARY:-}",
 		`command -v ark`,
-		`go run -C "$repo_kit_root/cli" .`,
+		`go run -C "$repo_kit_root/cli" ./cmd/ark`,
 	} {
 		if !strings.Contains(script, marker) {
 			t.Fatalf("expected generated check script to contain %q, got:\n%s", marker, script)
@@ -112,7 +112,7 @@ func TestRunInitPreservesExistingAgentDocsAndAvoidsDuplicateManagedBlocks(t *tes
 		var err bytes.Buffer
 		exitCode := RunInit(root, Options{
 			Profiles:   []string{"go"},
-			Operations: []string{"tickets", "wiki"},
+			Operations: []string{"work", "wiki"},
 			RepoRisk:   "standard",
 		}, &out, &err)
 		if exitCode != 0 {

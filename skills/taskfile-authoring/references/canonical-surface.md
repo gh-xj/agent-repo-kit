@@ -18,14 +18,14 @@ verify    deps: [ci]                (plus repo-specific extras)
 ```
 
 `ci` is the single contract CI runs. `verify` wraps `ci` and chains any
-repo-specific gates — ticket status check, wiki freshness lint, generated
+repo-specific gates — work status check, wiki freshness lint, generated
 artifact audit. Keeping them separate means extras stay out of the CI hot
 path, and local contributors still have one command.
 
 ## Why `ci` and `verify` Are Distinct
 
 Without the split, every time a repo adds a local-only check (e.g. "warn if
-`.tickets/` has stale items"), one of two bad things happens:
+`.work/` has stale items"), one of two bad things happens:
 
 - The check goes into `ci` and slows down every PR for a rule that has
   nothing to do with shipping correctness.

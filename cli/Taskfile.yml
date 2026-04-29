@@ -29,25 +29,42 @@ tasks:
       - go test ./...
 
   build:
-    desc: Build binary
+    desc: Build ark and work binaries
     deps: [deps, fmt:check]
     cmds:
       - mkdir -p bin
-      - go build -o bin/ark .
+      - go build -o bin/ark ./cmd/ark
+      - go build -o bin/work ./cmd/work
 
   run:
     desc: Run ark without building
     cmds:
-      - go run . {{.CLI_ARGS}}
+      - go run ./cmd/ark {{.CLI_ARGS}}
+
+  run:work:
+    desc: Run work without building
+    cmds:
+      - go run ./cmd/work {{.CLI_ARGS}}
 
   smoke:
     desc: Deterministic smoke checks
     deps: [build]
     cmds:
       - mkdir -p test/smoke
-      - rm -f test/smoke/version.output.json
+      - rm -f test/smoke/version.output.json test/smoke/work-version.output.json
       - ./bin/ark --json version > test/smoke/version.output.json
       - go run ./internal/tools/smokecheck --schema test/smoke/version.schema.json --input test/smoke/version.output.json
+      - ./bin/work --json version > test/smoke/work-version.output.json
+      - go run ./internal/tools/smokecheck --schema test/smoke/version.schema.json --input test/smoke/work-version.output.json
+      - |
+        WORK_SMOKE=$(mktemp -d)
+        ./bin/work --store "$WORK_SMOKE/.work" init
+        ./bin/work --store "$WORK_SMOKE/.work" inbox add "Captured idea" --body "raw note" --source smoke
+        ./bin/work --store "$WORK_SMOKE/.work" inbox --json >/dev/null
+        ./bin/work --store "$WORK_SMOKE/.work" triage accept IN-0001 --priority P1 --area smoke
+        ./bin/work --store "$WORK_SMOKE/.work" view ready --json >/dev/null
+        ./bin/work --store "$WORK_SMOKE/.work" show W-0001 --json >/dev/null
+        ./bin/work --store "$WORK_SMOKE/.work" show IN-0001 --json >/dev/null
 
   ci:
     desc: Canonical CI contract command

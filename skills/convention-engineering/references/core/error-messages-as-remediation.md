@@ -59,17 +59,17 @@ wikilink [[S-404]] has no target page  → fix: create 'pages/S-404-<slug>.md', 
 Before:
 
 ```
-no ticket matching T-99
+unknown view
 ```
 
 After:
 
 ```
-no ticket matching T-99  → fix: run 'task -d .tickets list' to see active tickets
+unknown view "ready-now"  → fix: run 'work view ready' or inspect .work/views.yaml
 ```
 
-Implementations: `.tickets/Taskfile.yml`, `.wiki/scripts/lint.sh`, and the
-template copies under `references/templates/{tickets,wiki}/`.
+Implementations: the `work` CLI, `.wiki/scripts/lint.sh`, and the template
+copies under `references/templates/`.
 
 ## Anti-patterns
 

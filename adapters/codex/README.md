@@ -39,7 +39,7 @@ low-level linker instead of `npx skills`, build `ark` and run:
 ```sh
 git clone https://github.com/gh-xj/agent-repo-kit.git
 cd agent-repo-kit
-(cd cli && go build -o bin/ark .)
+(cd cli && go build -o bin/ark ./cmd/ark)
 ./bin/ark adapters link --target codex --repo-root "$PWD"
 ```
 

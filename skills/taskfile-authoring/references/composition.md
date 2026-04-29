@@ -121,7 +121,7 @@ Decision rule:
   `verify`, `audit`, `bootstrap`. Callers type `task verify`, not
   `task conventions:verify`.
 - **Explicit `dir:`** — genuine namespace. The include models a real
-  sub-domain with its own lifecycle. Example: `tickets:test`, `wiki:lint`,
+  sub-domain with its own lifecycle. Example: `work:check`, `wiki:lint`,
   `docs:build`. The namespace adds information.
 
 Flatten without a plan is a minefield — see anti-patterns below.

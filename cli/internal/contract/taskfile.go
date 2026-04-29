@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-var taskfilePathLinePattern = regexp.MustCompile(`(?m)^\s*taskfile:\s*(.+?)\s*$`)
+var taskfilePathLinePattern = regexp.MustCompile(`(?m)^\s*taskfile:\s+(.+?)\s*$`)
 
 func aggregateTaskfileText(root, relativeTaskfile string) (string, []string, error) {
 	absRoot, err := filepath.Abs(root)

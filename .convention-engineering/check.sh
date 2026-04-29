@@ -40,7 +40,7 @@ resolve_cli_source() {
   fi
   local candidate
   for candidate in "${candidates[@]}"; do
-    if [ -f "$candidate/main.go" ]; then
+    if [ -f "$candidate/cmd/ark/main.go" ]; then
       printf '%s\n' "$candidate"
       return 0
     fi
@@ -53,7 +53,7 @@ if ark_bin=$(resolve_ark_binary); then
 fi
 
 if cli_source=$(resolve_cli_source); then
-  exec go run "$cli_source" check "$@"
+  exec go run -C "$cli_source" ./cmd/ark check "$@"
 fi
 
 printf 'ark binary not found. Set ARK_BINARY, place ark on PATH, or install agent-repo-kit into ~/.claude/skills or ~/.agents/skills (legacy fallback: ~/.codex/skills).\n' >&2

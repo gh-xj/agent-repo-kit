@@ -39,7 +39,7 @@ Three properties keep a Taskfile healthy:
 2. **Composable**: included sub-Taskfiles with explicit `{{.TASKFILE_DIR}}`
    paths, so an overlay dropped into any repo Just Works.
 3. **Verification-first**: one canonical `ci` task that CI runs verbatim, and
-   one `verify` task that wraps `ci` plus any repo-specific extras (ticket
+   one `verify` task that wraps `ci` plus any repo-specific extras (work
    checks, wiki lint, etc.). No branching logic in CI.
 
 ## The Canonical Aggregate Surface (advisory)
@@ -51,7 +51,7 @@ Most repos benefit from this shape:
 - `test` — run tests
 - `build` — produce artifact(s)
 - `ci` — aggregate: depends on `lint`, `test`, `build` (plus `smoke` where applicable). This is what CI runs.
-- `verify` — wraps `ci` and adds repo-specific gates (e.g. ticket/wiki checks).
+- `verify` — wraps `ci` and adds repo-specific gates (e.g. work/wiki checks).
 
 This is **not** lint-enforced. It is a sizing nudge — see
 `references/canonical-surface.md` for rationale and per-stack task counts.
@@ -78,7 +78,7 @@ Two composition modes:
   when a convention pack ships a Taskfile fragment (`.convention-engineering/Taskfile.yml`)
   and callers should type `task verify`, not `task conventions:verify`.
 - Explicit `dir:` with a namespace key — genuine sub-domain. Use for
-  `tickets:test`, `wiki:lint`, `docs:build` — things that feel like separate
+  `work:check`, `wiki:lint`, `docs:build` — things that feel like separate
   areas of the repo.
 
 Variable precedence is surprising: **the included file's own `vars:` win over

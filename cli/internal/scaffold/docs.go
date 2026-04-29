@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
+
+	"github.com/gh-xj/agent-repo-kit/cli/internal/work"
 )
 
 func ensureDocsReadmes(root, repoName string, opts Options) error {
@@ -90,33 +91,11 @@ Use %q for repo-authored documentation.
 	return nil
 }
 
-func ensureTickets(root, repoName string, enabled bool) error {
+func ensureWork(root string, enabled bool) error {
 	if !enabled {
 		return nil
 	}
-	srcRoot, err := resolveTemplatesRoot()
-	if err != nil {
-		return err
-	}
-	src := filepath.Join(srcRoot, "tickets")
-	dst := filepath.Join(root, ".tickets")
-	if err := copyTemplateTree(src, dst, map[string]func([]byte) []byte{
-		"harness/taxonomy.yaml": func(content []byte) []byte {
-			return []byte(strings.ReplaceAll(string(content), "<repo-name>", repoName))
-		},
-	}); err != nil {
-		return err
-	}
-	if err := os.MkdirAll(filepath.Join(dst, "all"), 0o755); err != nil {
-		return err
-	}
-	if err := touchManagedFile(filepath.Join(dst, "all", ".gitkeep"), 0o644); err != nil {
-		return err
-	}
-	if err := writeMissingFile(filepath.Join(dst, "audit-log.md"), []byte("# Audit Log\n\n"), 0o644); err != nil {
-		return err
-	}
-	return nil
+	return work.New(filepath.Join(root, work.DefaultStoreDir)).Init()
 }
 
 func ensureWiki(root string, enabled bool) error {

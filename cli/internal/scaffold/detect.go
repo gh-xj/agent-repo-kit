@@ -47,7 +47,7 @@ func repoMatchesDetector(root string, detector struct {
 
 	skipDirs := map[string]bool{
 		".git":                    true,
-		".tickets":                true,
+		".work":                   true,
 		".wiki":                   true,
 		".convention-engineering": true,
 		"node_modules":            true,

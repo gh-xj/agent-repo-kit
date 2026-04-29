@@ -24,7 +24,7 @@ func renderConventionCheckScript(sourceRoot string) string {
 	// sourceRoot is preserved as a "go run" fallback for development
 	// setups where ark is not yet built/installed. At runtime the
 	// resolution chain is: $ARK_BINARY -> ark on $PATH -> go run
-	// <sourceRoot>/../cli.
+	// <sourceRoot>/../cli/cmd/ark.
 	return fmt.Sprintf(`#!/usr/bin/env bash
 set -euo pipefail
 
@@ -39,8 +39,8 @@ if command -v ark >/dev/null 2>&1; then
   exec ark check "$@"
 fi
 
-if [ -f "$repo_kit_root/cli/main.go" ]; then
-  exec go run -C "$repo_kit_root/cli" . check "$@"
+if [ -f "$repo_kit_root/cli/cmd/ark/main.go" ]; then
+  exec go run -C "$repo_kit_root/cli" ./cmd/ark check "$@"
 fi
 
 printf 'ark binary not found. Set ARK_BINARY, place ark on PATH, or run ark upgrade to install it.\n' >&2
@@ -63,15 +63,8 @@ func renderConventionTaskfile(opts Options) string {
 		"",
 	}
 
-	if hasOperation(opts.Operations, "tickets") || hasOperation(opts.Operations, "wiki") {
+	if hasOperation(opts.Operations, "wiki") {
 		lines = append(lines, "includes:")
-		if hasOperation(opts.Operations, "tickets") {
-			lines = append(lines,
-				"  tickets:",
-				"    taskfile: ../.tickets/Taskfile.yml",
-				"    dir: ../.tickets",
-			)
-		}
 		if hasOperation(opts.Operations, "wiki") {
 			lines = append(lines,
 				"  wiki:",
@@ -84,6 +77,24 @@ func renderConventionTaskfile(opts Options) string {
 
 	lines = append(lines,
 		"tasks:",
+	)
+	if hasOperation(opts.Operations, "work") {
+		lines = append(lines,
+			"  work:check:",
+			"    desc: Validate the repo work tracker store",
+			"    cmds:",
+			"      - test -f ../.work/config.yaml",
+			"      - test -f ../.work/views.yaml",
+			"      - |",
+			"        if command -v work >/dev/null 2>&1; then",
+			"          work --store ../.work view ready --json >/dev/null",
+			"        else",
+			"          echo \"work binary not found; checked .work files only\"",
+			"        fi",
+			"",
+		)
+	}
+	lines = append(lines,
 		"  check:conventions:",
 		"    desc: Validate the tracked convention contract",
 		"    cmds:",
@@ -93,8 +104,8 @@ func renderConventionTaskfile(opts Options) string {
 		"    desc: Run the repo convention verification gates",
 		"    cmds:",
 	)
-	if hasOperation(opts.Operations, "tickets") {
-		lines = append(lines, "      - task: tickets:test")
+	if hasOperation(opts.Operations, "work") {
+		lines = append(lines, "      - task: work:check")
 	}
 	if hasOperation(opts.Operations, "wiki") {
 		lines = append(lines, "      - task: wiki:lint")
@@ -108,7 +119,7 @@ func renderConventionTaskfile(opts Options) string {
 	return strings.Join(lines, "\n")
 }
 
-func ensureRootTaskfile(root string) error {
+func ensureRootTaskfile(root string, opts Options) error {
 	path := filepath.Join(root, "Taskfile.yml")
 	includeBlock := []string{
 		"  conventions:",
@@ -128,36 +139,68 @@ func ensureRootTaskfile(root string) error {
 			"includes:",
 		}
 		body = append(body, includeBlock...)
+		if hasOperation(opts.Operations, "work") {
+			body = append(body,
+				"",
+				"tasks:",
+				"  work:",
+				"    desc: Run the repo-local work CLI",
+				"    cmds:",
+				"      - work --store .work {{.CLI_ARGS}}",
+			)
+		}
 		body = append(body, "")
 		return os.WriteFile(path, []byte(strings.Join(body, "\n")), 0o644)
 	}
 
 	text := string(content)
-	if strings.Contains(text, ConventionsTaskfile) {
-		return nil
-	}
-
 	lines := strings.Split(text, "\n")
 	if !containsTopLevelKey(lines, "version:") {
 		lines = append([]string{`version: "3"`, ""}, lines...)
 	}
 
-	insertAt := -1
-	for i, line := range lines {
-		if strings.TrimSpace(line) == "includes:" {
-			insertAt = i + 1
-			break
+	if !strings.Contains(text, ConventionsTaskfile) {
+		insertAt := -1
+		for i, line := range lines {
+			if strings.TrimSpace(line) == "includes:" {
+				insertAt = i + 1
+				break
+			}
 		}
+		if insertAt == -1 {
+			if len(lines) > 0 && strings.TrimSpace(lines[len(lines)-1]) != "" {
+				lines = append(lines, "")
+			}
+			lines = append(lines, "includes:")
+			insertAt = len(lines)
+		}
+
+		lines = append(lines[:insertAt], append(includeBlock, lines[insertAt:]...)...)
 	}
-	if insertAt == -1 {
+	if hasOperation(opts.Operations, "work") && !strings.Contains("\n"+strings.Join(lines, "\n"), "\n  work:") {
 		if len(lines) > 0 && strings.TrimSpace(lines[len(lines)-1]) != "" {
 			lines = append(lines, "")
 		}
-		lines = append(lines, "includes:")
-		insertAt = len(lines)
+		taskInsertAt := -1
+		for i, line := range lines {
+			if strings.TrimSpace(line) == "tasks:" {
+				taskInsertAt = i + 1
+				break
+			}
+		}
+		workTask := []string{
+			"  work:",
+			"    desc: Run the repo-local work CLI",
+			"    cmds:",
+			"      - work --store .work {{.CLI_ARGS}}",
+		}
+		if taskInsertAt == -1 {
+			lines = append(lines, "tasks:")
+			lines = append(lines, workTask...)
+		} else {
+			lines = append(lines[:taskInsertAt], append(workTask, lines[taskInsertAt:]...)...)
+		}
 	}
-
-	lines = append(lines[:insertAt], append(includeBlock, lines[insertAt:]...)...)
 	return os.WriteFile(path, []byte(strings.Join(lines, "\n")), 0o644)
 }
 
@@ -206,12 +249,13 @@ func renderAgentConventionBlock(opts Options) string {
 		"- **Docs** — tracked repo docs live under `docs/` using the `requests/`,",
 		"  `planning/`, `plans/`, `implementation/`, and `taxonomy/` folders.",
 	}
-	if hasOperation(opts.Operations, "tickets") {
+	if hasOperation(opts.Operations, "work") {
 		lines = append(lines,
-			"- **Tickets** — flat-file work tracker at `.tickets/`. Read `.tickets/README.md`",
-			"  for the verb surface and `.tickets/harness/schema.yaml` for the state",
-			"  machine. Daily commands:",
-			"  `task -d .tickets {new|list|transition|close|test}`.",
+			"- **Work** — local-first work tracker at `.work/`. The repo-local CLI is",
+			"  exposed through `task work -- ...`; canonical state lives in",
+			"  `.work/config.yaml`, `.work/views.yaml`, and `.work/items/`. Daily commands:",
+			"  `task work -- inbox`, `task work -- inbox add \"title\"`, `task work -- triage accept IN-0001`,",
+			"  `task work -- view ready`, and `task work -- show W-0001`.",
 		)
 	}
 	if hasOperation(opts.Operations, "wiki") {
