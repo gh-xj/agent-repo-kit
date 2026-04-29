@@ -67,7 +67,7 @@ Default output is a reviewable proposal:
 
 - short summary of the durable lesson
 - recommended destination(s)
-- compact statement of the learning
+- compact proposed change
 - reasoning tied to routing dimensions
 - confidence and risks
 

@@ -6,6 +6,23 @@ implementation or convention design.
 `.work/` is local operational state and should be ignored by the repo root
 `.gitignore`.
 
+## Model
+
+```text
+.work/inbox/IN-0001.yaml --triage accept--> .work/items/W-0001.yaml
+                                               |
+                                               `-- optional .work/spaces/W-0001/
+```
+
+- Inbox entry: unaccepted demand signal. Use it for raw, duplicated,
+  exploratory, or maybe-not-worth-tracking requests.
+- Work item: accepted canonical record. Use it for planning, status, priority,
+  area, labels, and source metadata.
+- Work space: optional item-owned directory keyed by work ID. Use it for notes,
+  research captures, plans, small evidence, and other supporting files.
+- Work type: optional scaffold/template. Typed work items remain normal work
+  items, but a type can scaffold `.work/spaces/<W-ID>/`.
+
 ## Store Discovery
 
 Prefer the repo wrapper if it exists:
@@ -58,6 +75,13 @@ Create directly when the work is already understood:
 work new "Document migration path" --area docs --priority P2
 ```
 
+Use a work space when the work item needs files:
+
+```text
+.work/items/W-0001.yaml     # canonical status/title/metadata
+.work/spaces/W-0001/        # item-owned notes and artifacts
+```
+
 ## Reading Work
 
 Use views for scans:
@@ -95,7 +119,9 @@ work triage accept IN-0002 --type research
 ```
 
 The work item remains flat under `.work/items/W-NNNN.yaml`. Type-owned files
-belong under `.work/spaces/W-NNNN/`.
+belong under `.work/spaces/W-NNNN/`. A non-typed work item may still use a
+manually created space when the work needs item-owned files; keep the item YAML
+as the source of truth.
 
 ## Verification
 

@@ -99,9 +99,11 @@ Default v0 views:
   `work init` if it does not already exist.
 - `.work/types/<type>/type.yaml` declares an optional additional work type
   extension when a repo chooses to use typed work beyond the preset.
-- `.work/spaces/<W-NNNN>/` stores type-owned files for a typed item and is
-  created lazily. The path is derived from the work ID and is not persisted in
-  the item record.
+- `.work/spaces/<W-NNNN>/` stores item-owned supporting files and is created
+  lazily. Typed items create spaces automatically from their type scaffold; a
+  normal item may also use a manually created space when it needs item-owned
+  files. The path is derived from the work ID and is not persisted in the item
+  record.
 
 Minimal work type manifest:
 
@@ -139,3 +141,12 @@ status: ready
 
 Type-specific state belongs inside `.work/spaces/W-0001/`, not in nested
 fields under `.work/items/W-0001.yaml`.
+
+Relationship summary:
+
+```text
+Inbox entry  -> unaccepted demand signal
+Work item    -> canonical accepted record
+Work space   -> optional item-owned directory keyed by work ID
+Work type    -> optional scaffold/template for creating a work space
+```

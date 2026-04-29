@@ -22,7 +22,7 @@ Summary: <one or two sentences>
 
 **Destination:** <target surface and path>
 
-**Learning:** <compact durable lesson>
+**Proposed Change:** <compact durable action or update>
 
 **Why This Fits:** <routing rationale>
 
@@ -63,5 +63,7 @@ recommendations:
 
 ## Review Standard
 
-A good recommendation explains why the destination is narrow enough, durable
-enough, and enforceable enough. It also names what should not be promoted.
+A good human-facing recommendation starts with the destination, states the
+proposed change as an action, and explains why that destination is narrow
+enough, durable enough, and enforceable enough. It also names what should not
+be promoted. Keep `learning` in the structured block for machine parsing.

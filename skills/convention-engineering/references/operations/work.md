@@ -94,11 +94,26 @@ YAML records under `inbox/` and `items/`. `work init` installs the built-in
 `research` type if absent and does not overwrite an existing
 `.work/types/research/` directory.
 
+## Relationship Model
+
+```text
+Inbox entry  -> demand signal before commitment
+Work item    -> canonical accepted record
+Work space   -> optional item-owned directory keyed by work ID
+Work type    -> optional scaffold/template for creating a work space
+```
+
+Work item YAML is the source of truth for identity, title, status, priority,
+area, labels, and source metadata. A work space supports that item with files:
+notes, research captures, plans, small evidence, and synthesized artifacts.
+Typed work items create spaces automatically from their type scaffold; ordinary
+work items may also use `.work/spaces/<W-ID>/` when they need item-owned files.
+
 ## Work Types
 
 `type:` is a scaffold lookup key, not a native work item class. Core `work`
 owns IDs, statuses, inbox, items, views, lifecycle, and JSON output. Work types
-own optional workspace files.
+own optional scaffolds for item-owned work spaces.
 
 Built-in research work type:
 
@@ -124,7 +139,7 @@ scaffold: scaffold
 Creating `work new "Understand X" --type research` writes the generic item
 with `type: research` and copies the scaffold to `.work/spaces/W-NNNN/`.
 `work show` and `work view` continue to work if the work type is later removed.
-Type-specific state belongs in the item space, not in nested item YAML.
+Space-specific state belongs in the item space, not in nested item YAML.
 
 ## Verification
 

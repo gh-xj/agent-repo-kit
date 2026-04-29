@@ -16,7 +16,7 @@ Use this skill when the task is to:
 - Promote accepted work with `work triage accept`.
 - Create a direct work item with `work new`.
 - Show work records or scan views with `work show` and `work view`.
-- Use a typed work item with `--type`.
+- Use a typed work item with `--type`, including scaffolded item spaces.
 
 Do not use this skill for:
 
@@ -53,8 +53,19 @@ Default flow:
 1. Capture uncertain requests in the inbox.
 2. Triage only when the repo should track the work.
 3. Work from canonical records under `.work/items/*.yaml`.
-4. Use views as derived read models, not as storage.
-5. Run the repo's verification gate before claiming completion.
+4. Put item-owned notes and small supporting artifacts under
+   `.work/spaces/<W-ID>/` when a work item needs a directory.
+5. Use views as derived read models, not as storage.
+6. Run the repo's verification gate before claiming completion.
+
+## Storage Model
+
+- Inbox entry: unaccepted demand signal under `.work/inbox/IN-NNNN.yaml`.
+- Work item: accepted canonical record under `.work/items/W-NNNN.yaml`.
+- Work space: optional item-owned directory under `.work/spaces/W-NNNN/` for
+  notes, research captures, plans, and other supporting files.
+- Work type: optional scaffold/template under `.work/types/<type>/` that can
+  create an initial work space for typed items.
 
 ## Core Commands
 
@@ -73,7 +84,8 @@ work show W-0001
 - Say "work item" in user-facing text; avoid bare "item" when clarity matters.
 - Inbox entries are demand signals, not accepted work.
 - Work items are the durable source of truth.
-- Artifacts, logs, browser captures, and large evidence payloads belong outside
-  `.work/`; store only pointers in work item metadata.
+- Work spaces support a work item, but do not replace the canonical item YAML.
+- Large logs, browser captures, and bulky evidence payloads belong outside
+  `.work/`; store only pointers in the work item or its space.
 - Do not create legacy compatibility paths unless the user explicitly asks for
   migration documentation.
