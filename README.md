@@ -112,6 +112,8 @@ Prerequisites:
   - `skills/harness-router/` — proposal-only router for deciding where
     session learnings and harness improvements should persist.
   - `skills/work-cli/` — operating the `.work/` tracker.
+  - `skills/paper-vetting/` — three-lens credibility vetting for research
+    papers before reading them.
 - **`adapters/`** — thin wrappers that expose `skills/` to a specific
   harness. `claude-code/` and `codex/` are shipped as compatibility targets;
   `cursor/` is placeholder docs today.

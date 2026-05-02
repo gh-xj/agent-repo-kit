@@ -30,6 +30,9 @@ north star for this repo; this file is the operational map.
     persist across instructions, skills, docs, work records, memory, and
     verification surfaces.
   - `skills/work-cli/` — operating the `.work/` tracker.
+  - `skills/paper-vetting/` — vet a research paper through three
+    independent lenses (team / citation context / claim-level evidence)
+    before reading it; outputs a calibrated trust band and falsifier.
 - `cli/` — Go source for the `work` CLI.
 - `adapters/<harness>/` — thin shims that expose every skill under
   `skills/` to a specific harness. `claude-code/` and `codex/` are shipped
