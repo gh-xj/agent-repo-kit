@@ -6,14 +6,6 @@ views derived from canonical state, and machine-readable CLI output.
 
 ## Adopt
 
-Preferred path:
-
-```bash
-ark init --repo-root <repo> --ops work
-```
-
-Manual path:
-
 ```bash
 work --store <repo>/.work init
 ```
@@ -47,16 +39,16 @@ enough. Do not create a tracker if there is no lifecycle.
 
 ## Commands
 
-| Verb | Command |
-| --- | --- |
-| Init | `work init` |
-| Inbox | `work inbox` |
-| Capture | `work inbox add "title" --body "context" --source "source"` |
-| Accept | `work triage accept IN-0001 --area cli --priority P1` |
-| Direct create | `work new "title" --area docs --priority P2` |
-| Typed create | `work new "title" --type research` |
-| View | `work view ready` |
-| Show | `work show W-0001` |
+| Verb          | Command                                                     |
+| ------------- | ----------------------------------------------------------- |
+| Init          | `work init`                                                 |
+| Inbox         | `work inbox`                                                |
+| Capture       | `work inbox add "title" --body "context" --source "source"` |
+| Accept        | `work triage accept IN-0001 --area cli --priority P1`       |
+| Direct create | `work new "title" --area docs --priority P2`                |
+| Typed create  | `work new "title" --type research`                          |
+| View          | `work view ready`                                           |
+| Show          | `work show W-0001`                                          |
 
 If the repo wires the root Taskfile wrapper, use `task work -- <args>`:
 
@@ -114,6 +106,12 @@ work items may also use `.work/spaces/<W-ID>/` when they need item-owned files.
 `type:` is a scaffold lookup key, not a native work item class. Core `work`
 owns IDs, statuses, inbox, items, views, lifecycle, and JSON output. Work types
 own optional scaffolds for item-owned work spaces.
+
+Naming stance: keep CLI and storage terms boring (`inbox`, `items`, `status`,
+`type`, `view`). In prose, describe a work type as a **workspace profile** when
+that clarifies the model: a work item plus a workspace profile creates an
+optional item-owned work space. Do not rename v0 concepts to objective,
+harness, intake, or queue.
 
 Built-in research work type:
 

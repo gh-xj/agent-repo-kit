@@ -1,85 +1,64 @@
-# Agent Knowledge Architecture
+# Agent Contract Files
 
-How to structure documentation so AI agents can navigate and work in any repo.
+How `CLAUDE.md` and `AGENTS.md` should be structured so an AI agent can work
+in any repo.
 
-## Agent Contract Template
+## Scope
 
-Every repo needs an agent contract file (commonly `AGENTS.md`, or a
-runtime-specific name like `CLAUDE.md`) with these 5 sections (minimum):
+This skill cares about two files:
 
-### 1. Architecture Contract
+- `AGENTS.md` — runtime-agnostic contract.
+- `CLAUDE.md` — Claude-specific contract.
 
-- Layer dependency diagram (ASCII, 5-10 lines)
-- Which packages/modules can import which
-- Non-negotiable rules (e.g., "model has zero internal imports")
+`ARCHITECTURE.md`, `DESIGN.md`, and similar synthesis docs are repo content,
+not skill-owned. The skill does not prescribe their shape.
+
+## Required Sections (minimum)
+
+Each agent contract file should contain these sections. Order is suggested,
+not enforced.
+
+### 1. Architecture Pointer
+
+A short layer/dependency sketch and the rule(s) the repo cares about. Keep it
+to 5-10 lines. If the architecture warrants more, point at a separate doc.
 
 ### 2. Commands Cheat Sheet
 
-- Build, test, lint, format, verify commands
-- Exact commands, not descriptions ("run `task verify`", not "run the verify command")
-- Dev server, code generation, deployment commands if applicable
+Exact commands, not descriptions. Build, test, lint, format, verify, dev
+server, codegen.
 
-### 3. Code Generation Workflow (if applicable)
+### 3. Non-Negotiable Rules
 
-- Ordered steps: IDL change -> generate -> restart -> generate client -> type check
-- Which files are generated (DO NOT EDIT markers)
-- How to regenerate after schema changes
+Repo-specific rules an agent must respect. Type-safety mode, forbidden
+patterns, naming, file size limits, security hygiene.
 
-### 4. Non-Negotiable Rules
+### 4. Verification Gate
 
-- Type safety requirements (strict mode, no `any`, forbidden patterns)
-- Import restrictions beyond architecture contract
-- Naming conventions, file size limits, complexity thresholds
-- Security hygiene (no console.log, no credentials in code)
+The single command that runs all checks (`task verify` or equivalent), plus
+the pre-commit hook behavior.
 
-### 5. Verification Gates
+### 5. Pointers
 
-- What to run before claiming done (exact commands)
-- Pre-commit hook behavior
-- Full verification command (`task verify` or equivalent)
+Links to deeper sources of truth: docs taxonomy root, skill directories,
+operational ops (`.work/`, `.wiki/`) when adopted.
 
-## Agent Contract Mirroring
+## Mirroring (Optional)
 
-Pattern: when a repo serves more than one AI agent runtime, the runtime-specific
-contract files (e.g. `AGENTS.md`, `CLAUDE.md`, or any other runtime convention)
-contain identical content (mirrored).
+When the repo serves more than one AI runtime, `AGENTS.md` and `CLAUDE.md`
+hold identical content. Pointer text:
 
-- Both must be updated in the same change
-- Machine-enforceable via the contract checker's docs-governance check
-- Pointer text: "This document is intentionally mirrored in `<file-a>` and `<file-b>`."
+> "This document is intentionally mirrored in `AGENTS.md` and `CLAUDE.md`."
 
-When to use: repos where multiple AI agent runtimes may operate (resilience against tool-specific config discovery).
+If the repo only uses one runtime, a single file is sufficient. Do not add
+the second file just for symmetry.
 
-When to skip: repos that only use one AI agent runtime. A single contract file is sufficient.
+## Knowledge Freshness
 
-## ARCHITECTURE.md Pattern
+Each contract file should explicitly say:
 
-Reference-first, not narrative dump:
+- What to verify against live code before trusting any section.
+- How to update the file when drift is found during a session.
 
-- Service map (ASCII diagram showing components and data flow)
-- Data flow (entry points, storage layers, external integrations)
-- Detection/business rules index (what rules exist, where they live)
-- On-demand sections (agents read what they need, not the whole file)
-
-Keep under 1000 lines. If it grows beyond that, split into reference docs and use a routing table.
-
-## Cross-Repo Skill Creation Criteria
-
-Create a dedicated cross-repo skill when:
-
-- The service has 3+ consumers or dependents
-- Cross-repo changes happen regularly
-- Debugging requires knowledge spanning multiple repos
-- A routing table would save agents significant exploration time
-
-Skill structure: convention doc router + `references/` directory + changelog.
-
-## Knowledge Freshness Contract
-
-Every reference document should include:
-
-1. **"Before trusting" section**: What to verify against live code before making decisions based on this doc.
-2. **"After discovering" section**: How to update when drift is found during a session.
-3. **Changelog table**: Date, change description, affected files.
-
-This makes every session a self-healing opportunity. The skill improves with use.
+This makes every session a self-healing opportunity. The contract improves
+with use.

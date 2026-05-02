@@ -1,115 +1,71 @@
 # Verification Gates
 
-Every repo needs one canonical command that runs all quality gates. If it passes, the code is ready.
-
-## Table of Contents
-
-- [The Canonical Gate](#the-canonical-gate)
-- [Gate Checklist (8 steps)](#gate-checklist-8-steps)
-- [Agent-Debuggable Output Contract](#agent-debuggable-output-contract)
-- [Pre-Commit Hook](#pre-commit-hook)
-- [Taskfile Pattern](#taskfile-pattern)
-- [Verification Before Claiming Done](#verification-before-claiming-done)
+Every repo needs one canonical command that runs all quality gates. If it
+passes, the work is ready.
 
 ## The Canonical Gate
 
-One command. Runs everything. Same command locally and in CI.
+One command. Same locally and in CI.
 
 ```bash
-task verify    # or: make verify, npm run verify, etc.
+task verify
 ```
 
-## Gate Checklist (8 steps)
+What `task verify` does is the repo's choice. The skill does not prescribe
+specific tools — that is part of the repo's `.conventions.yaml`.
 
-A complete gate includes these checks in order:
+## How `task verify` Relates to `.conventions.yaml`
 
-### 1. Format Check
-- Go: `gofumpt -l .` (list unformatted files)
-- TypeScript: `prettier --check .`
-- Python: `ruff format --check .`
+The descriptor declares which gates the repo opts into. The Taskfile wires
+each opt-in to a concrete command.
 
-### 2. Lint
-- Go: `golangci-lint run ./...`
-- TypeScript: `eslint .`
-- Python: `ruff check .`
+```yaml
+# .conventions.yaml
+taskfile: true
+pre_commit: true
+checks:
+  - "task verify exits 0 from a clean checkout."
+  - "task verify runs at least: format check, lint, type check, tests."
+```
 
-### 3. Type Check
-- Go: compiler (automatic via `go build`)
-- TypeScript: `tsc --noEmit` (strict mode)
-- Python: `mypy .` or `pyright .`
+```yaml
+# Taskfile.yml
+tasks:
+  verify:
+    cmds:
+      - task: fmt:check
+      - task: lint
+      - task: typecheck
+      - task: test
+```
 
-### 4. Unit Tests
-- Go: `go test ./... -race`
-- TypeScript: `vitest run` or `jest`
-- Python: `pytest`
+The agent reads `.conventions.yaml` to know what should pass; `task verify`
+is the single entry point that exercises it.
 
-### 5. Architecture Boundary Check
-- Go: depguard (runs as part of golangci-lint)
-- TypeScript: eslint-plugin-boundaries or custom script
-- Python: import-linter
+## Output Contract
 
-### 6. Entropy/Drift Detection (recommended)
-- Stale plans detection (plans older than N days)
-- Orphaned references (dead links in docs)
-- Mirrored doc drift (CLAUDE.md vs AGENTS.md)
+The canonical gate emits agent-debuggable output:
 
-### 7. Smoke Tests (if harness exists)
-- Fast deterministic lifecycle checks
-- Artifact contract validation (output format hasn't changed)
-
-### 8. Regression Tests (if fixtures exist)
-- Fixture-driven scenario replay
-- Known-good output comparison
-
-## Agent-Debuggable Output Contract
-
-- Canonical gate should emit a machine-readable run summary (`summary.json` or equivalent).
-- Canonical gate should emit per-step logs with stable paths so failures are inspectable without rerunning.
-- Failure output should include: failed command, exit code, log path, and short tail excerpt.
-- Dependency preflight should fail early with actionable hints (for example `bun` missing for frontend gates).
+- Per-step exit codes are visible (one task per check, not a monolith).
+- Failures include: failed command, exit code, log path, short tail excerpt.
+- Optional: a machine-readable summary (`summary.json` or equivalent) for
+  automated downstream consumers.
 
 ## Pre-Commit Hook
 
-Minimum viable hook (must complete in <10 seconds):
+A fast hook (under ~10 seconds) for format / auto-fix / dep-tidy concerns.
+Heavy checks belong in `task verify`, not the hook.
 
-```bash
-#!/bin/bash
-set -e
-
-# Format
-gofumpt -w .           # or: prettier --write .
-
-# Lint (with auto-fix)
-golangci-lint run --fix  # or: eslint --fix .
-
-# Dependency tidy
-go mod tidy             # or: nothing for TS/Python
-
-# Stage modified files
-git ls-files --modified | grep -E '\.(go|mod|sum)$' | xargs -r git add
-```
-
-Keep the hook fast. Move expensive checks (tests, full lint) to the verify command.
-
-## Taskfile Pattern
-
-```yaml
-# taskfiles/core.yml
-tasks:
-  verify:
-    desc: Canonical local verification command
-    cmds:
-      - task: lint
-      - task: test
-      - task: check:arch-boundaries  # if harness exists
-      - task: smoke                   # if harness exists
-      - task: regress                 # if harness exists
-```
+The hook is intentionally repo-defined. The skill only requires that one
+exists when `pre_commit: true` is set in `.conventions.yaml`, and that
+`core.hooksPath` (or installed equivalent) wires it up.
 
 ## Verification Before Claiming Done
 
 Before any agent marks a task complete:
-- Go changes: `task lint` + `task test`
-- Frontend changes: `task lint:web` + `task build:web`
-- DI changes: `task wire` (Wire code generation)
-- Large refactors: `task verify` (full suite)
+
+- Run `task verify`.
+- Read its output. Silence is not success — confirm the gate actually
+  exercised the relevant code paths.
+- If a fast subset is appropriate (e.g. one of `task lint`, `task test`),
+  use that, then run `task verify` once before commit.

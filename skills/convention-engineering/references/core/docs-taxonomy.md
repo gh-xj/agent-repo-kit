@@ -4,10 +4,11 @@ Use intent-first folders so every document has one obvious home.
 
 ## 1) Pick One Root Per Repo
 
-Choose exactly one active docs root:
+Choose exactly one active docs root and declare it as `docs_root:` in
+`.conventions.yaml`. Common choices:
 
-- Tracked mode: `docs/`
-- Local-overlay mode (git-exclude): `.docs/`
+- `docs/` — tracked.
+- `.docs/` — local-only (added to `.git/info/exclude`).
 
 Do not split active docs across both roots in the same repo unless there is an explicit migration plan.
 
@@ -94,52 +95,6 @@ applies); shape and cadence are the author's call.
 
 At minimum, verify:
 
-- docs root exists (`docs/` or `.docs/`)
-- `requests/`, `planning/`, `plans/` exist
+- docs root exists (matches `docs_root:` in `.conventions.yaml`)
+- `requests/`, `planning/`, `plans/` exist under it
 - new feature work has all three artifacts before implementation starts
-
-Example contract fragments:
-
-Tracked mode:
-
-```json
-{
-  "contract_version": 1,
-  "mode": "tracked",
-  "profiles": ["go"],
-  "docs_root": "docs",
-  "ownership_policy": {
-    "portable_skill_authoring_owner": "skill-author",
-    "domain_knowledge_owner": "domain-skills",
-    "repo_local_skills": {
-      "allowed": false,
-      "placement_roots": [".claude/skills", ".agents/skills"],
-      "authoring_owner": "skill-author",
-      "requires_justification": true
-    }
-  },
-  "required_files": ["docs/requests", "docs/planning", "docs/plans"]
-}
-```
-
-Local-overlay mode:
-
-```json
-{
-  "contract_version": 1,
-  "mode": "overlay",
-  "profiles": ["go"],
-  "docs_root": ".docs",
-  "ownership_policy": {
-    "portable_skill_authoring_owner": "skill-author",
-    "domain_knowledge_owner": "domain-skills",
-    "repo_local_skills": {
-      "allowed": false,
-      "placement_roots": [".claude/skills", ".agents/skills"],
-      "authoring_owner": "skill-author",
-      "requires_justification": true
-    }
-  },
-  "required_files": [".docs/requests", ".docs/planning", ".docs/plans"]
-}
-```

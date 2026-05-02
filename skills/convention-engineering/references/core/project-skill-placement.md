@@ -48,5 +48,5 @@ template repo, or generator) for any of the following:
 - runtime metadata files
 - skill scaffolds
 
-Record the chosen authoring owner in the contract under
-`ownership_policy.portable_skill_authoring_owner`.
+Declare the repo's chosen `skill_roots:` in `.conventions.yaml` so the audit
+workflow can verify them.

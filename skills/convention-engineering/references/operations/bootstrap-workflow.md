@@ -1,142 +1,115 @@
-# Bootstrap Workflow
+# Convention Bootstrap Workflow
 
-Use this workflow to scaffold convention files for a new repo.
-
-Preferred path: run the initializer and then treat the steps below as the
-reference for what it generated.
-
-```bash
-ark init \
-  --repo-root /path/to/your-repo \
-  --profiles go,typescript-react
-```
-
-If the repo is an external/open-source project and you do not want to commit local convention files, use `references/operations/open-source-git-exclude-workflow.md` instead.
+Scaffold convention files in a repo by writing `.conventions.yaml` first and
+then creating each artifact it declares.
 
 ## Prerequisites
 
-- Repo must already have source code (not scaffolding from scratch)
-- You need to know which stack profiles apply
+- Repo already has source code.
+- You know which conventions apply (which can also be discovered by inspecting
+  the code, then confirmed with the user).
 
 ## Steps
 
-### Step 1: Determine Profiles
+### 1. Draft `.conventions.yaml`
 
-Ask which stacks the repo uses:
+Create `/.conventions.yaml` at the repo root. Start with the minimum the repo
+should adopt. Example:
 
-- **Go**: Backend services, CLI tools, libraries
-- **TypeScript/React**: Frontend SPAs, fullstack apps
-- **Python**: Scripts, data pipelines, ML services, FaaS functions
+```yaml
+agent_docs:
+  - CLAUDE.md
+  - AGENTS.md
+docs_root: docs
+taskfile: true
+pre_commit: true
+skill_roots:
+  - .claude/skills
+checks:
+  - "AGENTS.md mirrors CLAUDE.md (identical content)."
+  - "task verify exits 0 from a clean checkout."
+```
 
-Multiple profiles compose. A Go backend + React frontend uses both.
+If the repo cannot commit the file (external open source, fork, etc.), keep
+it locally and add `.conventions.yaml` to `.git/info/exclude`. Same file,
+same shape, same readers.
 
-### Step 2: Generate Convention Contract
+### 2. Create Agent Contract Files
 
-Start from `references/convention-config.example.json` and write the contract
-artifact before running audit:
+For each entry in `agent_docs:`, scaffold the file using the template in
+`references/core/agent-knowledge.md`. Customise:
 
-- tracked mode: `.convention-engineering.json`
-- local-overlay mode: `.docs/convention-engineering.overlay.json`
+- repo name and purpose
+- short architecture pointer
+- exact build/test/lint commands (inspect Makefile / Taskfile / package.json)
+- non-negotiable rules
+- pointers to docs root and operational ops
 
-Customize at least:
+If two contract files are declared, mirror their content.
 
-- `contract_version`
-- `mode`
-- `profiles`
-- `docs_root`
-- `ownership_policy`
-- `mirror_policy`
-- `evaluation_inputs`
-- `chunk_plan`
-- `required_files`
-- `taskfile_checks`
+### 3. Create Docs Taxonomy
 
-This contract is the shared machine artifact for both bootstrap and audit.
-
-### Step 3: Establish Docs Taxonomy
-
-Read `references/core/docs-taxonomy.md`, then create taxonomy folders from the
-contract you just wrote:
-
-- tracked mode uses the contract's `docs_root: "docs"`
-- local-overlay mode uses the contract's `docs_root: ".docs"`
-
-Create taxonomy folders under the contract-selected root:
+Under the directory named in `docs_root:`, create:
 
 - `requests/`
 - `planning/`
 - `plans/`
 - `implementation/`
-- `taxonomy/`
 
-### Step 4: Generate CLAUDE.md
+Add per-folder README files describing the filename contracts (see
+`references/core/docs-taxonomy.md`).
 
-Read `references/core/agent-knowledge.md` for the 5-section template. Customize with:
+### 4. Create Taskfile
 
-- Repo name and purpose
-- Actual architecture layers (inspect the code)
-- Actual commands (check for Makefile, Taskfile, package.json scripts)
-- Stack-specific rules from the relevant profiles
-- The tracked or overlay contract path you just created
+If `taskfile: true`, create:
 
-### Step 5: Generate Linter Config
+- root `Taskfile.yml` with `verify`, `fmt`, `lint`, `test` targets (or
+  whatever the repo needs).
+- optional `taskfiles/<area>.yml` sub-Taskfiles included from the root.
 
-Read the relevant profile for linter config templates:
+The skill is stack-agnostic. Pick the toolchain commands the repo already
+uses; the convention is "one canonical entry point," not a specific linter.
 
-- Go: `.golangci.yml` from `profiles/go.md`
-- TypeScript: `eslint.config.js` from `profiles/typescript-react.md`
-- Python: `[tool.ruff]` in `pyproject.toml` from `profiles/python.md`
+### 5. Create Pre-Commit Hook
 
-Customize layer boundary rules to match actual package structure.
-
-### Step 6: Generate Taskfile.yml
-
-Read the relevant profile for standard task names. Create:
-
-- Root `Taskfile.yml` with includes
-- `taskfiles/core.yml` with build, test, lint, fmt, verify
-
-### Step 7: Generate Pre-Commit Hook
-
-Read the relevant profile for hook template. Create `.githooks/pre-commit`.
-Configure git to use it: `git config core.hooksPath .githooks`
-
-### Step 8: Scaffold Operational Conventions
-
-Decide whether to adopt the repo-scoped operational conventions. Each is
-independent — adopt either, both, or neither.
-
-- **Work (`.work/`)** — adopt if the repo needs captured work, triage, saved
-  views, and a JSON-native CLI for agents. Skip for casual TODOs. If adopting,
-  follow `references/operations/work.md`.
-- **Wiki (`.wiki/`)** — adopt if the repo needs an LLM-maintained knowledge
-  base with source summaries, notes, and wikilink lint. Skip if a plain `docs/`
-  tree is enough. If adopting, follow `references/operations/wiki.md` (3-step
-  adoption).
-
-Confirm: for each adopted op, the `CLAUDE.md` / `AGENTS.md` pointer snippet
-from the ops doc is pasted into the repo's agent contract files.
-
-### Step 9: Audit
-
-Run the audit workflow (`references/operations/audit-workflow.md`) to verify the scaffold is complete.
-
-### Step 10: Commit
+If `pre_commit: true`, create `.githooks/pre-commit` with the repo's chosen
+fast checks (format, dep-tidy, optional lint --fix). Wire it up:
 
 ```bash
-git add CLAUDE.md .convention-engineering.json .golangci.yml Taskfile.yml taskfiles/ .githooks/
-git commit -m "chore: bootstrap convention files"
+git config core.hooksPath .githooks
 ```
 
-If `.work/` or `.wiki/` were adopted, include them in the commit
-(`git add .work/ .wiki/`).
+### 6. Adopt Operational Conventions (Optional)
 
-For open-source/local-only setups, skip commit and keep `.docs/convention-engineering.overlay.json` plus other local-only files under `.git/info/exclude`.
+Each is independent.
+
+- **Work (`.work/`)** — see `references/operations/work.md`.
+- **Wiki (`.wiki/`)** — see `references/operations/wiki.md`.
+
+After adoption, paste each ops doc's pointer snippet into the agent contract
+files.
+
+### 7. Audit
+
+Run the audit workflow (`references/operations/audit-workflow.md`) to verify
+the scaffold matches the descriptor.
+
+### 8. Commit
+
+```bash
+git add .conventions.yaml CLAUDE.md AGENTS.md docs/ Taskfile.yml .githooks/
+git commit -m "chore: bootstrap conventions"
+```
+
+If `.work/` or `.wiki/` were adopted, include them. If `.conventions.yaml`
+is local-only (open-source overlay), skip the commit and confirm the file
+is in `.git/info/exclude`.
 
 ## Post-Bootstrap
 
-After scaffolding:
-
-1. Run `task verify` to confirm all gates pass
-2. Update CLAUDE.md with any repo-specific rules discovered during setup
-3. Consider whether the repo needs a cross-repo skill (3+ consumers criteria)
+1. Run `task verify` to confirm gates pass.
+2. Update `.conventions.yaml` and the contract files with anything you
+   discovered during bootstrap.
+3. If a repo grows beyond what `.conventions.yaml` covers, extend the
+   descriptor — unknown keys are allowed and treated as repo-local
+   extensions.
