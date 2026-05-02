@@ -3,6 +3,7 @@ name: convention-evaluator
 description: Use when scoring repo conventions against a convention contract, validating handoff artifacts, or producing a skeptical convention evaluation report from isolated context.
 ---
 
+
 # Convention Evaluator
 
 Skeptical evaluation surface for convention work. This convention owns contract semantics, rubric thresholds, evidence expectations, and the machine-readable evaluation result.

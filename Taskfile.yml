@@ -1,12 +1,11 @@
 version: "3"
 
-includes:
-  conventions:
-    taskfile: .convention-engineering/Taskfile.yml
-    dir: .convention-engineering
-    flatten: true
-
 tasks:
+  verify:
+    desc: Run the repo's canonical verification gate
+    cmds:
+      - task -d cli ci
+
   work:
     desc: Run the repo-local work CLI
     cmds:

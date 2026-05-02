@@ -1,7 +1,3 @@
----
-name: taskfile-authoring
-description: Use when writing, creating, or refactoring Taskfile.yml for any project (Go CLI, Python uv, or generic). Covers go-task v3 features — includes/sub-Taskfiles, sources/generates/method build cache, deps vs cmds, canonical CI/verify surface. Triggers on "write Taskfile", "create Taskfile.yml", "refactor Taskfile", "Taskfile.dev", "go-task", "sub-taskfile", "build cache", "task lint", "includes", "dotenv".
----
 
 # Taskfile Authoring
 

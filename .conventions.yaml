@@ -1,0 +1,30 @@
+# agent-repo-kit conventions descriptor.
+# Read by the convention-engineering skill (skills/convention-engineering/)
+# for bootstrap and audit. Schema: skills/convention-engineering/references/core/conventions-yaml.md.
+
+agent_docs:
+  - AGENTS.md
+  - CLAUDE.md
+
+docs_root: docs
+
+taskfile: true
+
+pre_commit: false
+
+skill_roots:
+  - .claude/skills
+  - .codex/skills
+
+operations:
+  - work
+  # `wiki` not adopted in this repo today.
+
+checks:
+  - "AGENTS.md and CLAUDE.md cover entry points, editing rules, and the same conventions block."
+  - "docs/{requests,planning,plans,implementation,taxonomy} directories exist."
+  - "task verify exits 0 from a clean checkout (delegates to task -d cli ci)."
+  - "task -d cli ci passes lint, test, build, smoke against the work CLI."
+  - "skills/<name>/SKILL.md is the canonical source; adapters/<harness>/<name>/SKILL.md mirrors it by hand."
+  - ".work/ exists with config.yaml; task work -- view ready --json succeeds."
+  - "No tracked file references the deleted `ark` CLI or `.convention-engineering.json` (sweep gate)."

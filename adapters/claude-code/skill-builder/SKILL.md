@@ -3,6 +3,7 @@ name: skill-builder
 description: Use when creating, refactoring, auditing, or migrating Claude/Codex skills, especially when trigger wording, portable structure, reference extraction, or runtime placement need design.
 ---
 
+
 # Skill Builder
 
 Design and maintain Claude/Codex skills as small, portable routers with clear triggers and minimal duplication.
@@ -19,15 +20,17 @@ Design and maintain Claude/Codex skills as small, portable routers with clear tr
 
 1. Classify the request: `create`, `update`, `audit`, or `migrate`.
 2. Run the confidence check: `confident`, `partial`, or `not ready`.
-3. Choose scope: global or project-local, Claude or Codex or both.
-4. Choose the operating surface:
+3. Name the evidence basis, procedural burden, and risk tier using
+   `references/skill-quality.md`.
+4. Choose scope: global or project-local, Claude or Codex or both.
+5. Choose the operating surface:
    - skill prose
    - extracted reference
    - skill-local script
    - skill-local CLI in `cli/`
    - repo-owned CLI under `tools/`
-5. Check the evidence basis and skill quality rubric in
-   `references/skill-quality.md`.
+6. Add lightweight eval cases from `references/skill-evals.md` when risk or
+   behavior warrants it.
 
 ## Router Rule
 
@@ -67,6 +70,8 @@ If the domain is only partially understood, prefer the Q&A-driven path in `refer
 - Keep repo-specific operating rules out of the portable core when a local reference or wrapper skill is enough.
 - A skill should externalize procedure, heuristics, and constraints; if it only
   stores context, route that context elsewhere.
+- Higher-risk skills need stronger approval points, eval cases, and evidence
+  before promotion.
 - If capability moves into a skill layer, remove stale docs, workflows, or Task targets in the same change.
 - If repo behavior changes, name the verification gate explicitly.
 - If a skill-local CLI is warranted, bootstrap it with your Go CLI scaffolder of choice and keep Task wrappers thin.
@@ -86,11 +91,13 @@ Use prose when judgment is required. Use code when the pattern is deterministic 
 | `references/runtime-layout.md`           | Runtime roots, portable core, loading model, placement decisions |
 | `references/workflows.md`                | `create`, `update`, `audit`, and `migrate` workflows             |
 | `references/skill-quality.md`            | Evidence basis, expertise check, trigger/output evals            |
+| `references/skill-evals.md`              | Lightweight trigger, output, negative, and regression eval cases |
 | `references/repo-owned-clis.md`          | When stable logic should move into `cli/` or `tools/<name>/`     |
 | `references/pattern-to-script.md`        | When stable logic should move into skill-local scripts           |
 | `references/multi-skill-architecture.md` | Cross-skill systems and shared-core patterns                     |
 | `references/superpowers-patterns.md`     | Hard gates, evidence-before-claims, and agent-drift controls     |
 | `references/maintenance.md`              | Troubleshooting, parity checks, and health indicators            |
+| `MAINTENANCE.md`                         | Maintainer self-evolution loop and validation checklist          |
 
 ## Boundaries
 

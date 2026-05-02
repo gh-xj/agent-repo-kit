@@ -1,7 +1,3 @@
----
-name: harness-router
-description: "Use when deciding where session learnings, user corrections, agent workflow improvements, or harness enhancement proposals should be persisted across agent instructions, skills, docs, work records, memory, checks, and structured local artifacts."
----
 
 # Harness Router
 
@@ -14,7 +10,7 @@ Use this skill when the task is to:
 
 - Decide where new agent/harness knowledge should live after a session.
 - Turn user corrections or repeated agent mistakes into an enhancement proposal.
-- Propose updates across `AGENTS.md`, `CLAUDE.md`, skills, docs, work records,
+- Propose updates across agent instruction files, skills, docs, work records,
   memory, hooks, CI, evals, or structured local artifacts.
 - Review whether a learning is durable enough to promote from chat/session
   context into a versioned artifact.
@@ -36,27 +32,32 @@ MCP is out of scope as a durable destination for this skill.
    - user correction or session summary
    - changed files and tests
    - active work item or research space
-   - relevant `AGENTS.md` / `CLAUDE.md`
+   - relevant agent instruction files
    - related or used skills
-3. Read the routing taxonomy in `references/routing-taxonomy.md`.
+3. Read `references/externalization-model.md`, then
+   `references/routing-taxonomy.md`.
 4. Produce a proposal before making durable edits.
 
 ## Operating Loop
 
 1. Extract candidate learnings in compact form.
-2. Classify each learning by authority, scope, durability, load policy,
-   consumer, enforcement need, sensitivity, provenance, and cost.
-3. Pick candidate target surfaces using `references/target-surfaces.md`.
-4. Format recommendations with `references/proposal-format.md`.
-5. Name verification for each durable recommendation.
+2. Classify the externalized burden and artifact class using
+   `references/externalization-model.md`.
+3. Classify authority, scope, durability, load policy, consumer, enforcement
+   need, sensitivity, provenance, and cost.
+4. Pick candidate target surfaces using `references/target-surfaces.md`.
+5. Format recommendations with `references/proposal-format.md`.
 6. Ask for approval before changing instructions, skills, hooks, CI, evals, or
    memory.
 
 ## Routing Rule
 
-- Required always-on repo behavior goes to `AGENTS.md`; use `CLAUDE.md` as a
-  harness adapter or pointer when needed.
+- Route by externalized burden first, then by durable surface.
+- Required always-on repo behavior goes to the repo agent instructions; use
+  harness adapter files only when runtime-specific guidance is needed.
 - Repeatable procedures go to skills or skill reference files.
+- Interaction contracts go to protocol owners such as CLI contracts, schemas,
+  adapters, Taskfiles, generated-surface rules, or convention docs.
 - Bulky durable knowledge goes to docs or research pages.
 - Active follow-up goes to `.work` records and spaces.
 - Personal low-authority context goes to memory.
@@ -70,8 +71,9 @@ Default output is a reviewable proposal:
 
 - short summary of the durable lesson
 - recommended destination(s)
+- externalized burden and artifact class
 - compact proposed change
-- reasoning tied to routing dimensions
+- compact evidence and reasoning tied to routing dimensions
 - confidence and risks
 
 For multi-item proposals, include a structured block using the schema in
@@ -80,6 +82,6 @@ result. Use readable markdown sections for human review.
 
 ## Gaps
 
-This is a v0 proposal skill. It does not yet own a script, CLI, load verifier,
-or automatic mutation workflow. Add code only after the proposal pattern has
-worked across multiple real sessions.
+This is a proposal skill. It does not yet own a script, CLI, load verifier, or
+automatic mutation workflow. Add code only after the proposal pattern has worked
+across multiple real sessions.
