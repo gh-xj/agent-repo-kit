@@ -34,6 +34,10 @@ skill_roots: # repo-local agent-skill discovery roots
   - .claude/skills
   - .agents/skills
 
+operations: # adopted operational conventions
+  - work # `.work/` tracker — see references/operations/work.md
+  - wiki # `.wiki/` knowledge base — see references/operations/wiki.md
+
 checks: # free-form list of agent-readable rules
   - "Every doc under {docs_root}/requests/ has a frontmatter `id`."
   - "AGENTS.md and CLAUDE.md have identical content if both declared."
@@ -58,6 +62,10 @@ An agent or `task verify` consuming this file:
    - `pre_commit` → `.githooks/pre-commit` exists and is executable, or
      `core.hooksPath` points to one.
    - `skill_roots` → each listed root exists if declared.
+   - `operations` → for each adopted op, the corresponding directory exists
+     (`.work/`, `.wiki/`), the agent contract files contain the op's pointer
+     snippet, and the op-specific health check runs (e.g. `task work -- view
+ready --json` succeeds when `work` is adopted).
 3. For each entry under `checks:`, applies the rule. The rule format is
    prose; the agent interprets it. This is intentional — checks evolve per
    repo without schema lock-in.

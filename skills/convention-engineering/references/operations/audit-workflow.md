@@ -22,20 +22,22 @@ Either propose creating one (see bootstrap) or stop.
 | `taskfile: true`           | Root `Taskfile.yml` exists; `task verify` is defined.                                       |
 | `pre_commit: true`         | A pre-commit hook is installed and runs.                                                    |
 | `skill_roots: [paths]`     | Each declared root exists.                                                                  |
+| `operations: [ops]`        | For each adopted op, run the op's health check below.                                       |
 | `checks: [...]`            | Apply each rule by reading code/docs/tooling.                                               |
 
-## Conditional Operational Conventions
+## Operational Conventions
 
-Audit each only if its directory exists. See
-`references/operations/work.md` and `references/operations/wiki.md`.
+Audit each only if it is declared under `operations:` (or, for older repos,
+its directory exists). See `references/operations/work.md` and
+`references/operations/wiki.md`.
 
-If `.work/` exists:
+If `work` is adopted:
 
 - agent contract files contain the work pointer snippet
 - `.work/config.yaml` exists
 - `task work -- view ready --json` (or `work --store .work view ready --json`) succeeds
 
-If `.wiki/` exists:
+If `wiki` is adopted:
 
 - agent contract files contain the wiki pointer snippet
 - `.wiki/scripts/lint.sh` exists and `task -d .wiki lint` passes
