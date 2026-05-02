@@ -59,10 +59,10 @@ Classic sources/generates/checksum. CI-safe, fast on cache hit.
 build:
   desc: Compile the binary
   sources: ["**/*.go", "go.mod", "go.sum"]
-  generates: ["bin/ark"]
+  generates: ["bin/myapp"]
   method: checksum
   cmds:
-    - go build -o bin/ark .
+    - go build -o bin/myapp .
 ```
 
 ### Download-if-missing

@@ -1,4 +1,7 @@
-<!-- agent-repo-kit:skill-sync — do not edit; regenerate with `ark skill sync` -->
+---
+name: convention-evaluator
+description: Use when scoring repo conventions against a convention contract, validating handoff artifacts, or producing a skeptical convention evaluation report from isolated context.
+---
 
 # Convention Evaluator
 

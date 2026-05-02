@@ -26,6 +26,8 @@ Design and maintain Claude/Codex skills as small, portable routers with clear tr
    - skill-local script
    - skill-local CLI in `cli/`
    - repo-owned CLI under `tools/`
+5. Check the evidence basis and skill quality rubric in
+   `references/skill-quality.md`.
 
 ## Router Rule
 
@@ -63,6 +65,8 @@ If the domain is only partially understood, prefer the Q&A-driven path in `refer
 - Codex trigger quality depends heavily on `description`; make trigger phrases explicit.
 - Do not duplicate the same rules across `SKILL.md` and references.
 - Keep repo-specific operating rules out of the portable core when a local reference or wrapper skill is enough.
+- A skill should externalize procedure, heuristics, and constraints; if it only
+  stores context, route that context elsewhere.
 - If capability moves into a skill layer, remove stale docs, workflows, or Task targets in the same change.
 - If repo behavior changes, name the verification gate explicitly.
 - If a skill-local CLI is warranted, bootstrap it with your Go CLI scaffolder of choice and keep Task wrappers thin.
@@ -75,24 +79,13 @@ Use prose when judgment is required. Use code when the pattern is deterministic 
 - Skill-local operations with one skill boundary and a small command surface: see `references/repo-owned-clis.md`
 - Shared repo operations with policy or verification requirements: see `references/repo-owned-clis.md`
 
-## CLI Surface
-
-- `ark skill init` scaffolds a router-grade `SKILL.md` and can optionally add a `cli/` surface.
-- `ark skill audit` checks frontmatter, router size, and referenced relative paths.
-- `ark skill sync` regenerates per-adapter SKILL files from a canonical source, driven by `.agent-repo-kit.json`.
-- `ark skill check` verifies every adapter copy is in sync — use it as a CI drift gate.
-- When wired into a host repo's root Taskfile, keep the wrappers thin:
-  - `task ark:skill:init -- ...`
-  - `task ark:skill:audit -- ...`
-  - `task ark:skill:sync`
-  - `task ark:skill:check`
-
 ## References
 
 | File                                     | Use For                                                          |
 | ---------------------------------------- | ---------------------------------------------------------------- |
 | `references/runtime-layout.md`           | Runtime roots, portable core, loading model, placement decisions |
 | `references/workflows.md`                | `create`, `update`, `audit`, and `migrate` workflows             |
+| `references/skill-quality.md`            | Evidence basis, expertise check, trigger/output evals            |
 | `references/repo-owned-clis.md`          | When stable logic should move into `cli/` or `tools/<name>/`     |
 | `references/pattern-to-script.md`        | When stable logic should move into skill-local scripts           |
 | `references/multi-skill-architecture.md` | Cross-skill systems and shared-core patterns                     |
@@ -102,5 +95,7 @@ Use prose when judgment is required. Use code when the pattern is deterministic 
 ## Boundaries
 
 - This skill designs and refactors skills; it does not make every repeated workflow a skill automatically.
+- `harness-router` owns the cross-surface decision about whether a learning
+  should become a skill at all.
 - Do not keep repo-operating logic in the portable core when a repo-local reference or CLI is the correct owner.
 - For destructive migrations or unclear ownership changes, confirm scope before rewriting multiple surfaces.

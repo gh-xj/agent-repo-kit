@@ -2,8 +2,7 @@
 
 You are inside **agent-repo-kit**. This repo publishes a convention for
 _other_ repos to adopt, and it also adopts that same convention on itself
-(see the `## Conventions` block below) — so `ark check --repo-root .` and
-`task verify` both run here.
+(see the `## Conventions` block below) — so `task verify` runs here.
 
 ## Core belief
 
@@ -16,42 +15,27 @@ north star for this repo; this file is the operational map.
 - `skills/` — canonical, harness-free skill sources. One directory per
   skill:
   - `skills/convention-engineering/` — content describing repo conventions
-    (work tracking, optional wiki, agent docs, verification gates, etc.). Canonical source.
+    (`.conventions.yaml`, agent docs, docs taxonomy, verification gates,
+    work tracking, optional wiki). Canonical source.
   - `skills/convention-evaluator/` — scoring rubric used to grade a repo's
-    adoption against the contract.
+    adoption of its declared conventions.
   - `skills/skill-builder/` — skill for authoring and auditing agent skills
     (trigger wording, portable structure, reference extraction, runtime
     placement).
   - `skills/taskfile-authoring/` — skill for writing canonical Taskfiles
-    (structure, composition, anti-patterns, lint rules). Referenced by
-    `ark taskfile lint`.
+    (structure, composition, anti-patterns).
   - `skills/attack-architecture/` — adversarial architecture-review skill.
-    Runs parallel lens attacks, ToT expansion, and attacker/defender debate
-    against an existing codebase and writes a report under
-    `.docs/arch-attacks/`.
   - `skills/harness-router/` — proposal-only router for deciding where
     session learnings, user corrections, and harness improvements should
     persist across instructions, skills, docs, work records, memory, and
     verification surfaces.
-- `examples/demo-repo/` — a working repo that shows the conventions applied
-  end to end; the CI exercises it.
+  - `skills/work-cli/` — operating the `.work/` tracker.
+- `cli/` — Go source for the `work` CLI.
 - `adapters/<harness>/` — thin shims that expose every skill under
   `skills/` to a specific harness. `claude-code/` and `codex/` are shipped
   install targets; `cursor/` is placeholder docs.
 - `adapters/manifest.json` — machine-readable source of truth for which
-  skill directories get symlinked into which harness. Consumed by
-  `ark adapters link` and `ark adapters list-links`.
-- `install.sh` — POSIX installer. Default path: download the prebuilt
-  release archive for the current OS/arch, verify its checksum, and install
-  the shipped `ark` and `work` binaries into `--prefix` (default
-  `~/.local/bin`). Pass `--from-source` to build both from `cli/` locally.
-  Skills are installed separately with the open `skills` CLI.
-- `ark upgrade` — in-place binary upgrade. Detects whether `ark` lives
-  inside a git clone (runs `git pull` + rebuilds `ark`/`work`) or was
-  installed from a release archive (downloads + replaces both binaries).
-- `.goreleaser.yml` + `.github/workflows/release.yml` — release pipeline
-  that publishes `ark-{version}-{os}-{arch}.tar.gz` containing both binaries,
-  plus `checksums.txt`, on each `v*` tag.
+  skill directories belong to which harness.
 
 ## Rules for editing this repo
 
@@ -68,29 +52,17 @@ north star for this repo; this file is the operational map.
    — but `skills/skill-builder/` and `skills/attack-architecture/` may
    name them since the runtimes (and their agent/tool APIs) are the
    subject matter of those skills.
-3. **Dual-write pointer blocks** — when adding a new convention, update
-   both `examples/demo-repo/AGENTS.md` and `examples/demo-repo/CLAUDE.md`
-   identically.
-4. **Adapters re-export, they don't own.** An adapter file should be a
+3. **Adapters re-export, they don't own.** An adapter file should be a
    short wrapper pointing at a skill under `skills/`.
 
 ## Testing
 
 ```bash
-task verify      # repo conventions and work tracker
 task -d cli ci   # CLI lint, tests, build, and smoke checks
 ```
 
-The `work-cli-qa` project skill is a self-evolving release gate for this
-repo's source `work` CLI. When a chaotic workflow, regression, or missing
-scenario appears, enrich the skill playbook, encode deterministic checks in its
-harness, run and evaluate the QA ledger, and refine until the new scenario
-passes.
+CI runs CLI checks on every push and PR (see `.github/workflows/ci.yml`).
 
-CI runs CLI checks and demo convention checks on every push and PR (see
-`.github/workflows/ci.yml`).
-
-<!-- agent-repo-kit:init:start -->
 ## Conventions
 
 - **Docs** — tracked repo docs live under `docs/` using the `requests/`,
@@ -100,10 +72,6 @@ CI runs CLI checks and demo convention checks on every push and PR (see
   `.work/config.yaml` and `.work/items/*.yaml`. Daily commands:
   `task work -- inbox`, `task work -- inbox add "title"`, `task work -- triage accept IN-0001`,
   `task work -- view ready`, and `task work -- show W-0001`.
-- **Verification** — run `task verify` from the repo root to execute the
-  convention verification gate.
-- **Tracked contract** — `.convention-engineering.json` is the
-  machine-readable convention contract for this repo.
-
-Conventions are scaffolded by `agent-repo-kit` under `.convention-engineering/`.
-<!-- agent-repo-kit:init:end -->
+- **Conventions descriptor** — `.conventions.yaml` at the repo root declares
+  which conventions this repo opts into. Read by the convention-engineering
+  skill for bootstrap and audit.

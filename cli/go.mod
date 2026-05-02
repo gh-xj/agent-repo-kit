@@ -4,23 +4,14 @@ go 1.25.8
 
 require (
 	github.com/alecthomas/kong v1.15.0
-	github.com/go-task/task/v3 v3.50.0
 	github.com/lmittmann/tint v1.1.3
-	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06
 	golang.org/x/term v0.42.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
-	github.com/Masterminds/semver/v3 v3.4.0 // indirect
-	github.com/dominikbraun/graph v0.23.0 // indirect
-	github.com/elliotchance/orderedmap/v3 v3.1.0 // indirect
-	github.com/fatih/color v1.19.0 // indirect
-	github.com/mattn/go-colorable v0.1.14 // indirect
-	github.com/mattn/go-isatty v0.0.20 // indirect
-	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/sync v0.20.0 // indirect
+	github.com/kr/pretty v0.3.1 // indirect
+	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	golang.org/x/sys v0.43.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
-	mvdan.cc/sh/v3 v3.13.1 // indirect
 )

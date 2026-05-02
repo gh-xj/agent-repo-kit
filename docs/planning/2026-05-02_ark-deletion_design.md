@@ -83,11 +83,12 @@ tasks:
       # leaves free-form `checks:` entries to the agent.
 ```
 
-Decision needed in this epic: is `task verify` agent-only (no shell
-fallback), or do we ship a `scripts/verify.sh` for CI? Recommendation:
-ship the script. It's ~30 lines, removes the "agent must be running"
-dependency from CI, and the free-form `checks:` list still defers to the
-agent for anything the script can't express.
+**Decided 2026-05-02:** ship `scripts/verify.sh`. It's ~30 lines, removes
+the "agent must be running" dependency from CI, and the free-form `checks:`
+list still defers to the agent for anything the script can't express.
+`task verify` calls the script; the script asserts declared opt-in artifacts
+exist (yq the keys, check filesystem), and exits 0 — leaving free-form prose
+checks to the agent on demand.
 
 ## Install / distribution after deletion
 

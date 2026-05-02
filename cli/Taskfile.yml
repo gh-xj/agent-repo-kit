@@ -29,33 +29,25 @@ tasks:
       - go test ./...
 
   build:
-    desc: Build ark and work binaries
+    desc: Build the work binary
     deps: [deps, fmt:check]
     cmds:
       - mkdir -p bin
-      - go build -o bin/ark ./cmd/ark
       - go build -o bin/work ./cmd/work
 
   run:
-    desc: Run ark without building
-    cmds:
-      - go run ./cmd/ark {{.CLI_ARGS}}
-
-  run:work:
     desc: Run work without building
     cmds:
       - go run ./cmd/work {{.CLI_ARGS}}
 
   smoke:
-    desc: Deterministic smoke checks
+    desc: Deterministic smoke checks for the work CLI
     deps: [build]
     cmds:
       - mkdir -p test/smoke
-      - rm -f test/smoke/version.output.json test/smoke/work-version.output.json
-      - ./bin/ark --json version > test/smoke/version.output.json
-      - go run ./internal/tools/smokecheck --schema test/smoke/version.schema.json --input test/smoke/version.output.json
+      - rm -f test/smoke/work-version.output.json
       - ./bin/work --json version > test/smoke/work-version.output.json
-      - go run ./internal/tools/smokecheck --schema test/smoke/version.schema.json --input test/smoke/work-version.output.json
+      - jq -e . test/smoke/work-version.output.json >/dev/null
       - |
         WORK_SMOKE=$(mktemp -d)
         ./bin/work --store "$WORK_SMOKE/.work" init

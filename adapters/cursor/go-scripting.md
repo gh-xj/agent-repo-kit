@@ -1,4 +1,3 @@
-<!-- agent-repo-kit:skill-sync — do not edit; regenerate with `ark skill sync` -->
 
 # Go Scripting
 

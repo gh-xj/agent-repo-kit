@@ -1,6 +1,6 @@
 ---
 name: taskfile-authoring
-description: Use when writing, creating, or refactoring Taskfile.yml for any project (Go CLI, Python uv, or generic). Covers go-task v3 features — includes/sub-Taskfiles, sources/generates/method build cache, deps vs cmds, canonical CI/verify surface. Use before adding tasks to an existing Taskfile, scaffolding a new one, or when fixing `ark taskfile lint` findings. Triggers on "write Taskfile", "create Taskfile.yml", "refactor Taskfile", "Taskfile.dev", "go-task", "sub-taskfile", "build cache", "task lint", "includes", "dotenv".
+description: Use when writing, creating, or refactoring Taskfile.yml for any project (Go CLI, Python uv, or generic). Covers go-task v3 features — includes/sub-Taskfiles, sources/generates/method build cache, deps vs cmds, canonical CI/verify surface. Triggers on "write Taskfile", "create Taskfile.yml", "refactor Taskfile", "Taskfile.dev", "go-task", "sub-taskfile", "build cache", "task lint", "includes", "dotenv".
 ---
 
 # Taskfile Authoring
@@ -12,8 +12,7 @@ description: Use when writing, creating, or refactoring Taskfile.yml for any pro
 > references and templates.
 
 Write lean, composable, verification-first Taskfiles for go-task v3. Keep the
-surface small, the cache correct, and the composition transparent. Pair with
-`ark taskfile lint` to catch structural mistakes automatically.
+surface small, the cache correct, and the composition transparent.
 
 ## When To Use
 
@@ -24,7 +23,6 @@ Use this skill when:
 - Refactoring an overgrown Taskfile (too many tasks, duplicated cmds).
 - Splitting work into included sub-Taskfiles (`includes:`).
 - Wiring `sources:` / `generates:` / `method:` for build caching.
-- Resolving `ark taskfile lint` findings.
 
 Do not use for:
 
@@ -56,8 +54,8 @@ Most repos benefit from this shape:
 - `ci` — aggregate: depends on `lint`, `test`, `build` (plus `smoke` where applicable). This is what CI runs.
 - `verify` — wraps `ci` and adds repo-specific gates (e.g. work/wiki checks).
 
-This is **not** lint-enforced. It is a sizing nudge — see
-`references/canonical-surface.md` for rationale and per-stack task counts.
+This is advisory — see `references/canonical-surface.md` for rationale and
+per-stack task counts.
 
 ## Build Cache: sources / status / preconditions
 
@@ -78,8 +76,8 @@ Full decision flow and per-use-case recipes in `references/build-cache.md`.
 Two composition modes:
 
 - `flatten: true` — transparent overlay. Included tasks become top-level. Use
-  when a convention pack ships a Taskfile fragment (`.convention-engineering/Taskfile.yml`)
-  and callers should type `task verify`, not `task conventions:verify`.
+  when a convention pack ships a Taskfile fragment and callers should type
+  `task verify`, not `task conventions:verify`.
 - Explicit `dir:` with a namespace key — genuine sub-domain. Use for
   `work:check`, `wiki:lint`, `docs:build` — things that feel like separate
   areas of the repo.
@@ -88,25 +86,6 @@ Variable precedence is surprising: **the included file's own `vars:` win over
 the includer's `includes.ns.vars:`** (pattern: use `{{.FOO | default "..."}}`
 inside the included file to make values overridable). Full precedence table and
 path-resolution rules in `references/composition.md`.
-
-## Running `ark taskfile lint`
-
-```bash
-ark taskfile lint --repo-root .
-```
-
-V1 ships ten structural rules. Each finding points at a specific line and a
-one-line fix. See `references/lint-rules.md` for the full table: rule ID,
-trigger example, rationale, and fix. Common outputs:
-
-- `version-required` / `version-is-three` — add `version: '3'` at the top.
-- `cmd-and-cmds-mutex` — a task defines both `cmd:` and `cmds:`; pick one.
-- `fingerprint-dir-gitignored` — add `.task/` to `.gitignore`.
-- `dotenv-files-gitignored` — the `.env` file you declare in `dotenv:` is tracked by git.
-
-Strict-mode, stack-specific rules, per-repo config, and integration with
-`ark check` are planned for v2 — see the DEFERRED section of
-`references/lint-rules.md`.
 
 ## Reference & Template Index
 
@@ -118,13 +97,11 @@ Strict-mode, stack-specific rules, per-repo config, and integration with
 | Go CLI patterns (advisory)             | `references/stack-go-cli.md`                |
 | Python + uv patterns (advisory)        | `references/stack-uv-python.md`             |
 | Before/after anti-patterns             | `references/anti-patterns.md`               |
-| `ark taskfile lint` V1 rule catalog    | `references/lint-rules.md`                  |
 | Minimal generic starter                | `references/templates/Taskfile.generic.yml` |
 | Go CLI starter (with build cache)      | `references/templates/Taskfile.go-cli.yml`  |
 | uv + typer starter                     | `references/templates/Taskfile.uv.yml`      |
 
 ## Boundaries
 
-- Stack guidance (Go, uv) is advisory — surfaced in references, never enforced by lint.
+- Stack guidance (Go, uv) is advisory.
 - The skill does not opinionate on CI platform (`.github/workflows/*.yml`).
-- `ark taskfile lint` V1 is structural-only; per-stack rules are deferred to v2.

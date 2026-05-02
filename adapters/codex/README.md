@@ -31,22 +31,6 @@ Restart Codex after linking so it rescans the skill root. Manual maintainer
 symlinks may not appear in `npx skills ls`; verify the installed paths
 directly if you need to confirm the layout.
 
-## Legacy Low-Level Flow
-
-If you are working from a local checkout and explicitly want the repo's
-low-level linker instead of `npx skills`, build `ark` and run:
-
-```sh
-git clone https://github.com/gh-xj/agent-repo-kit.git
-cd agent-repo-kit
-(cd cli && go build -o bin/ark ./cmd/ark)
-./bin/ark adapters link --target codex --repo-root "$PWD"
-```
-
-That path is mainly for legacy compatibility workflows. The adapter files in
-this directory are generated compatibility mirrors; they are not the primary
-skill source.
-
 ## Guardrails
 
 - Keep adapter files thin. They point at the skill surfaces under `skills/`
@@ -54,4 +38,4 @@ skill source.
 - Do not introduce Codex-specific skill authoring rules here — those belong
   in the portable `skills/skill-builder/` skill.
 - When wiring a new skill into this adapter, keep `adapters/manifest.json`
-  aligned so `ark adapters link --target codex` stays functional.
+  aligned with the canonical `skills/` set.

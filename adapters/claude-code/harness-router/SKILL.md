@@ -3,8 +3,6 @@ name: harness-router
 description: "Use when deciding where session learnings, user corrections, agent workflow improvements, or harness enhancement proposals should be persisted across agent instructions, skills, docs, work records, memory, checks, and structured local artifacts."
 ---
 
-<!-- agent-repo-kit:skill-sync — do not edit; regenerate with `ark skill sync` -->
-
 # Harness Router
 
 Route useful session learnings into durable, reviewable agent knowledge

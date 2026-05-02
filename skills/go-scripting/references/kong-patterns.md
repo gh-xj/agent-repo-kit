@@ -79,8 +79,8 @@ Run `mytool build myservice --clean` and kong populates `CLI.Build.Target = "mys
 
 ## Nested subcommand groups
 
-Some CLIs have groups like `ark skill init` or `git remote add`. Model a
-group as a struct whose fields are leaf-level subcommands:
+Some CLIs have groups like `git remote add` or `kubectl config set`. Model
+a group as a struct whose fields are leaf-level subcommands:
 
 ```go
 type CLI struct {

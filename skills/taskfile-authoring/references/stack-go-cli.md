@@ -1,8 +1,7 @@
 # Stack Pattern: Go CLI
 
-Advisory guidance for Go CLI projects. **Not lint-enforced** — these are
-conventions that have shaken out across several ark/godspeed-adjacent repos,
-not V1 lint rules. Apply them with judgment.
+Advisory guidance for Go CLI projects. Conventions that have shaken out
+across several internal repos. Apply them with judgment.
 
 ## Canonical Task Names
 
@@ -15,8 +14,8 @@ A Go CLI Taskfile usually fits in ten tasks or fewer:
 - `test` — `go test ./...`
 - `build` — produce `bin/<name>`
 - `run` — `go run . {{.CLI_ARGS}}` for the dev loop
-- `smoke` — exercise the built artifact in `--json` mode, validate against a
-  schema with a small smokecheck tool
+- `smoke` — exercise the built artifact in `--json` mode, validate parseability
+  with `jq -e .`
 - `ci` — aggregate: `deps: [lint, test, build, smoke]`
 - `verify` — `deps: [ci]` plus repo-specific extras
 
@@ -39,11 +38,11 @@ test:
 build:
   deps: [deps, fmt:check]
   sources: ["**/*.go", "go.mod", "go.sum"]
-  generates: ["bin/ark"]
+  generates: ["bin/myapp"]
   method: checksum
   cmds:
     - mkdir -p bin
-    - go build -o bin/ark .
+    - go build -o bin/myapp .
 ```
 
 ## `build` Must Cache
@@ -64,8 +63,8 @@ smoke:
   cmds:
     - mkdir -p test/smoke
     - rm -f test/smoke/version.output.json
-    - ./bin/ark --json version > test/smoke/version.output.json
-    - go run ./internal/tools/smokecheck --schema test/smoke/version.schema.json --input test/smoke/version.output.json
+    - ./bin/myapp --json version > test/smoke/version.output.json
+    - jq -e . test/smoke/version.output.json >/dev/null
 ```
 
 ## `--json` / `--ndjson` Are Unstyled

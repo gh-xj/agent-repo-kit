@@ -3,7 +3,6 @@ name: go-scripting
 description: "Use when writing a new Go CLI tool or script, declaring a kong-based subcommand tree, choosing a logger (slog+tint), working with collections via stdlib iter or slices, or adding tables and spinners to CLI output. Trigger on 'write a Go CLI', 'build a Go script', 'kong subcommand', 'cobra vs kong', 'which Go logger', 'slog vs zerolog', 'Go iter', 'iter.Seq', 'samber lo', 'Go stdlib vs lo', 'scaffold Go tool', 'Go CLI table', 'Go spinner', 'go-pretty'."
 ---
 
-<!-- agent-repo-kit:skill-sync — do not edit; regenerate with `ark skill sync` -->
 
 # Go Scripting
 

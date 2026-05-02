@@ -29,21 +29,21 @@ tasks:
 
 ## 2. Variable Triangulation
 
-**Why this fails:** three vars encoding one fact (`bin/ark`) means every
+**Why this fails:** three vars encoding one fact (`bin/myapp`) means every
 rename touches three lines, and drift is silent.
 
 ```yaml
 # BEFORE
 vars:
   BIN_DIR: bin
-  BIN_NAME: ark
+  BIN_NAME: myapp
   BIN_PATH: "{{.BIN_DIR}}/{{.BIN_NAME}}"
 ```
 
 ```yaml
 # AFTER
 vars:
-  BIN: bin/ark
+  BIN: bin/myapp
 ```
 
 ## 3. Unquoted Colon-Space In YAML

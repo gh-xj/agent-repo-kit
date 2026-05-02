@@ -3,7 +3,6 @@ name: work-cli
 description: "Use when operating a repo-local `.work/` tracker with the `work` CLI: initialize a store, capture inbox entries, triage them into work items, create/show/view work items, or use typed work items. Do not use for changing the work CLI implementation or redesigning the `.work/` convention."
 ---
 
-<!-- agent-repo-kit:skill-sync — do not edit; regenerate with `ark skill sync` -->
 
 # Work CLI
 

@@ -1,33 +1,12 @@
 version: 2
 
-project_name: ark
+project_name: work
 
 before:
   hooks:
     - cd cli && go mod tidy
 
 builds:
-  - id: ark
-    binary: ark
-    dir: cli
-    gomod:
-      dir: cli
-    main: ./cmd/ark
-    env:
-      - CGO_ENABLED=0
-    flags:
-      - -trimpath
-    ldflags:
-      - -s -w
-      - -X github.com/gh-xj/agent-repo-kit/cli/internal/arkcli.appVersion={{.Version}}
-      - -X github.com/gh-xj/agent-repo-kit/cli/internal/arkcli.appCommit={{.Commit}}
-      - -X github.com/gh-xj/agent-repo-kit/cli/internal/arkcli.appDate={{.Date}}
-    goos:
-      - darwin
-      - linux
-    goarch:
-      - amd64
-      - arm64
   - id: work
     binary: work
     dir: cli
@@ -51,9 +30,9 @@ builds:
       - arm64
 
 archives:
-  - id: ark
-    builds: [ark, work]
-    name_template: "ark-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
+  - id: work
+    builds: [work]
+    name_template: "work-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
     format: tar.gz
     files:
       - LICENSE

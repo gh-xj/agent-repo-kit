@@ -3,8 +3,6 @@ name: convention-evaluator
 description: Use when scoring repo conventions against a convention contract, validating handoff artifacts, or producing a skeptical convention evaluation report from isolated context.
 ---
 
-<!-- agent-repo-kit:skill-sync — do not edit; regenerate with `ark skill sync` -->
-
 # Convention Evaluator
 
 Skeptical evaluation surface for convention work. This convention owns contract semantics, rubric thresholds, evidence expectations, and the machine-readable evaluation result.

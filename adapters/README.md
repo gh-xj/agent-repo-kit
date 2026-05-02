@@ -35,14 +35,12 @@ and hoist it back into `skills/<skill-name>/`.
 
 ## Manifest
 
-`manifest.json` declares the harnesses and their skill roots for the
-low-level `ark adapters link` compatibility flow. The set of skills to link
-is auto-derived: every immediate subdirectory of `skills/` that contains a
-`SKILL.md` gets a symlink into each harness's skill root.
+`manifest.json` declares the harnesses and their skill roots. The set of
+skills to link is auto-derived: every immediate subdirectory of `skills/`
+that contains a `SKILL.md` is exposed to each harness's skill root.
 
 Adding a new skill requires zero manifest edits — drop it into
-`skills/<name>/` with a `SKILL.md` and both `npx skills` discovery and
-`ark adapters link` pick it up. Adding a new harness means adding an entry
-to `harnesses[]`.
+`skills/<name>/` with a `SKILL.md` and `npx skills` discovery picks it up.
+Adding a new harness means adding an entry to `harnesses[]`.
 
 Contributions welcome for new harnesses.

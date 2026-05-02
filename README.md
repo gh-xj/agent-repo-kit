@@ -13,10 +13,10 @@ This repo ships canonical open-skill surfaces plus thin compatibility
 adapters for `claude-code` and `codex`; `cursor/` remains placeholder
 adapter docs. The kit gives any repo a small default core:
 
-1. A local-first **work tracker** (`.work/`) — inbox, triage, views, and a
+1. A repo-root `.conventions.yaml` descriptor that an agent reads to scaffold
+   and audit the rest.
+2. A local-first **work tracker** (`.work/`) — inbox, triage, views, and a
    JSON-native `work` CLI.
-2. An **audit / bootstrap workflow** that scores a repo against the contract
-   and guides adoption.
 
 Optional packs, such as `.wiki/`, are available when a repo has source-backed
 knowledge that earns the extra surface area.
@@ -31,57 +31,16 @@ npx skills add gh-xj/agent-repo-kit -g -a claude-code -a codex --skill '*' -y
 
 This step requires Node.js so `npx` is available.
 
-Install the shipped binaries (prebuilt by default, `~/.local/bin`):
-
-```bash
-curl -sSL https://raw.githubusercontent.com/gh-xj/agent-repo-kit/main/install.sh | sh
-```
-
-`npx skills` installs the canonical repo skills under the supported agent
-runtime roots. `install.sh` installs shipped binaries such as `ark` and
-`work` into the selected prefix when they are available in the release archive.
-
-### From source
-
-If you want to build from a local clone (or Go is available and you'd
-rather not pull a prebuilt):
+Build the `work` CLI from source:
 
 ```bash
 git clone https://github.com/gh-xj/agent-repo-kit.git
-cd agent-repo-kit
-./install.sh --from-source
+cd agent-repo-kit/cli
+go install ./cmd/work
 ```
 
-`--from-source` forces local `go build` of the `ark` and `work` entrypoints
-into the install prefix instead of downloading a release archive. Requires
-Go ≥ 1.25.
-
-### Prefix and PATH
-
-The default prefix is `~/.local/bin`. For a system-wide install use
-`--prefix /usr/local/bin` (you may need `sudo` for writes there). Make
-sure the chosen prefix is on your `PATH`.
-
-Other useful flags:
-
-```bash
-./install.sh --prefix /usr/local/bin
-./install.sh --from-source
-./install.sh --dry-run              # preview without changes
-```
-
-### Upgrade
-
-```bash
-ark upgrade
-```
-
-`ark upgrade` upgrades the shipped `ark` and `work` binaries. If `ark`
-lives inside a git clone it runs `git pull` + rebuild; otherwise it downloads
-the latest release archive and replaces the installed binaries in place.
-
-Refresh installed skills separately with `npx skills update -g`, or re-run
-the `npx skills add gh-xj/agent-repo-kit ...` command above.
+Requires Go ≥ 1.25. The resulting `work` binary lives in `$(go env GOBIN)`
+or `$GOPATH/bin`; ensure that directory is on your `PATH`.
 
 ### Supported harnesses
 
@@ -89,10 +48,6 @@ the `npx skills add gh-xj/agent-repo-kit ...` command above.
   `npx skills add gh-xj/agent-repo-kit -g -a claude-code --skill '*' -y`
 - **codex** — install with
   `npx skills add gh-xj/agent-repo-kit -g -a codex --skill '*' -y`
-
-`adapters/manifest.json` and `ark adapters link` remain available as a
-low-level compatibility path for local or legacy symlink workflows. They
-are no longer the recommended end-user install path.
 
 ### Maintainer Setup
 
@@ -124,18 +79,14 @@ by checking the filesystem directly (for example
 
 ## Bootstrap A Repo
 
-Use the `ark` CLI to scaffold the kit-owned repo surface in one pass:
+Use the `convention-engineering` skill (loaded via the supported harness) to
+scaffold the kit-owned repo surface. The agent reads or creates a
+`.conventions.yaml` at your repo root and writes the artifacts it declares —
+agent contract files (`CLAUDE.md` / `AGENTS.md`), docs taxonomy, Taskfile,
+pre-commit hook — following
+`skills/convention-engineering/references/operations/bootstrap-workflow.md`.
 
-```bash
-ark init \
-  --repo-root /path/to/your-repo \
-  --profiles go,typescript-react
-```
-
-This writes a tracked `.convention-engineering.json`, `docs/` taxonomy
-READMEs, `.work/`, repo-local convention task wiring under
-`.convention-engineering/`, and mirrored `AGENTS.md` / `CLAUDE.md`
-convention blocks. The generated repo then supports:
+The generated repo then supports:
 
 ```bash
 task verify
@@ -143,54 +94,45 @@ task verify
 
 Prerequisites:
 
-- `ark` and `work` on `PATH` (installed by `./install.sh` or built from source) for bootstrap, convention checks, and work views
-- `task`, `bash`, and standard Unix tools for `task verify`
+- `work` on `PATH` (built from source above) for the work tracker.
+- `task`, `bash`, and standard Unix tools for `task verify`.
 
 ## What you get
 
 - **`skills/`** — canonical, harness-free skill sources:
-  - `skills/convention-engineering/` — repo conventions: agent docs, docs
-    taxonomy, stack profiles, verification gates, work scaffolds, and optional
-    wiki scaffolds.
+  - `skills/convention-engineering/` — repo conventions: `.conventions.yaml`,
+    agent docs, docs taxonomy, verification gates, repo-local skill placement,
+    and optional work / wiki scaffolds.
   - `skills/convention-evaluator/` — skeptical scoring of a repo's adoption
-    of the contract. Produces a graded report with evidence.
+    of its declared conventions. Produces a graded report with evidence.
   - `skills/skill-builder/` — skill for creating, refactoring, and auditing
-    agent skills (trigger wording, portable structure, reference
-    extraction, runtime placement).
-  - `skills/taskfile-authoring/` — skill for writing canonical Taskfiles,
-    used by `ark taskfile lint`.
-  - `skills/attack-architecture/` — adversarial architecture-review skill
-    (parallel lens attacks + debate).
+    agent skills.
+  - `skills/taskfile-authoring/` — skill for writing canonical Taskfiles.
+  - `skills/attack-architecture/` — adversarial architecture-review skill.
   - `skills/harness-router/` — proposal-only router for deciding where
-    session learnings and harness improvements should persist across
-    instructions, skills, docs, work records, memory, and verification
-    surfaces.
-- **`examples/demo-repo/`** — a working repo showing lean `.work/` adoption
-  end to end, wired to CI.
+    session learnings and harness improvements should persist.
+  - `skills/work-cli/` — operating the `.work/` tracker.
 - **`adapters/`** — thin wrappers that expose `skills/` to a specific
-  harness. `claude-code/` and `codex/` are shipped as compatibility targets
-  (see `adapters/manifest.json`); `cursor/` is placeholder docs today.
+  harness. `claude-code/` and `codex/` are shipped as compatibility targets;
+  `cursor/` is placeholder docs today.
+- **`cli/`** — the `work` CLI (Go) that powers `.work/`.
 
 ## Quick example
 
 ```bash
-ark init \
-  --repo-root /path/to/your-repo \
-  --profiles go
-
 cd /path/to/your-repo
-task verify             # conventions + work
+# Use the convention-engineering skill via your harness to bootstrap, then:
+task verify             # runs whatever .conventions.yaml declares
 task work -- view ready # inspect ready work
 ```
 
 ## Architecture
 
 ```
-     +---------+             +-----------------------+
-     | skills/ |<------------| examples/demo-repo/   |
-     +----+----+             | (.work, CI)           |
-          ^                  +-----------------------+
-          |
+     +---------+
+     | skills/ |
+     +----+----+
+          ^
    +------+-------+
    |  adapters/   |
    | claude-code  |
@@ -202,7 +144,7 @@ task work -- view ready # inspect ready work
 `*` placeholder adapter docs only; not an installable target today.
 
 Content lives under `skills/`. Adapters don't own content; they re-export
-via `adapters/manifest.json`. Examples are concrete, runnable proof.
+via `adapters/manifest.json`.
 
 ## Contributing
 

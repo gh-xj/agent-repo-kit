@@ -3,7 +3,6 @@ name: attack-architecture
 description: "Use when adversarially reviewing an existing codebase or subsystem for architectural smells — rigidity, fragility, coupling, silent failures, overengineering, leaky contracts — not hunting bugs. Triggers: 'attack the architecture', 'critique the design', 'audit this module for slop', 'review AI-generated code', 'is this data model right', 'where will this hurt to change'."
 ---
 
-<!-- agent-repo-kit:skill-sync — do not edit; regenerate with `ark skill sync` -->
 
 # Attack Architecture
 
