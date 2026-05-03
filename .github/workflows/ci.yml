@@ -22,8 +22,11 @@ jobs:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install yq
-        run: sudo apt-get update -y && sudo apt-get install -y yq
+      - name: Install yq (mikefarah/yq, the Go one)
+        run: |
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+          yq --version
 
       - name: Install work CLI
         run: go install github.com/gh-xj/work-cli/cmd/work@v0.1.0
