@@ -35,7 +35,8 @@ Use stable date-prefixed names:
 - `plans/YYYY-MM-DD-<topic>.md`
 - `implementation/YYYY-MM-DD_<topic>_impl_report.md`
 - `taxonomy/<domain>/<subject>.md`
-- `reviews/<artifact_basename>.<reviewer>.md`
+- `reviews/<artifact_basename>.<reviewer>.md` (artifact-scoped review)
+- `reviews/YYYY-MM-DD_<topic>_evaluation.md` (standalone evaluation, e.g. convention-evaluator output)
 
 Keep topic slugs short and lowercase with `_` or `-`.
 

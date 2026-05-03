@@ -1,106 +1,78 @@
 # Rubric
 
-The evaluator grades convention work across five dimensions. The point is skeptical external judgment, not checklist self-approval.
-
-New material added to `convention-engineering` (new core principles, artifact
-categories, teaching docs) maps onto these five dimensions via the existing
-`required_files`, `content_checks`, `taskfile_checks`, and `invariant_contract`
-contract fields. Do not add new dimensions or new top-level schema keys per
-feature — the evaluator's job is observable behaviour, not belief audit.
+Three dimensions. All hard-fail. The point is skeptical external judgment of
+how well a repo lives up to its declared `.conventions.yaml`, not checklist
+self-approval.
 
 ## Dimensions
 
 ### `legibility`
 
-Questions:
+Can an agent in fresh context navigate this repo and the conventions it
+declares?
 
-- Are the repo’s convention docs present and navigable?
-- Are commands exact enough to run?
-- Can an agent find the right convention surface quickly?
+- Are `agent_docs` files present and structured per
+  `convention-engineering/references/core/agent-knowledge.md`?
+- Is the docs taxonomy unambiguous (one `docs_root`, the declared subfolders
+  exist, files follow the date-prefixed naming)?
+- Are mirrored contract files (`AGENTS.md` / `CLAUDE.md`) actually coherent,
+  not divergent?
+- When `.conventions.yaml` declares an opt-in, can the reader find the
+  artifact it points at without grep?
 
 ### `enforceability`
 
-Questions:
+Do the declared opt-ins actually constrain behaviour, or are they
+aspirational?
 
-- Do lint, boundary, hook, or invariant surfaces actually constrain behavior?
-- Are required files and deterministic checks real rather than aspirational?
+- For each declared `agent_docs` / `docs_root` / `taskfile` / `pre_commit` /
+  `skill_roots` / `operations` opt-in: the corresponding artifact exists,
+  is non-trivial, and would fail loudly if removed.
+- For each entry under `checks:`: the rule is testable from a fresh
+  checkout, and the repo currently satisfies it.
+- For each adopted operation (`work`, `wiki`): the directory exists, the
+  agent contracts contain the pointer snippet, the op-specific health
+  check actually runs.
 
 ### `verification`
 
-Questions:
+Is there one canonical command that exercises the declared gates and
+produces debuggable evidence?
 
-- Is there one canonical verification surface?
-- Does it produce debuggable evidence?
-- Are smoke or regression gates present when the repo needs them?
-
-### `drift_resistance`
-
-Questions:
-
-- Are mirrored or canonical docs kept coherent?
-- Is the docs root unambiguous?
-- Are freshness or update contracts present where drift is likely?
-
-### `ownership_clarity`
-
-Questions:
-
-- Are repo conventions separated from domain knowledge?
-- Are generic agent-tooling authoring concerns routed away from repo-local conventions (to a dedicated authoring convention when the host runtime provides one)?
-- Are repo-local agent tools used only when local ownership is justified?
+- `task verify` (or the repo's equivalent) exists, exits 0 from a clean
+  checkout, and exercises every declared opt-in.
+- Failures emit per-step exit codes, log paths, and short tail excerpts —
+  not one monolithic output blob.
+- Smoke or regression coverage exists when the repo's risk warrants it
+  (CLI-shaped repos, codegen-shaped repos).
 
 ## Score Scale
 
 - `0`: absent or actively broken
-- `1`: weak and mostly aspirational
+- `1`: weak, mostly aspirational
 - `2`: partial or inconsistently implemented
 - `3`: acceptable and operational
 - `4`: strong, coherent, and well-enforced
 
 ## Threshold Policy
 
-Hard-fail dimensions:
+All three dimensions are hard-fail. Default: each must score `>= 3`.
 
-- `enforceability`
-- `verification`
-- `ownership_clarity`
-
-Soft-fail by default:
-
-- `legibility`
-- `drift_resistance`
-
-Default thresholds:
-
-- hard-fail dimensions must score `>= 3`
-- soft-fail dimensions must score `>= 2`
-
-High-risk repos raise the soft-fail threshold to `>= 3`.
+High-risk repos (see below): each must score `>= 4` on `enforceability`
+and `verification`. `legibility >= 3` still passes.
 
 ## High-Risk Criteria
 
-Treat `evaluation_inputs.repo_risk` as high-risk when one or more of these are true:
+Treat the run as high-risk when **either** is true:
 
 - the repo has three or more consumers or downstream dependents
-- cross-repo changes are common
-- deployment, codegen, or harness behavior depends heavily on convention
-- the run includes repo-structure or code-layout refactors
-- the repo acts as a shared template or policy source
+- the repo acts as a shared template or policy source for other repos
 
-## Failure Interpretation
+If neither applies, default thresholds.
 
-- checker failures that materially reduce a hard-fail dimension produce `semantic_failed`
-- soft-dimension failures remain soft unless `repo_risk` raises the threshold
-- unreadable or invalid handoff artifacts produce `infrastructure_failed`
+## Verdict
 
-## Operational Conventions (work, wiki)
-
-These adopt via manual template copy plus a `## Conventions` pointer snippet in `CLAUDE.md` and `AGENTS.md`. Score them through the existing dimensions — do not add new ones:
-
-- missing `.work/` or `.wiki/` directory or required files claimed by the contract → `enforceability`
-- pointer snippet absent from `CLAUDE.md` or `AGENTS.md` (grep-level check, not parse) → `legibility`
-- task invocations claimed but not runnable (`task work -- view ready`, `task -d .wiki lint`, `task wiki:lint`) → `verification`
-- immutable surfaces drifted (`.wiki/raw/`) → `drift_resistance`
-- repo-local agent tooling duplicating what template ownership already covers → `ownership_clarity`
-
-The evaluator judges adoption; it does not generate or repair the scaffolding.
+The evaluation passes when every dimension meets its threshold. Otherwise
+it fails — there is no soft-fail tier. The report should always say
+`PASS` or `FAIL` plus the per-dimension scores; status sits at the top
+of the markdown.
