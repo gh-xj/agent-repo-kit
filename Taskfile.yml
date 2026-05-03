@@ -4,17 +4,15 @@ tasks:
   verify:
     desc: Run the repo's canonical verification gate
     cmds:
-      - task -d cli ci
+      - bash scripts/verify.sh
 
   work:
-    desc: Run the repo-local work CLI
+    desc: Run the repo-local work CLI (requires the external `work` binary)
+    preconditions:
+      - sh: command -v work >/dev/null 2>&1
+        msg: "`work` not on PATH; install from https://github.com/gh-xj/work-cli"
     cmds:
-      - go run -C cli ./cmd/work --store ../.work {{.CLI_ARGS}}
-
-  work:qa:
-    desc: Run black-box QA against the source work CLI
-    cmds:
-      - go run ./.codex/skills/work-cli-qa/cli/main.go --repo-root . {{.CLI_ARGS}}
+      - work --store .work {{.CLI_ARGS}}
 
   skills:link-dev:
     desc: Symlink the shipped repo skills into ~/.agents/skills and ~/.claude/skills for local maintenance

@@ -1,4 +1,3 @@
-
 # Work CLI
 
 Operate the local-first `.work/` tracker as an agent-facing work ledger.
@@ -16,12 +15,27 @@ Use this skill when the task is to:
 
 Do not use this skill for:
 
-- Changing `cmd/work`, `internal/work`, or `internal/workcli`.
+- Changing `cmd/work`, `internal/work`, or `internal/workcli`. Those live in
+  the external [`gh-xj/work-cli`](https://github.com/gh-xj/work-cli) repo;
+  edit them there.
 - Redesigning the `.work/` filesystem contract.
 - Adding verification gates or repo convention docs.
 
 Use `convention-engineering` for convention design and `go-scripting` for CLI
 implementation work.
+
+## Install
+
+`work` is an external dependency. Install once per machine:
+
+```bash
+go install github.com/gh-xj/work-cli/cmd/work@latest
+```
+
+Or grab a tarball release from
+https://github.com/gh-xj/work-cli/releases. The repo's
+`.conventions.yaml` may declare a `min_work_version` that
+`scripts/verify.sh` enforces.
 
 ## First Actions
 

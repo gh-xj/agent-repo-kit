@@ -128,7 +128,8 @@ Validation should match the touched surface:
 - any edit: skill audit
 - `SKILL.md` edit: adapter sync and skill check
 - repo behavior change: `task verify`
-- CLI/check behavior change: `task -d cli ci`
+- `work` CLI behavior change: do that work in the
+  [`gh-xj/work-cli`](https://github.com/gh-xj/work-cli) repo, not here
 
 ### 6. Record The Lesson
 
@@ -158,11 +159,10 @@ When `SKILL.md` changes, hand-mirror the relevant fields into the matching
 `adapters/<runtime>/harness-router/SKILL.md` files; there is no automated
 sync today.
 
-If CLI behavior changed, also run:
-
-```bash
-task -d cli ci
-```
+CLI behavior changes belong in the external
+[`gh-xj/work-cli`](https://github.com/gh-xj/work-cli) repo. Run that
+repo's `task ci` (or `task qa` for the source-side QA harness) before
+landing CLI changes there.
 
 ## Changelog
 

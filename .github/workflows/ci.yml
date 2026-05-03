@@ -7,21 +7,26 @@ on:
     branches: [main]
 
 jobs:
-  cli:
+  verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-go@v5
         with:
-          go-version-file: cli/go.mod
-          cache-dependency-path: cli/go.sum
+          go-version: stable
 
       - name: Install go-task
-        run: |
-          sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
-          task --version
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: cli — task ci (lint + test + build + smoke)
-        working-directory: cli
-        run: task ci
+      - name: Install yq
+        run: sudo apt-get update -y && sudo apt-get install -y yq
+
+      - name: Install work CLI
+        run: go install github.com/gh-xj/work-cli/cmd/work@v0.1.0
+
+      - name: task verify
+        run: task verify

@@ -12,19 +12,24 @@ taskfile: true
 
 pre_commit: false
 
-skill_roots:
-  - .claude/skills
-  - .codex/skills
+# skill_roots: ARK has no project-local skills. Canonical sources live under
+# skills/ and per-harness mirrors under adapters/<harness>/<skill>/. Target
+# repos that adopt this convention typically declare .claude/skills and/or
+# .codex/skills here.
 
 operations:
   - work
   # `wiki` not adopted in this repo today.
 
+# Minimum work CLI version this repo's conventions assume.
+# scripts/verify.sh probes `work --version` and hard-fails on skew.
+min_work_version: "0.1.0"
+
 checks:
   - "AGENTS.md and CLAUDE.md cover entry points, editing rules, and the same conventions block."
   - "docs/{requests,planning,plans,implementation,taxonomy} directories exist."
-  - "task verify exits 0 from a clean checkout (delegates to task -d cli ci)."
-  - "task -d cli ci passes lint, test, build, smoke against the work CLI."
+  - "task verify exits 0 from a clean checkout (delegates to scripts/verify.sh)."
+  - "scripts/verify.sh asserts declared opt-ins and the min_work_version gate."
   - "skills/<name>/SKILL.md is the canonical source; adapters/<harness>/<name>/SKILL.md mirrors it by hand."
   - ".work/ exists with config.yaml; task work -- view ready --json succeeds."
   - "No tracked file references the deleted `ark` CLI or `.convention-engineering.json` (sweep gate)."

@@ -76,11 +76,9 @@ Before claiming completion:
 task verify
 ```
 
-If CLI behavior changed, also run:
-
-```bash
-task -d cli ci
-```
+CLI behavior changes belong in the external
+[`gh-xj/work-cli`](https://github.com/gh-xj/work-cli) repo. Run that
+repo's `task ci` before landing CLI changes there.
 
 ## Changelog
 

@@ -61,20 +61,25 @@ north star for this repo; this file is the operational map.
 ## Testing
 
 ```bash
-task -d cli ci   # CLI lint, tests, build, and smoke checks
+task verify   # asserts declared opt-ins via scripts/verify.sh
 ```
 
-CI runs CLI checks on every push and PR (see `.github/workflows/ci.yml`).
+CI runs `task verify` on every push and PR (see `.github/workflows/ci.yml`).
+The job installs the external `work` binary and `yq` before running.
 
 ## Conventions
 
 - **Docs** — tracked repo docs live under `docs/` using the `requests/`,
   `planning/`, `plans/`, `implementation/`, and `taxonomy/` folders.
-- **Work** — local-first work tracker at `.work/`. The repo-local CLI is
-  exposed through `task work -- ...`; local state lives in the ignored
-  `.work/config.yaml` and `.work/items/*.yaml`. Daily commands:
-  `task work -- inbox`, `task work -- inbox add "title"`, `task work -- triage accept IN-0001`,
-  `task work -- view ready`, and `task work -- show W-0001`.
+- **Work** — local-first work tracker at `.work/`. The CLI is the external
+  [`work-cli`](https://github.com/gh-xj/work-cli) binary; ARK no longer
+  ships a copy. Install it (`go install github.com/gh-xj/work-cli/cmd/work@latest`
+  or via the release tarball), then drive it through `task work -- ...`.
+  Local state lives in the ignored `.work/config.yaml` and `.work/items/*.yaml`.
+  Daily commands: `task work -- inbox`, `task work -- inbox add "title"`,
+  `task work -- triage accept IN-0001`, `task work -- view ready`,
+  and `task work -- show W-0001`.
 - **Conventions descriptor** — `.conventions.yaml` at the repo root declares
-  which conventions this repo opts into. Read by the convention-engineering
-  skill for bootstrap and audit.
+  which conventions this repo opts into, including `min_work_version` for
+  the external `work` CLI. Read by the convention-engineering skill for
+  bootstrap and audit; enforced by `scripts/verify.sh`.

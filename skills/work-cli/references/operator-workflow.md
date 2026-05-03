@@ -132,8 +132,6 @@ a Taskfile wrapper, prefer:
 task verify
 ```
 
-For this repository's work CLI implementation, use the maintainer QA harness:
-
-```bash
-task work:qa
-```
+The `work` CLI itself lives in [`gh-xj/work-cli`](https://github.com/gh-xj/work-cli).
+For source-side QA against the CLI implementation, run the QA harness from
+that repo (`task qa`), not from here.

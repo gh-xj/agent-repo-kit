@@ -15,8 +15,9 @@ adapter docs. The kit gives any repo a small default core:
 
 1. A repo-root `.conventions.yaml` descriptor that an agent reads to scaffold
    and audit the rest.
-2. A local-first **work tracker** (`.work/`) — inbox, triage, views, and a
-   JSON-native `work` CLI.
+2. A local-first **work tracker** (`.work/`) — inbox, triage, views, driven
+   by the JSON-native `work` CLI from
+   [`gh-xj/work-cli`](https://github.com/gh-xj/work-cli) (separate repo).
 
 Optional packs, such as `.wiki/`, are available when a repo has source-backed
 knowledge that earns the extra surface area.
@@ -31,16 +32,16 @@ npx skills add gh-xj/agent-repo-kit -g -a claude-code -a codex --skill '*' -y
 
 This step requires Node.js so `npx` is available.
 
-Build the `work` CLI from source:
+Install the `work` CLI (separate repo):
 
 ```bash
-git clone https://github.com/gh-xj/agent-repo-kit.git
-cd agent-repo-kit/cli
-go install ./cmd/work
+go install github.com/gh-xj/work-cli/cmd/work@latest
 ```
 
-Requires Go ≥ 1.25. The resulting `work` binary lives in `$(go env GOBIN)`
-or `$GOPATH/bin`; ensure that directory is on your `PATH`.
+Requires Go ≥ 1.25, or grab a release tarball from
+https://github.com/gh-xj/work-cli/releases. The resulting `work` binary
+lives in `$(go env GOBIN)` or `$GOPATH/bin`; ensure that directory is on
+your `PATH`.
 
 ### Supported harnesses
 
@@ -94,8 +95,8 @@ task verify
 
 Prerequisites:
 
-- `work` on `PATH` (built from source above) for the work tracker.
-- `task`, `bash`, and standard Unix tools for `task verify`.
+- `work` on `PATH` (see [Install](#install)) for the work tracker.
+- `task`, `bash`, `yq`, and standard Unix tools for `task verify`.
 
 ## What you get
 
@@ -117,7 +118,9 @@ Prerequisites:
 - **`adapters/`** — thin wrappers that expose `skills/` to a specific
   harness. `claude-code/` and `codex/` are shipped as compatibility targets;
   `cursor/` is placeholder docs today.
-- **`cli/`** — the `work` CLI (Go) that powers `.work/`.
+- **External: [`gh-xj/work-cli`](https://github.com/gh-xj/work-cli)** — the
+  `work` CLI (Go) that powers `.work/`. Released independently; ARK pins a
+  minimum version via `min_work_version` in `.conventions.yaml`.
 
 ## Quick example
 
