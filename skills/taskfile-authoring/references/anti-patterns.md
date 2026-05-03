@@ -276,3 +276,63 @@ tasks:
     cmds:
       - go build -ldflags="-X main.Commit={{.COMMIT}}" -o bin/app .
 ```
+
+## 12. `dir:` Plus A Shell Redirect Or A Relative-Path CLI Arg
+
+**Why this fails:** `dir:` shifts the cwd for **everything** in `cmds:` —
+including shell redirects (`2> $LOG`) and any relative path that the
+spawned binary itself receives (`--cd sandbox/foo`). The path you wrote
+relative to the _repo root_ now resolves relative to the _task's `dir:`_,
+and the failure mode is silent (file not found, or worse, written to a
+different location than expected). The mistake is invisible at task-lint
+time and only surfaces at run time.
+
+```yaml
+# BEFORE — looks fine, breaks at runtime
+tasks:
+  trace:
+    dir: codex/codex-rs
+    vars:
+      LOG: '{{.LOG | default "trace.log"}}'
+    cmds:
+      # Both of these resolve from codex/codex-rs/, NOT the repo root:
+      - cargo run --bin codex -- {{.CLI_ARGS}} 2> {{.LOG}}
+      # If CLI_ARGS contains "--cd sandbox/foo", that resolves wrong too.
+```
+
+Two safe patterns. **Pick whichever keeps the binary's relative-path
+expectations intact.**
+
+```yaml
+# AFTER (a) — don't change dir; use --manifest-path. cwd stays at repo
+# root, so the user's $LOG and --cd args resolve where they expect.
+tasks:
+  trace:
+    vars:
+      LOG: '{{.LOG | default "trace.log"}}'
+    cmds:
+      - cargo run --manifest-path {{.TASKFILE_DIR}}/codex/codex-rs/Cargo.toml \
+        --bin codex -- {{.CLI_ARGS}} 2> {{.LOG}}
+```
+
+```yaml
+# AFTER (b) — keep dir, but absolutize every path that crosses the
+# task boundary, using {{.TASKFILE_DIR}} as the anchor.
+tasks:
+  trace:
+    dir: codex/codex-rs
+    vars:
+      LOG: '{{.LOG | default "trace.log"}}'
+      LOG_ABS: '{{if hasPrefix "/" .LOG}}{{.LOG}}{{else}}{{.TASKFILE_DIR}}/{{.LOG}}{{end}}'
+    cmds:
+      - mkdir -p "$(dirname '{{.LOG_ABS}}')"
+      - cargo run --bin codex -- {{.CLI_ARGS}} 2> '{{.LOG_ABS}}'
+```
+
+The `LOG_ABS` template handles both forms — pass-through if the user
+already provided an absolute path, otherwise anchor it at the repo root.
+
+**Heuristic:** if a `dir:` task takes either `LOG=…` or `--cd …` style
+arguments from the caller, prefer pattern (a) — the caller almost
+certainly meant their paths to resolve from the repo root, not from
+inside whatever directory you happened to chose.

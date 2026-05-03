@@ -12,6 +12,7 @@ scope, load policy, and enforcement need.
 | Related skill | Reusable workflow or judgment pattern that should trigger on demand | The learning is just project context or a one-off note |
 | Used skill | Corrections to the skill's trigger, workflow, references, or guardrails discovered while using it | The correction belongs to a different owner skill |
 | Skill reference | Bulky examples, rubrics, schemas, source inventories, or workflow details | The content must be always loaded |
+| Protocol / contract | Command grammar, JSON/schema contract, adapter lifecycle, work lifecycle, generated-surface rule, permission boundary | It is only a human explanation or one-off workflow |
 | Repo docs | Durable explanation, decision record, design rationale, research synthesis, migration note | The content is operational follow-up or private memory |
 | `.work` item/space | Active follow-up, unresolved decision, research capture, implementation plan; read the target space's local rules before writing | The work is completed and should become stable docs instead |
 | Memory | Personal preference, recurring local context, low-authority recall hint | Required behavior, shared project knowledge, or secret-bearing content |
@@ -26,6 +27,7 @@ scope, load policy, and enforcement need.
 | Harness-specific load behavior | harness adapter file | harness load check if available |
 | Repeated workflow | skill or skill reference | skill trigger/audit check |
 | Correction to used skill | used skill source | skill audit and reference existence checks |
+| Interaction contract | protocol owner, schema, CLI docs, adapter rule, Taskfile, or convention docs | contract check, CLI smoke, or convention gate |
 | Bulky durable knowledge | docs or research page | docs taxonomy/convention check |
 | Active follow-up | `.work` work item/space | `work show` or repo wrapper |
 | Personal preference | memory | manual review; never sole authority |

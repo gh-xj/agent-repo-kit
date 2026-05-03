@@ -23,8 +23,15 @@ or untrusted claims before routing them.
 
 ## 3. Classify
 
-Apply `routing-taxonomy.md` to each learning. If a dimension is unclear, say so
-in the proposal instead of guessing.
+Apply `externalization-model.md` first:
+
+- What cognitive burden would the artifact remove?
+- What artifact class should carry that burden?
+- Is the learning captured, staged, proposed, implemented, verified, rejected,
+  or deprecated?
+
+Then apply `routing-taxonomy.md` to each learning. If a dimension is unclear,
+say so in the proposal instead of guessing.
 
 ## 4. Route
 
@@ -44,10 +51,10 @@ Use `proposal-format.md`. Include at least:
 - source and date
 - durable lesson
 - candidate destination
+- externalized burden and artifact class
 - reason
 - confidence
 - risks
-- verification
 
 ## 6. Stop Before Mutation
 

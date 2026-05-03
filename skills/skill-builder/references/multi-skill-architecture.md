@@ -41,6 +41,24 @@ downstream-skill/            (repo-local, .claude/skills/)
 3. **Convention-based references** — Claude can read global skill files at runtime: `See upstream-skill > references/core/pipeline.md`
 4. **Upstream never references downstream** — it can mention the downstream skill exists for routing purposes, but doesn't depend on it
 
+## Cross-Surface Composition
+
+Skills compose with more than other skills. Before adding or changing a skill,
+name the surrounding surfaces:
+
+- instructions that trigger or constrain it
+- tools, scripts, or CLIs it may call
+- environment or sandbox assumptions
+- files, docs, work spaces, or generated surfaces it may mutate
+- checks, evals, or CI gates that verify it
+- companion skills that should run before or after it
+- owner surface for shared vocabulary
+
+If two skills can mutate the same durable surface, one skill must own the
+surface or both must route through a protocol, check, or human review step.
+
+High-risk composition needs explicit approval points and evidence capture.
+
 ## When to Extract to Core
 
 A concept belongs in `core/` when:
