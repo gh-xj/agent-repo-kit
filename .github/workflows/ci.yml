@@ -31,5 +31,8 @@ jobs:
       - name: Install work CLI
         run: go install github.com/gh-xj/work-cli/cmd/work@v0.1.0
 
+      - name: Bootstrap .work store (gitignored, recreated in CI)
+        run: work --store .work init
+
       - name: task verify
         run: task verify
