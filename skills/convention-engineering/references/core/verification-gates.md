@@ -17,7 +17,9 @@ specific tools — that is part of the repo's `.conventions.yaml`.
 ## How `task verify` Relates to `.conventions.yaml`
 
 The descriptor declares which gates the repo opts into. The Taskfile wires
-each opt-in to a concrete command.
+each opt-in to a concrete command. For the recommended pure-shell
+"mechanical floor" pattern that asserts every typed opt-in via `yq`, see
+`references/core/verify-script-pattern.md`.
 
 ```yaml
 # .conventions.yaml

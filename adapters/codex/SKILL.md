@@ -1,7 +1,7 @@
 ---
 name: convention-engineering
 version: 1.0.0
-description: "Use when designing or auditing repo conventions: `.conventions.yaml` descriptor, agent contract files (CLAUDE.md / AGENTS.md), docs taxonomy, verification gates, repo-local skill placement, `.work/` layout, `.wiki/` rules. Also use when bootstrapping a sibling dev wrapper repo (e.g. `<tool>-dev`) for an OSS tool. Stack-agnostic. Skip for one-off product naming or domain architecture questions where no convention surface is being changed."
+description: "Use when designing or auditing repo conventions: `.conventions.yaml` descriptor, agent contract files (CLAUDE.md / AGENTS.md), docs taxonomy, verification gates, repo-local skill placement, `.work/` layout, `.wiki/` rules. Also use when bootstrapping a sibling dev wrapper repo (e.g. `<tool>-dev`) for an OSS tool, or when bootstrapping a personal/knowledge-base brain repo (mixed-authorship store with realms + ingest registry — owner-authored notes + agent-captured raw + external library + derived). Stack-agnostic. Skip for one-off product naming or domain architecture questions where no convention surface is being changed."
 ---
 
 # Convention Engineering
@@ -20,12 +20,14 @@ The pattern: a single `.conventions.yaml` at the repo root declares which conven
 | How to design the docs taxonomy?                    | `references/core/docs-taxonomy.md`            |
 | Where do repo-local skills live?                    | `references/core/project-skill-placement.md`  |
 | How should the verification gate work?              | `references/core/verification-gates.md`       |
+| How should `scripts/verify.sh` be shaped?           | `references/core/verify-script-pattern.md`    |
 | How does an agent-harness adapter mirror a skill?   | `references/core/adapter-contract.md`         |
 | Bootstrap a new repo                                | `references/operations/bootstrap-workflow.md` |
 | Audit an existing repo                              | `references/operations/audit-workflow.md`     |
 | Adopt the work tracker (`.work/`)                   | `references/operations/work.md`               |
 | Adopt the wiki (`.wiki/`)                           | `references/operations/wiki.md`               |
 | Bootstrap a sibling dev wrapper for an OSS tool     | `references/patterns/dev-wrapper.md`          |
+| Bootstrap a personal/knowledge-base brain repo      | `references/patterns/brain.md`                |
 
 ## Quick Start
 
