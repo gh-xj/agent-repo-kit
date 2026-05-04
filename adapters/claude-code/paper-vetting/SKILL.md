@@ -3,7 +3,6 @@ name: paper-vetting
 description: "Use BEFORE reading or summarizing any research paper. Triangulate trust across three independent lenses (team / citation context / claim-level evidence), then decide how skeptically to read it. Triggers: 'research this paper', 'read this paper', 'summarize this arxiv', 'what's the reputation of', 'is this paper credible', 'vet this paper', '评估这篇论文', '这篇论文靠谱吗', '这个团队厉害吗', any arxiv.org / openreview.net / aclanthology.org / proceedings URL handed in for review."
 ---
 
-
 # Paper Vetting
 
 Vet a paper through **three independent lenses**, then triangulate. Output is a calibrated reading recommendation, not a single trust score. Reputation alone tells you _how seriously_ to read; only the convergence of lenses tells you _whether the claims survive_.

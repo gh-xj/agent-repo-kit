@@ -3,7 +3,6 @@ name: skill-builder
 description: Use when creating, refactoring, auditing, or migrating Claude/Codex skills, especially when trigger wording, portable structure, reference extraction, or runtime placement need design.
 ---
 
-
 # Skill Builder
 
 Design and maintain Claude/Codex skills as small, portable routers with clear triggers and minimal duplication.

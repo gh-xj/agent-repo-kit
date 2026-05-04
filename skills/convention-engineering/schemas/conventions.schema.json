@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/gh-xj/agent-repo-kit/main/skills/convention-engineering/schemas/conventions.schema.json",
+  "title": "Conventions Descriptor",
+  "description": "Repo-root .conventions.yaml describing which conventions a repo opts into. Schema doc: skills/convention-engineering/references/core/conventions-yaml.md.",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "agent_docs": {
+      "description": "Agent contract files (e.g. CLAUDE.md, AGENTS.md) the repo guarantees exist with the required sections.",
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "docs_root": {
+      "description": "Top-level docs directory (commonly 'docs' or '.docs'). Must contain requests/, planning/, plans/, implementation/, taxonomy/.",
+      "type": "string",
+      "minLength": 1
+    },
+    "taskfile": {
+      "description": "Repo declares a canonical Taskfile.yml with a verify target.",
+      "type": "boolean"
+    },
+    "pre_commit": {
+      "description": "Repo runs a pre-commit hook (.githooks/pre-commit + core.hooksPath, or equivalent installed hook).",
+      "type": "boolean"
+    },
+    "skill_roots": {
+      "description": "Repo-local agent-skill discovery roots (e.g. .claude/skills, .agents/skills, .codex/skills).",
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "operations": {
+      "description": "Adopted operational conventions. Each entry must map to a documented op under skills/convention-engineering/references/operations/.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["work", "wiki"]
+      },
+      "uniqueItems": true
+    },
+    "min_work_version": {
+      "description": "Minimum semver version of the external work CLI this repo's conventions assume. Probed by scripts/verify.sh.",
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?$"
+    },
+    "checks": {
+      "description": "Free-form list of agent-readable rules. Interpreted by the convention-engineering audit and convention-evaluator scoring; not machine-validated by this schema.",
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    }
+  }
+}

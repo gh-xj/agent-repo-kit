@@ -1,5 +1,6 @@
 ---
 name: convention-evaluator
+version: 1.0.0
 description: "Use when scoring how well a repo lives up to its declared `.conventions.yaml` from a fresh, skeptical context. Produces a graded markdown report (PASS/FAIL across legibility, enforceability, verification) at `docs/reviews/YYYY-MM-DD_<topic>_evaluation.md`. For gap-finding and bootstrap, use convention-engineering instead."
 ---
 

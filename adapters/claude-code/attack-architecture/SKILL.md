@@ -3,7 +3,6 @@ name: attack-architecture
 description: "Use when adversarially reviewing an existing codebase or subsystem for architectural smells — rigidity, fragility, coupling, silent failures, overengineering, leaky contracts — not hunting bugs. Triggers: 'attack the architecture', 'critique the design', 'audit this module for slop', 'review AI-generated code', 'is this data model right', 'where will this hurt to change'."
 ---
 
-
 # Attack Architecture
 
 Adversarially critique an existing codebase (or a user-defined scope) for architectural smells the next engineer will hate. This is **not** a bug hunt and **not** a pre-implementation design pass — it is a second opinion on an existing design, delivered by parallel attack agents, tree-of-thought expansion, and attacker/defender debate.

@@ -1,3 +1,7 @@
+---
+name: harness-router
+description: "Use when deciding where session learnings, user corrections, agent workflow improvements, or harness enhancement proposals should be persisted across agent instructions, skills, docs, work records, memory, checks, and structured local artifacts."
+---
 
 # Harness Router
 

@@ -5,6 +5,7 @@ tasks:
     desc: Run the repo's canonical verification gate
     cmds:
       - bash scripts/verify.sh
+      - bash scripts/sync-adapters.sh --check
 
   work:
     desc: Run the repo-local work CLI (requires the external `work` binary)
@@ -13,6 +14,16 @@ tasks:
         msg: "`work` not on PATH; install from https://github.com/gh-xj/work-cli"
     cmds:
       - work --store .work {{.CLI_ARGS}}
+
+  sync:adapters:
+    desc: Mirror canonical skills/<name>/SKILL.md into per-harness adapter copies
+    cmds:
+      - bash scripts/sync-adapters.sh
+
+  sync:adapters:check:
+    desc: Fail if any adapter SKILL copy has drifted from canonical
+    cmds:
+      - bash scripts/sync-adapters.sh --check
 
   skills:link-dev:
     desc: Symlink the shipped repo skills into ~/.agents/skills and ~/.claude/skills for local maintenance

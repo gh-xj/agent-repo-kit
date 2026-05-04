@@ -1,6 +1,8 @@
+# yaml-language-server: $schema=skills/convention-engineering/schemas/conventions.schema.json
 # agent-repo-kit conventions descriptor.
 # Read by the convention-engineering skill (skills/convention-engineering/)
-# for bootstrap and audit. Schema: skills/convention-engineering/references/core/conventions-yaml.md.
+# for bootstrap and audit. Schema doc: skills/convention-engineering/references/core/conventions-yaml.md.
+# Machine-readable schema: skills/convention-engineering/schemas/conventions.schema.json.
 
 agent_docs:
   - AGENTS.md

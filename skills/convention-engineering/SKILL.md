@@ -1,5 +1,6 @@
 ---
 name: convention-engineering
+version: 1.0.0
 description: "Use when designing or auditing repo conventions: `.conventions.yaml` descriptor, agent contract files (CLAUDE.md / AGENTS.md), docs taxonomy, verification gates, repo-local skill placement, `.work/` layout, `.wiki/` rules. Also use when bootstrapping a sibling dev wrapper repo (e.g. `<tool>-dev`) for an OSS tool. Stack-agnostic. Skip for one-off product naming or domain architecture questions where no convention surface is being changed."
 ---
 

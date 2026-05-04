@@ -1,3 +1,7 @@
+---
+name: paper-vetting
+description: "Use BEFORE reading or summarizing any research paper. Triangulate trust across three independent lenses (team / citation context / claim-level evidence), then decide how skeptically to read it. Triggers: 'research this paper', 'read this paper', 'summarize this arxiv', 'what's the reputation of', 'is this paper credible', 'vet this paper', '评估这篇论文', '这篇论文靠谱吗', '这个团队厉害吗', any arxiv.org / openreview.net / aclanthology.org / proceedings URL handed in for review."
+---
 
 # Paper Vetting
 

@@ -3,6 +3,15 @@
 A repo-root YAML file that declares which conventions the repo opts into and
 which checks an agent should run. Replaces the previous JSON contract.
 
+A machine-readable JSON Schema lives at
+`skills/convention-engineering/schemas/conventions.schema.json`. Add this
+line at the top of the descriptor for editor autocomplete and inline
+validation:
+
+```yaml
+# yaml-language-server: $schema=skills/convention-engineering/schemas/conventions.schema.json
+```
+
 ## Principle
 
 Minimal opt-ins + free-form checks. The schema is open: an agent reads the
