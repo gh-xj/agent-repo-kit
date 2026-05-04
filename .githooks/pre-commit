@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Pre-commit hook: catch adapter drift before it lands.
+#
+# Wire this hook with:
+#   git config core.hooksPath .githooks
+#
+# Skip with `git commit --no-verify` only when you genuinely mean to.
+set -euo pipefail
+
+cd "$(git rev-parse --show-toplevel)"
+
+# Only run the sync check when canonical or adapter SKILL files are staged.
+# Cheap on most commits; meaningful when canonical changed.
+staged=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '^(skills|adapters)/.*SKILL\.md$' || true)
+if [ -z "$staged" ]; then
+  exit 0
+fi
+
+if ! bash scripts/sync-adapters.sh --check; then
+  echo >&2
+  echo "pre-commit: adapter copies drift from canonical." >&2
+  echo "  fix:    task sync:adapters && git add adapters/" >&2
+  echo "  bypass: git commit --no-verify   (only if intentional)" >&2
+  exit 1
+fi

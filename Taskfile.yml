@@ -15,6 +15,12 @@ tasks:
     cmds:
       - work --store .work {{.CLI_ARGS}}
 
+  setup:hooks:
+    desc: Wire .githooks/ as this clone's hooks path (opt-in; overrides any global hooks path)
+    cmds:
+      - git config core.hooksPath .githooks
+      - echo "core.hooksPath = .githooks (repo-local). Caveat in .githooks/README.md."
+
   sync:adapters:
     desc: Mirror canonical skills/<name>/SKILL.md into per-harness adapter copies
     cmds:

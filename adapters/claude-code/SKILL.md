@@ -20,6 +20,7 @@ The pattern: a single `.conventions.yaml` at the repo root declares which conven
 | How to design the docs taxonomy?                    | `references/core/docs-taxonomy.md`            |
 | Where do repo-local skills live?                    | `references/core/project-skill-placement.md`  |
 | How should the verification gate work?              | `references/core/verification-gates.md`       |
+| How does an agent-harness adapter mirror a skill?   | `references/core/adapter-contract.md`         |
 | Bootstrap a new repo                                | `references/operations/bootstrap-workflow.md` |
 | Audit an existing repo                              | `references/operations/audit-workflow.md`     |
 | Adopt the work tracker (`.work/`)                   | `references/operations/work.md`               |
