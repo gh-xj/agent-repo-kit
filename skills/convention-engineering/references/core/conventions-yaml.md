@@ -80,6 +80,19 @@ ready --json` succeeds when `work` is adopted).
    repo without schema lock-in.
 4. Reports gaps. Does not auto-fix without user approval.
 
+## Pattern Extensions
+
+Some keys come from specific repo patterns rather than the core conventions.
+Unknown keys remain allowed — this section just canonizes names so they don't
+drift across pattern docs:
+
+- `realms:` and `ingest_sources:` — see `references/patterns/brain.md` (the
+  brain pattern formalizes a four-realm split: owner-authored, agent-captured
+  immutable, external-authored, derived-regenerable).
+
+A pattern doc is the right place to declare a new well-known key. Adding one
+here without a pattern doc to back it is premature.
+
 ## Bootstrap
 
 Create `.conventions.yaml` first; everything else flows from it. The file is
