@@ -68,6 +68,20 @@ tasks:
       - 'echo "Failed: see logs"'
 ```
 
+The same trap applies to `desc:` lines (and any other scalar value with a
+literal `: `) — the YAML parser doesn't care which field it is. Wrap in
+single or double quotes:
+
+```yaml
+# WRONG — YAML parses the inner colon as a nested mapping; `task` errors out
+verify:banned-strings:
+  desc: Defense-in-depth privacy: regex list of strings that must never ship
+
+# RIGHT
+verify:banned-strings:
+  desc: 'Defense-in-depth privacy: regex list of strings that must never ship'
+```
+
 ## 4. `task install` Redundant With The Tool
 
 **Why this fails:** Go and uv already have install verbs (`go install`,

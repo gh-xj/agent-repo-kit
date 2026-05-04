@@ -85,6 +85,28 @@ requires:
 If the brain will not have a remote at all, the secret scan still applies —
 clipboard leaks and shoulder-surfing are real.
 
+**`.gitleaks.toml` allowlist for synthetic test values.** A PII scrubber
+script will contain example bearer tokens, JWTs, fake credit cards, etc.
+as test fixtures — and gitleaks will flag them on entropy alone (the
+`generic-api-key` rule in particular). Ship a repo-root `.gitleaks.toml`
+with a scoped allowlist for that script's path, not a wildcard:
+
+```toml
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Repo-scoped false-positive allowlist"
+paths = [
+  '''scripts/scrub-pii\.sh''',
+]
+```
+
+This is the only sane way — globally relaxing the rule defeats the gate
+everywhere; inline `# gitleaks:allow` comments inside the script add line
+noise on every test case. The path-scoped allowlist is the smallest
+hammer.
+
 ### 4. Temporal pointer is optional, but if present, canonical
 
 If the brain has a daily/temporal shape (daily logs, journal entries):
@@ -326,6 +348,37 @@ soft-pass when the realm is empty, hard-fail on violations otherwise.
     for unintended additions; commit the scaffold; only then push to a
     private remote (with explicit user confirmation — pushing is a
     "visible to others" action).
+
+## Migration Safety (Live-Data Migrations)
+
+When migrating live personal data into the brain (an old-format archive,
+a sibling repo's content, scattered notes from another tool), the
+migration script MUST:
+
+1. **Default to `--dry-run`.** Never mutate the destination on bare
+   invocation. Real migrations require an explicit `--apply` flag.
+2. **Write dry-run output to a STAGING directory** under
+   `.work/spaces/W-NNNN/migration-output/` (gitignored). Never to the real
+   `human/` destination in dry-run mode. The owner spot-checks staging
+   before committing.
+3. **Treat the source directory as READ-ONLY.** No writes ever, not even
+   to the source's own `.git/`.
+4. **Log every per-file decision** (kept, dropped, anomaly) to a
+   `MIGRATION_LOG.md` in the staging dir.
+5. **Be re-runnable.** `--apply` should be idempotent — safe to re-run if
+   the first attempt was interrupted mid-batch.
+
+Pair this with the **two-phase shipping pattern**:
+
+- **Phase 1:** commit the script + template + dry-run sample as safe
+  artifacts. Owner reviews the staging output.
+- **Phase 2:** owner says "apply"; you run `--apply` and commit the data
+  as a separate commit (typically much larger than Phase 1).
+
+Two phases keep the high-risk operation reversible until the last
+moment, and produce a clean git history with the artifacts and the
+data-mass separated. Proven on the canonical instance's xj_core daily-
+log migration (69 files, zero owner regret).
 
 ## Gotchas Observed In Practice
 
