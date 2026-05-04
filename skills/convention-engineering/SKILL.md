@@ -1,6 +1,6 @@
 ---
 name: convention-engineering
-description: "Use when designing or auditing repo conventions: `.conventions.yaml` descriptor, agent contract files (CLAUDE.md / AGENTS.md), docs taxonomy, verification gates, repo-local skill placement, `.work/` layout, `.wiki/` rules. Stack-agnostic. Skip for one-off product naming or domain architecture questions where no convention surface is being changed."
+description: "Use when designing or auditing repo conventions: `.conventions.yaml` descriptor, agent contract files (CLAUDE.md / AGENTS.md), docs taxonomy, verification gates, repo-local skill placement, `.work/` layout, `.wiki/` rules. Also use when bootstrapping a sibling dev wrapper repo (e.g. `<tool>-dev`) for an OSS tool. Stack-agnostic. Skip for one-off product naming or domain architecture questions where no convention surface is being changed."
 ---
 
 # Convention Engineering
@@ -23,6 +23,7 @@ The pattern: a single `.conventions.yaml` at the repo root declares which conven
 | Audit an existing repo                              | `references/operations/audit-workflow.md`     |
 | Adopt the work tracker (`.work/`)                   | `references/operations/work.md`               |
 | Adopt the wiki (`.wiki/`)                           | `references/operations/wiki.md`               |
+| Bootstrap a sibling dev wrapper for an OSS tool     | `references/patterns/dev-wrapper.md`          |
 
 ## Quick Start
 
