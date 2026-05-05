@@ -5,8 +5,11 @@ content, agents append captures from external sources, optional external
 content sits in a library, and optional regenerable summaries live alongside.
 Operated entirely by AI agents on the owner's behalf.
 
-Codified from the `xj-private-brain` bootstrap (2026-05-03). Canonical
-instance: `gh-xj/xj-private-brain`.
+Codified from a real-world brain bootstrap (2026-05-03; refactored to
+the 3-realm variant 2026-05-05). When applying this pattern, the
+canonical instance is whatever brain repo you're authoring or
+maintaining — substitute your own repo path in the per-instance
+references below.
 
 ## When To Use
 
@@ -72,12 +75,14 @@ When skipped, the owner-authored ↔ derived/regenerable split carries the
 load: agents may write derivations but only the owner edits `human/`.
 "Agent-immutable raw" stops being a valid third option.
 
-_Decided 2026-05-05_ for the canonical instance (`gh-xj/xj-private-brain`):
-captured realm dropped. The owner's "always process before load" workflow
-(`docs/core-belief.md` principle #2 — "Process before persisting") never
-populated the realm; the gates were policing an empty dir. Removed in
-commit `2f3e367` along with the two `verify:raw-*` gates and the
-`ingest_sources` block in `.conventions.yaml`.
+_Decided 2026-05-05 in the canonical instance:_ captured realm dropped.
+The owner's "always process before load" workflow (codified in the
+instance's `docs/core-belief.md` principle #2, "Process before
+persisting") never populated the realm; the gates were policing an
+empty dir. Removed in a single commit along with the two `verify:raw-*`
+gates and the `ingest_sources` block in `.conventions.yaml`. This is
+the worked example for "skip the captured realm" — when nothing lands
+raw, the realm and its gates earn nothing.
 
 ### 2. Ingest sources are a registry, not enumerated _(applies only when the captured realm is adopted)_
 
@@ -406,8 +411,9 @@ Pair this with the **two-phase shipping pattern**:
 
 Two phases keep the high-risk operation reversible until the last
 moment, and produce a clean git history with the artifacts and the
-data-mass separated. Proven on the canonical instance's xj_core daily-
-log migration (69 files, zero owner regret).
+data-mass separated. Proven on the canonical instance's bulk daily-log
+migration (69 files transformed from an older legacy format, zero
+owner regret).
 
 ## Gotchas Observed In Practice
 
@@ -454,12 +460,22 @@ log migration (69 files, zero owner regret).
 
 ## Worked Example
 
-`gh-xj/xj-private-brain` (initial commits 2026-05-03; raw-realm-dropped
-refactor 2026-05-05) is the canonical instance. Realm naming choices:
-`human/`, `library/`, `derived/` — the 3-realm variant per decision #1's
-"skip the captured realm" branch. Operations: `[work]`. Verify gates:
-secrets, banned-strings, scrub-pii (self-test), daily-schema, today-
-symlink, agent-docs-mirror, library-sources, work-check (8 gates). Diff
-against this doc when the pattern needs refinement; the instance and
-the pattern intentionally diverge on realm count and that divergence is
-documented in the instance's `CLAUDE.md` Realms section.
+The canonical instance (initial commits 2026-05-03; raw-realm-dropped
+refactor 2026-05-05) ended up with these specific choices:
+
+- **Realm naming:** `human/`, `library/`, `derived/` — the 3-realm
+  variant per decision #1's "skip the captured realm" branch.
+- **Operations:** `[work]` only. No `[wiki]`.
+- **Verify gates (8):** secrets, banned-strings, scrub-pii (self-test),
+  daily-schema, today-symlink, agent-docs-mirror, library-sources,
+  work-check.
+- **Decided notes** in the instance's `CLAUDE.md`: documents the
+  divergence from this pattern's 4-realm option (the `Decided
+2026-05-05` note in the Realms section). Per principle "decide
+  deliberately, document inline" in the instance's `docs/core-
+belief.md`.
+
+Substitute your own instance's choices when adopting the pattern. Diff
+against this doc when the pattern itself needs refinement; the instance
+and the pattern can intentionally diverge as long as the divergence is
+named in the instance's contract files.
