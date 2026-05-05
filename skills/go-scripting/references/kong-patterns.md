@@ -158,6 +158,56 @@ return 0
 This gives you a deterministic usage-vs-runtime distinction, matching the
 cobra-style resolver used in older tools.
 
+## Versioning and testable exits
+
+`kong.VersionFlag` (and `kong.HelpFlag`) print their output and call
+`os.Exit` directly inside `Parse`, bypassing any `Execute(args) int`
+return-code contract. In tests this looks like the test process abruptly
+exits mid-run with kong frames in the stack trace.
+
+Fix: thread `kong.Exit(...)` so kong-managed exits flow back through your
+runner's normal int-return path:
+
+```go
+exitRequested := false
+exitCode := 0
+parser, err := kong.New(&cli,
+    kong.Name("mytool"),
+    kong.Vars(map[string]string{"version": appVersion}),
+    kong.Exit(func(code int) {
+        exitRequested = true
+        exitCode = code
+    }),
+)
+// ...
+ctx, err := parser.Parse(args)
+if exitRequested {
+    return exitCode  // check BEFORE the err branch
+}
+if err != nil {
+    return usageExitCode
+}
+```
+
+Order matters. The version hook short-circuits Parse, but Parse still
+returns an `expected one of <subcommands>` error because no subcommand
+was given. Honor `exitRequested` first; treat the parse error as fatal
+only when no exit was requested.
+
+A root `--version` flag and a `version` subcommand can coexist as long as
+the Go field names differ:
+
+```go
+type CLI struct {
+    VersionFlag kong.VersionFlag `name:"version" help:"print version and exit"`
+    Version     VersionCmd       `cmd:"" help:"print build metadata"`
+}
+```
+
+The flag handles `mytool --version` (single line, hits kong's exit hook);
+the subcommand handles `mytool version --json` and any richer output your
+tooling needs.
+
 ## TTY detection
 
 Same as with any CLI:
