@@ -33,28 +33,53 @@ Skip when:
 These are non-negotiable at the _shape_ level. Names and exact gates are
 substitutable; the structural choices are not.
 
-### 1. Four realms, even if some start empty
+### 1. Three core realms (and an optional fourth)
 
-The pattern mandates four realms. Each maps to a distinct write-permission
-contract and gate set:
+The pattern mandates three core realms. A fourth (agent-captured) is
+optional — adopt it only if your workflow actually accumulates raw exports
+that benefit from append-only preservation. Each realm maps to a distinct
+write-permission contract and gate set:
 
-| Realm             | Owner writes? | Agent writes?                | Mutability                       | Typical name                        |
-| ----------------- | ------------- | ---------------------------- | -------------------------------- | ----------------------------------- |
-| Owner-authored    | yes           | no (without explicit ask)    | mutable                          | `human/`, `notes/`, `writing/`      |
-| Agent-captured    | no            | append-only                  | **immutable after first commit** | `raw/`, `inbox/`, `captures/`       |
-| External authored | yes           | yes (downloads, extractions) | mutable                          | `library/`, `sources/`, `external/` |
-| Derived           | no            | yes                          | regenerable, safe to delete      | `derived/`, `built/`, `indexes/`    |
+| Realm             | Required? | Owner writes? | Agent writes?                | Mutability                       | Typical name                        |
+| ----------------- | --------- | ------------- | ---------------------------- | -------------------------------- | ----------------------------------- |
+| Owner-authored    | yes       | yes           | no (without explicit ask)    | mutable                          | `human/`, `notes/`, `writing/`      |
+| External authored | yes       | yes           | yes (downloads, extractions) | mutable                          | `library/`, `sources/`, `external/` |
+| Derived           | yes       | no            | yes                          | regenerable, safe to delete      | `derived/`, `built/`, `indexes/`    |
+| Agent-captured    | optional  | no            | append-only                  | **immutable after first commit** | `raw/`, `inbox/`, `captures/`       |
 
 `library/` and `derived/` may start as a single README declaring the
 contract — _the namespace reservation is the point_. Adding content later is
 zero-cost; renaming a realm after content lands is a migration.
 
-The owner-authored ↔ agent-captured split is the load-bearing choice. It is
-what makes a brain repo not a code repo and not an Obsidian vault: agents
-_append_ but never _overwrite_, and the owner _writes_ but never _manages
-ingest plumbing by hand_.
+**When to adopt the captured realm vs skip it.** Adopt it when:
 
-### 2. Ingest sources are a registry, not enumerated
+- An automated pipeline genuinely lands raw exports faster than the owner
+  can pre-process them (high-volume ingest from email, calendar, voice,
+  scraped feeds).
+- The owner wants the raw transcript preserved verbatim for later re-
+  derivation, even when it duplicates content already distilled into
+  `human/`.
+
+Skip it when:
+
+- The owner pre-processes every incoming artifact before it lands (AI
+  chats distilled into learnings, books extracted into notes). In this
+  case the raw realm exists for content that doesn't, and the gates
+  (`raw-immutability`, `raw-source-readmes`) add maintenance cost without
+  protecting any actual data.
+
+When skipped, the owner-authored ↔ derived/regenerable split carries the
+load: agents may write derivations but only the owner edits `human/`.
+"Agent-immutable raw" stops being a valid third option.
+
+_Decided 2026-05-05_ for the canonical instance (`gh-xj/xj-private-brain`):
+captured realm dropped. The owner's "always process before load" workflow
+(`docs/core-belief.md` principle #2 — "Process before persisting") never
+populated the realm; the gates were policing an empty dir. Removed in
+commit `2f3e367` along with the two `verify:raw-*` gates and the
+`ingest_sources` block in `.conventions.yaml`.
+
+### 2. Ingest sources are a registry, not enumerated _(applies only when the captured realm is adopted)_
 
 Inside the agent-captured realm, every external data source is a subdir with
 its own README declaring:
@@ -68,6 +93,10 @@ its own README declaring:
 The pattern does not enumerate sources. Each brain owner picks their own
 (Gmail, calendar, transcripts, scrapers, dumps, etc.). The contract is the
 registry shape; the membership is local.
+
+If the captured realm is skipped (decision #1), this entire section is
+inapplicable — pre-processed content lands directly in `human/` (curated)
+or `derived/` (regenerable) instead of going through a per-source registry.
 
 ### 3. Privacy is a posture, not a feature
 
@@ -425,9 +454,12 @@ log migration (69 files, zero owner regret).
 
 ## Worked Example
 
-`gh-xj/xj-private-brain` (initial commits 2026-05-03) is the canonical
-instance. Its realm naming choices: `human/`, `raw/`, `library/`,
-`derived/`. Its operations: `[work]`. Its verify gates: secrets, daily
-schema, today-symlink, raw-immutability, agent-docs-mirror,
-raw-source-readmes, work-check. Diff against this doc when the pattern
-needs refinement.
+`gh-xj/xj-private-brain` (initial commits 2026-05-03; raw-realm-dropped
+refactor 2026-05-05) is the canonical instance. Realm naming choices:
+`human/`, `library/`, `derived/` — the 3-realm variant per decision #1's
+"skip the captured realm" branch. Operations: `[work]`. Verify gates:
+secrets, banned-strings, scrub-pii (self-test), daily-schema, today-
+symlink, agent-docs-mirror, library-sources, work-check (8 gates). Diff
+against this doc when the pattern needs refinement; the instance and
+the pattern intentionally diverge on realm count and that divergence is
+documented in the instance's `CLAUDE.md` Realms section.
