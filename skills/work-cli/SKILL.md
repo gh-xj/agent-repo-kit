@@ -1,6 +1,6 @@
 ---
 name: work-cli
-description: "Use when operating a repo-local `.work/` tracker with the `work` CLI: initialize a store, capture inbox entries, triage them into work items, create/show/view work items, or use typed work items. Do not use for changing the work CLI implementation or redesigning the `.work/` convention."
+description: "Use when operating a repo-local `.work/` tracker with the `work` CLI: initialize a store, capture inbox entries, triage them into work items, claim work with leases, create/show/view work items, inspect type policies, or use typed work items. Do not use for changing the work CLI implementation or redesigning the `.work/` convention."
 ---
 
 # Work CLI
@@ -14,9 +14,11 @@ Use this skill when the task is to:
 - Inspect or operate a repo's `.work/` state.
 - Capture an untriaged request with `work inbox add`.
 - Promote accepted work with `work triage accept`.
+- Claim or renew a time-bounded work item lease with `work claim`.
 - Create a direct work item with `work new`.
 - Show work records or scan views with `work show` and `work view`.
-- Use a typed work item with `--type`, including scaffolded item spaces.
+- Use a typed work item with `--type`, including scaffolded item spaces and
+  optional type policy via `work show --policy`.
 
 Do not use this skill for:
 
@@ -28,6 +30,13 @@ Do not use this skill for:
 
 Use `convention-engineering` for convention design and `go-scripting` for CLI
 implementation work.
+
+## Maintenance Rule
+
+When the `gh-xj/work-cli` implementation changes, update this skill in the same
+work session if the changed command, output, storage layout, or operator
+workflow affects agents. Keep `SKILL.md`, `references/operator-workflow.md`,
+and generated adapter copies in sync before calling the work complete.
 
 ## Install
 
@@ -58,6 +67,12 @@ work --store .work view ready
 ```
 
 4. Use `--json` whenever another tool or agent will parse the result.
+5. If multiple agents or sessions may see the same ready work, claim it before
+   starting:
+
+```bash
+task work -- claim W-0001 --actor agent:codex:xj-mac --ttl 1h
+```
 
 ## Operating Loop
 
@@ -79,8 +94,10 @@ Default flow:
 - Work item: accepted canonical record under `.work/items/W-NNNN.yaml`.
 - Work space: optional item-owned directory under `.work/spaces/W-NNNN/` for
   notes, research captures, plans, and other supporting files.
+- Work lease: optional time-bounded claim under `.work/leases/W-NNNN.yaml`.
 - Work type: optional scaffold/template under `.work/types/<type>/` that can
-  create an initial work space for typed items.
+  create an initial work space for typed items and expose type policy from
+  `.work/types/<type>/policy.md`.
 
 ## Core Commands
 
@@ -90,8 +107,10 @@ work inbox
 work inbox add "Title" --body "Context" --source "user"
 work triage accept IN-0001 --area cli --priority P1
 work new "Title" --area docs --priority P2
+work claim W-0001 --actor agent:codex:xj-mac --ttl 1h
 work view ready
 work show W-0001
+work show W-0001 --policy
 ```
 
 ## Boundaries
@@ -99,7 +118,11 @@ work show W-0001
 - Say "work item" in user-facing text; avoid bare "item" when clarity matters.
 - Inbox entries are demand signals, not accepted work.
 - Work items are the durable source of truth.
+- Claims are coordination leases, not lifecycle status. Claiming a work item
+  does not change `status`.
 - Work spaces support a work item, but do not replace the canonical item YAML.
+- Type policies are agent-facing instructions for a work type; they complement
+  the work item and workspace but do not replace either.
 - Large logs, browser captures, and bulky evidence payloads belong outside
   `.work/`; store only pointers in the work item or its space.
 - Do not create legacy compatibility paths unless the user explicitly asks for
