@@ -4,6 +4,11 @@ Semantic versioning. Major bumps land breaking trigger / schema / routing
 changes; minor bumps add capability without breaking adopters; patch bumps
 clarify wording or fix references.
 
+## Unreleased
+
+- Update the epic-wrapper convention so leaf symlinks live under
+  `repo/<leaf>` instead of the wrapper root.
+
 ## 1.0.0 — 2026-05-02
 
 First stable release after the W-0010 refactor. Breaking — no migration

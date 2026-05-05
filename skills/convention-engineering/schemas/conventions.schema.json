@@ -50,6 +50,23 @@
       "type": "array",
       "items": { "type": "string", "minLength": 1 },
       "uniqueItems": true
+    },
+    "epic": {
+      "description": "Epic-wrapper pattern configuration. Leaves are sibling repo names; scripts/bootstrap.sh links each one under repo/<leaf>.",
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "leaves": {
+          "description": "Sibling repo directory names. Each leaf implies a sibling checkout at ../<leaf> and a wrapper-local symlink at repo/<leaf>.",
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "composed": {
+          "description": "When true, the repo may assert compose.yaml lists each leaf.",
+          "type": "boolean"
+        }
+      }
     }
   }
 }

@@ -89,6 +89,21 @@ drift across pattern docs:
 - `realms:` and `ingest_sources:` — see `references/patterns/brain.md` (the
   brain pattern formalizes a four-realm split: owner-authored, agent-captured
   immutable, external-authored, derived-regenerable).
+- `epic:` — see `references/patterns/epic-wrapper.md`. Used by an epic
+  wrapper repo to declare its sibling leaves. Shape:
+
+  ```yaml
+  epic:
+    leaves:
+      - <leaf-1> # name only; ../<leaf> and repo/<leaf> are implied
+      - <leaf-2>
+    composed: true # optional: assert compose.yaml lists each leaf
+  ```
+
+  `scripts/verify.sh` reads `epic.leaves` and asserts each `../<leaf>` is a
+  directory and `repo/<leaf>` is a symlink that resolves to `../../<leaf>`.
+  `scripts/bootstrap.sh` reads the same list to recreate the symlinks after
+  clone.
 
 A pattern doc is the right place to declare a new well-known key. Adding one
 here without a pattern doc to back it is premature.

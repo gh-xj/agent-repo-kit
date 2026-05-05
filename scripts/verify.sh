@@ -88,6 +88,26 @@ while IFS= read -r op; do
   esac
 done < <(yq '.operations[]? // ""' .conventions.yaml)
 
+# epic.leaves[]: each declared leaf must exist as a sibling dir AND be linked
+# from this repo under repo/<leaf>. See references/patterns/epic-wrapper.md.
+while IFS= read -r leaf; do
+  [ -z "$leaf" ] && continue
+  if [ ! -d "../$leaf" ]; then
+    fail "epic.leaves: ../$leaf not found — clone it as a sibling and run 'task bootstrap'"
+    continue
+  fi
+  link="repo/$leaf"
+  if [ ! -L "$link" ]; then
+    fail "epic.leaves: ./$link is not a symlink — run 'task bootstrap' to recreate it"
+    continue
+  fi
+  # Resolve and ensure it points at the sibling.
+  target=$(readlink "$link")
+  if [ "$target" != "../../$leaf" ]; then
+    fail "epic.leaves: ./$link -> $target (expected ../../$leaf)"
+  fi
+done < <(yq '.epic.leaves[]? // ""' .conventions.yaml)
+
 if [ "$fail" -ne 0 ]; then
   exit 1
 fi
