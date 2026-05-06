@@ -1,6 +1,6 @@
 ---
 name: convention-engineering
-version: 2.0.0
+version: 2.1.0
 description: "Use when designing or auditing repo conventions: `.conventions.yaml` descriptor, agent contract files (CLAUDE.md / AGENTS.md), docs taxonomy, verification gates, repo-local skill placement, `.work/` layout, `.wiki/` rules. Pick an archetype (whole-repo shape: epic-wrapper for multi-repo products, brain for personal/knowledge-base repos) and stack recipes (core-beliefs, docs-taxonomy, agent-knowledge, work, wiki, project-skill-placement, verify-script). Stack-agnostic. Skip for one-off product naming or domain architecture questions where no convention surface is being changed."
 ---
 
@@ -55,6 +55,8 @@ A repo declares its archetype + recipes in `.conventions.yaml`, then runs `task 
 | --------------------------------------------------- | -------------------------------------------------- |
 | Bootstrap a new repo (generic flow)                 | `references/meta/bootstrap-workflow.md`            |
 | Audit an existing repo (generic flow)               | `references/meta/audit-workflow.md`                |
+| Score a repo against its declared conventions       | `references/meta/evaluation-rubric.md`             |
+| Evaluation report layout                            | `references/meta/evaluation-report-template.md`    |
 | Adapter contract for harness mirroring              | `references/meta/adapter-contract.md`              |
 
 ## Quick Start
@@ -66,6 +68,6 @@ A repo declares its archetype + recipes in `.conventions.yaml`, then runs `task 
 ## Boundaries
 
 - This skill prescribes structure, not stack-specific tooling. Linters, type checkers, supply-chain policies are the repo's choice; declare them in the descriptor and run them via `task verify`.
-- The audit produces a gap report. No auto-fixes without user approval.
-- `convention-evaluator` (skeptical scoring) is a separate sibling skill, not loaded automatically.
+- The audit produces a gap report ("X is missing"); the evaluation rubric produces a graded judgment ("legibility 3/4, here is why"). Both live in `references/meta/`.
+- No auto-fixes without user approval.
 - For path migrations from the 1.x layout, see `MIGRATION.md`.

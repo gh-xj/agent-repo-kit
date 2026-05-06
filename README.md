@@ -103,9 +103,8 @@ Prerequisites:
 - **`skills/`** — canonical, harness-free skill sources:
   - `skills/convention-engineering/` — repo conventions: `.conventions.yaml`,
     agent docs, docs taxonomy, verification gates, repo-local skill placement,
-    and optional work / wiki scaffolds.
-  - `skills/convention-evaluator/` — skeptical scoring of a repo's adoption
-    of its declared conventions. Produces a graded report with evidence.
+    and optional work / wiki scaffolds. Includes the evaluation rubric for
+    skeptical scoring (in `references/meta/`).
   - `skills/skill-builder/` — skill for creating, refactoring, and auditing
     agent skills.
   - `skills/taskfile-authoring/` — skill for writing canonical Taskfiles.

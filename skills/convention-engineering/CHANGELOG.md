@@ -2,6 +2,11 @@
 
 Semantic versioning. Major bumps land breaking trigger / schema / routing changes; minor bumps add capability without breaking adopters; patch bumps clarify wording or fix references.
 
+## 2.1.0 — 2026-05-06
+
+- Fold the `convention-evaluator` sibling skill into this one. Its rubric and report template now live at `references/meta/evaluation-rubric.md` and `references/meta/evaluation-report-template.md`. The "fresh-context skeptical scoring" posture is preserved as a meta concern of the same skill rather than a separate publishing artifact. Two routing rows added to SKILL.md under Meta.
+- Reason: the gap-vs-graded distinction is a report-shape difference, not a feature difference. Maintaining a separate skill (with its own SKILL.md, CHANGELOG, adapter mirrors across three harnesses) was overhead without distinct functionality.
+
 ## 2.0.0 — 2026-05-06
 
 Breaking restructure. Adopters must remap reference paths (see `MIGRATION.md`).

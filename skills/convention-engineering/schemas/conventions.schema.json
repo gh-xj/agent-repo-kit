@@ -47,7 +47,7 @@
       "pattern": "^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?$"
     },
     "checks": {
-      "description": "Free-form list of agent-readable rules. Interpreted by the convention-engineering audit and convention-evaluator scoring; not machine-validated by this schema.",
+      "description": "Free-form list of agent-readable rules. Interpreted by the convention-engineering audit and evaluation rubric (references/meta/evaluation-rubric.md); not machine-validated by this schema.",
       "type": "array",
       "items": { "type": "string", "minLength": 1 },
       "uniqueItems": true

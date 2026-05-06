@@ -83,7 +83,7 @@ The full reference implementation lives in `agent-repo-kit/scripts/verify.sh`.
 ## What the agent still owns
 
 - Every entry under `checks:`. The agent reads the prose, applies the rule against the live repo, reports findings.
-- `convention-evaluator` scoring (graded judgment beyond pass/fail).
+- Graded scoring (judgment beyond pass/fail) — see `references/meta/evaluation-rubric.md`.
 - Refactor-grade audits where typed assertions pass but the structure is still wrong.
 
 ## Anti-Patterns

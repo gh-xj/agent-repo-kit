@@ -9,8 +9,8 @@ without waiting for a packaged adapter.
 Cursor reads workspace-level docs out of `.cursor/rules/` (MDC files) or
 out of per-file markdown at known paths. The kit ships hand-mirrored,
 frontmatter-free copies under this directory — `skill-builder.md`,
-`convention-engineering.md`, `convention-evaluator.md`, etc. — kept in sync
-with the canonical `skills/<name>/SKILL.md` sources by hand.
+`convention-engineering.md`, etc. — kept in sync with the canonical
+`skills/<name>/SKILL.md` sources by hand.
 
 ```sh
 # 1. Clone the kit.
