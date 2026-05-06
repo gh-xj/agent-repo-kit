@@ -112,6 +112,9 @@ Prerequisites:
   - `skills/harness-router/` — proposal-only router for deciding where
     session learnings and harness improvements should persist.
   - `skills/work-cli/` — operating the `.work/` tracker.
+  - `skills/slock-epic-protocol/` — maintaining Slock agent ↔ epic repo ↔
+    leaf repo protocols: registry mapping, pointer-only memory, generated
+    symlinks, per-leaf work, skill mirrors, and handoffs.
   - `skills/paper-vetting/` — three-lens credibility vetting for research
     papers before reading them.
 - **`adapters/`** — thin wrappers that expose `skills/` to a specific

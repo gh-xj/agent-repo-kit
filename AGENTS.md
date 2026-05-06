@@ -32,6 +32,9 @@ north star for this repo; this file is the operational map.
     persist across instructions, skills, docs, work records, memory, and
     verification surfaces.
   - `skills/work-cli/` — operating the `.work/` tracker.
+  - `skills/slock-epic-protocol/` — maintain Slock agent ↔ epic repo ↔ leaf
+    repo protocol: registry mapping, pointer-only memory, generated symlinks,
+    per-leaf work, skill mirrors, and handoffs.
   - `skills/paper-vetting/` — vet a research paper through three
     independent lenses (team / citation context / claim-level evidence)
     before reading it; outputs a calibrated trust band and falsifier.
