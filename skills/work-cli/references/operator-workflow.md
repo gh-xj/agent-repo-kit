@@ -18,9 +18,10 @@ implementation or convention design.
 ```
 
 - Inbox entry: unaccepted demand signal. Use it for raw, duplicated,
-  exploratory, or maybe-not-worth-tracking requests.
+  exploratory, or maybe-not-worth-tracking requests. Current records use
+  `schema_version: 1`.
 - Work item: accepted canonical record. Use it for planning, status, priority,
-  area, labels, and source metadata.
+  area, labels, and source metadata. Current records use `schema_version: 1`.
 - Work space: optional item-owned directory keyed by work ID. Use it for notes,
   research captures, plans, small evidence, and other supporting files.
 - Work type: optional scaffold/template. Typed work items remain normal work
@@ -37,6 +38,7 @@ Prefer the repo wrapper if it exists:
 task work -- view ready
 task work -- show W-0001
 task work -- claim W-0001 --actor agent:codex:xj-mac --ttl 1h
+task work -- migrate --dry-run
 ```
 
 If there is no wrapper, use the binary directly:
@@ -45,6 +47,7 @@ If there is no wrapper, use the binary directly:
 work --store .work view ready
 work --store .work show W-0001
 work --store .work claim W-0001 --actor agent:codex:xj-mac --ttl 1h
+work --store .work migrate --dry-run
 ```
 
 If the repo is the `agent-repo-kit` checkout itself, the root wrapper runs the
@@ -53,6 +56,27 @@ source CLI:
 ```bash
 task work -- view ready
 ```
+
+## Version Diagnostics
+
+When a command is missing, returns `unexpected argument`, or otherwise looks
+older than the documented surface, check the installed binary before debugging
+the store:
+
+```bash
+work version
+work version --check
+```
+
+`work version --check` compares the local binary to the latest GitHub release.
+Refresh Go-installed binaries with:
+
+```bash
+go install github.com/gh-xj/work-cli/cmd/work@latest
+```
+
+Do not suggest `work update`; the CLI intentionally leaves updates to `go
+install` for now and package managers such as Homebrew later.
 
 ## Lifecycle
 
@@ -106,6 +130,24 @@ work claim W-0001 --actor agent:codex:xj-mac --ttl 1h
 provenance, `acquired_at`, and `expires_at`. A different actor cannot claim an
 unexpired lease. The same actor can renew it. Expired lease files may remain on
 disk; reads treat expiry as derived state.
+
+## Migration
+
+Use migration when a store was created before current record schema fields were
+introduced:
+
+```bash
+work migrate --dry-run
+work migrate
+```
+
+`work migrate --dry-run` reports records that would change. `work migrate`
+backfills missing `schema_version: 1` on inbox entries and work items. It does
+not migrate leases, spaces, type manifests, config, or policy files.
+
+Migration is safe to rerun. Existing records without `schema_version` are read
+as v1; records with a future unsupported `schema_version` should be treated as
+a compatibility error rather than rewritten.
 
 ## Status Enum
 

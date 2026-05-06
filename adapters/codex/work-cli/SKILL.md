@@ -1,6 +1,6 @@
 ---
 name: work-cli
-description: "Use when operating a repo-local `.work/` tracker with the `work` CLI: initialize a store, capture inbox entries, triage them into work items, claim work with leases, create/show/view work items, inspect type policies, or use typed work items. Do not use for changing the work CLI implementation or redesigning the `.work/` convention."
+description: "Use when operating a repo-local `.work/` tracker with the `work` CLI: initialize or migrate a store, capture inbox entries, triage them into work items, claim work with leases, create/show/view work items, inspect type policies, or use typed work items. Do not use for changing the work CLI implementation or redesigning the `.work/` convention."
 ---
 
 # Work CLI
@@ -12,6 +12,7 @@ Operate the local-first `.work/` tracker as an agent-facing work ledger.
 Use this skill when the task is to:
 
 - Inspect or operate a repo's `.work/` state.
+- Migrate older `.work` records with `work migrate`.
 - Capture an untriaged request with `work inbox add`.
 - Promote accepted work with `work triage accept`.
 - Claim or renew a time-bounded work item lease with `work claim`.
@@ -46,6 +47,18 @@ and generated adapter copies in sync before calling the work complete.
 go install github.com/gh-xj/work-cli/cmd/work@latest
 ```
 
+Check the installed binary when a command is missing or behavior looks stale:
+
+```bash
+work version
+work version --check
+```
+
+If `work version --check` reports an older release, rerun `go install
+github.com/gh-xj/work-cli/cmd/work@latest`. There is intentionally no `work
+update` command; future Homebrew or package-manager installs should be updated
+through that package manager.
+
 Or grab a tarball release from
 https://github.com/gh-xj/work-cli/releases. The repo's
 `.conventions.yaml` may declare a `min_work_version` that
@@ -74,6 +87,12 @@ work --store .work view ready
 task work -- claim W-0001 --actor agent:codex:xj-mac --ttl 1h
 ```
 
+6. If a store may predate record schema versions, inspect migration first:
+
+```bash
+task work -- migrate --dry-run
+```
+
 ## Operating Loop
 
 Read `references/operator-workflow.md` before making changes to `.work/`.
@@ -90,8 +109,10 @@ Default flow:
 
 ## Storage Model
 
-- Inbox entry: unaccepted demand signal under `.work/inbox/IN-NNNN.yaml`.
-- Work item: accepted canonical record under `.work/items/W-NNNN.yaml`.
+- Inbox entry: unaccepted demand signal under `.work/inbox/IN-NNNN.yaml`,
+  currently `schema_version: 1`.
+- Work item: accepted canonical record under `.work/items/W-NNNN.yaml`,
+  currently `schema_version: 1`.
 - Work space: optional item-owned directory under `.work/spaces/W-NNNN/` for
   notes, research captures, plans, and other supporting files.
 - Work lease: optional time-bounded claim under `.work/leases/W-NNNN.yaml`.
@@ -108,6 +129,8 @@ work inbox add "Title" --body "Context" --source "user"
 work triage accept IN-0001 --area cli --priority P1
 work new "Title" --area docs --priority P2
 work claim W-0001 --actor agent:codex:xj-mac --ttl 1h
+work migrate --dry-run
+work migrate
 work view ready
 work show W-0001
 work show W-0001 --policy
