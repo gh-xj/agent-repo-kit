@@ -1,4 +1,7 @@
-# Operation: Wiki
+# Recipe: Wiki
+
+Status: stable
+Codified: 2026-05-02
 
 Minimal LLM-maintained knowledge base. Two page types, one lint script,
 no schema-surgery or repo-root patching.
@@ -11,7 +14,7 @@ remain the fallback when you only want `.wiki/`.
 1. **Copy the template and initialize.**
 
    ```bash
-   cp -R ~/.claude/skills/convention-engineering/references/templates/wiki \
+   cp -R ~/.claude/skills/convention-engineering/references/recipes/wiki/templates \
          <repo>/.wiki
    cd <repo>
    task -d .wiki init
@@ -123,4 +126,4 @@ verdict: "massively over-engineered — rebuild with ~10% of current code."
 
 ## Template location
 
-`~/.claude/skills/convention-engineering/references/templates/wiki/`.
+`~/.claude/skills/convention-engineering/references/recipes/wiki/templates/`.

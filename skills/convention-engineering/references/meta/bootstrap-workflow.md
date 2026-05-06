@@ -37,7 +37,7 @@ same shape, same readers.
 ### 2. Create Agent Contract Files
 
 For each entry in `agent_docs:`, scaffold the file using the template in
-`references/core/agent-knowledge.md`. Customise:
+`references/recipes/agent-knowledge/pattern.md`. Customise:
 
 - repo name and purpose
 - short architecture pointer
@@ -58,7 +58,7 @@ Under the directory named in `docs_root:`, create:
 - `taxonomy/`
 
 Add per-folder README files describing the filename contracts (see
-`references/core/docs-taxonomy.md`). The default `scripts/verify.sh` asserts
+`references/recipes/docs-taxonomy/pattern.md`). The default `scripts/verify.sh` asserts
 all five subdirs exist when `docs_root:` is declared; omitting `taxonomy/`
 will produce a verify failure.
 
@@ -86,15 +86,15 @@ git config core.hooksPath .githooks
 
 Each is independent.
 
-- **Work (`.work/`)** — see `references/operations/work.md`.
-- **Wiki (`.wiki/`)** — see `references/operations/wiki.md`.
+- **Work (`.work/`)** — see `references/recipes/work/pattern.md`.
+- **Wiki (`.wiki/`)** — see `references/recipes/wiki/pattern.md`.
 
 After adoption, paste each ops doc's pointer snippet into the agent contract
 files.
 
 ### 7. Audit
 
-Run the audit workflow (`references/operations/audit-workflow.md`) to verify
+Run the audit workflow (`references/meta/audit-workflow.md`) to verify
 the scaffold matches the descriptor.
 
 ### 8. Commit

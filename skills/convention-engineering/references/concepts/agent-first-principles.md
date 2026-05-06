@@ -50,7 +50,7 @@ sentence case` is ritual.
    not `awk`-patch agent contract files; that pattern has no upgrade path.
 
 10. **Commit the convention separately from the instance.** The pattern in
-    `references/templates/` and the live `.work/` in a repo drift for
+    the per-pattern `templates/` directories and the live `.work/` in a repo drift for
     different reasons. Keep their commit histories distinguishable.
 
 ## How the system decays, and how we counter it

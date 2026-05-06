@@ -32,16 +32,17 @@
       "uniqueItems": true
     },
     "operations": {
-      "description": "Adopted operational conventions. Each entry must map to a documented op under skills/convention-engineering/references/operations/.",
+      "description": "Adopted operational conventions. Recommended values: 'work' (.work/ tracker, see references/recipes/work/pattern.md), 'wiki' (.wiki/ knowledge base, see references/recipes/wiki/pattern.md). Other values are permitted for project-local recipes.",
       "type": "array",
       "items": {
         "type": "string",
-        "enum": ["work", "wiki"]
+        "minLength": 1
       },
       "uniqueItems": true
     },
     "min_work_version": {
-      "description": "Minimum semver version of the external work CLI this repo's conventions assume. Probed by scripts/verify.sh.",
+      "description": "DEPRECATED in 2.0.0. Use a free-form `checks:` entry or a project-specific block instead. Minimum semver version of the external work CLI this repo's conventions assume; still probed by scripts/verify.sh for backward compatibility.",
+      "deprecated": true,
       "type": "string",
       "pattern": "^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?$"
     },
@@ -67,6 +68,27 @@
           "type": "boolean"
         }
       }
+    },
+    "core_beliefs": {
+      "description": "Core-beliefs trio adoption (core-belief.md + invariants.md + anti-patterns.md). See references/patterns/core-beliefs.md.",
+      "oneOf": [
+        { "type": "boolean" },
+        {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "enabled": {
+              "description": "Whether the trio is adopted.",
+              "type": "boolean"
+            },
+            "path": {
+              "description": "Directory containing the trio. Defaults to <docs_root>.",
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      ]
     }
   }
 }

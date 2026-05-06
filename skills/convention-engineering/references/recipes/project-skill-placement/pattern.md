@@ -1,4 +1,7 @@
-# Repo-Local Skill Placement
+# Recipe: Project Skill Placement
+
+Status: stable
+Codified: 2026-05-02
 
 Use this policy when deciding whether a repo should own local agent-skill
 discovery (e.g. project-scoped reusable prompts, references, or scaffolds your

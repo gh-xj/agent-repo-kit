@@ -1,4 +1,7 @@
-# Operation: Work
+# Recipe: Work
+
+Status: stable
+Codified: 2026-05-02
 
 Local-first work tracker for agent-operated repos. `.work/` is the standard
 operational convention for captured work, triage, canonical work items, saved

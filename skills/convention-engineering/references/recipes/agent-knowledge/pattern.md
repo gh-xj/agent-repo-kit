@@ -1,4 +1,7 @@
-# Agent Contract Files
+# Recipe: Agent Knowledge
+
+Status: stable
+Codified: 2026-05-02
 
 How `CLAUDE.md` and `AGENTS.md` should be structured so an AI agent can work
 in any repo.

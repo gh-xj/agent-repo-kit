@@ -1,0 +1,46 @@
+agent_docs:
+  - CLAUDE.md
+  - AGENTS.md
+docs_root: docs
+taskfile: true
+pre_commit: true
+skill_roots:
+  - .claude/skills
+operations:
+  - work # or omit if not adopting
+realms:
+  owner:
+    {
+      path: human/,
+      write: "owner only",
+      rule: "agents may READ, may not write",
+    }
+  captured:
+    {
+      path: raw/,
+      write: "agents append-only",
+      rule: "immutable after first commit",
+    }
+  external:
+    {
+      path: library/,
+      write: "owner + agents",
+      rule: "prefer extracted md + SOURCES.md over binaries",
+    }
+  derived:
+    {
+      path: derived/,
+      write: "agents only",
+      rule: "regenerable; safe to delete",
+    }
+ingest_sources:
+  registry: raw/README.md
+  contract: |
+    Each source under raw/<source>/ has its own README declaring
+    producer, filename pattern, schema, cadence, retention.
+checks:
+  - "AGENTS.md mirrors CLAUDE.md (identical content)."
+  - "task verify exits 0 from a clean checkout."
+  - "No file under <captured-realm>/ is modified after its first commit."
+  - "Every subdirectory under <captured-realm>/ has a README declaring its source contract."
+  - "gitleaks protect --staged passes on every commit (enforced by pre-commit)."

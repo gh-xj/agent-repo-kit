@@ -1,4 +1,7 @@
-# Docs Taxonomy
+# Recipe: Docs Taxonomy
+
+Status: stable
+Codified: 2026-05-02
 
 Use intent-first folders so every document has one obvious home.
 

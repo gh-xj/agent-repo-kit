@@ -28,8 +28,8 @@ Either propose creating one (see bootstrap) or stop.
 ## Operational Conventions
 
 Audit each only if it is declared under `operations:` (or, for older repos,
-its directory exists). See `references/operations/work.md` and
-`references/operations/wiki.md`.
+its directory exists). See `references/recipes/work/pattern.md` and
+`references/recipes/wiki/pattern.md`.
 
 If `work` is adopted:
 

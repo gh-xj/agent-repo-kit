@@ -44,8 +44,8 @@ skill_roots: # repo-local agent-skill discovery roots
   - .agents/skills
 
 operations: # adopted operational conventions
-  - work # `.work/` tracker — see references/operations/work.md
-  - wiki # `.wiki/` knowledge base — see references/operations/wiki.md
+  - work # `.work/` tracker — see references/recipes/work/pattern.md
+  - wiki # `.wiki/` knowledge base — see references/recipes/wiki/pattern.md
 
 checks: # free-form list of agent-readable rules
   - "Every doc under {docs_root}/requests/ has a frontmatter `id`."
@@ -86,10 +86,10 @@ Some keys come from specific repo patterns rather than the core conventions.
 Unknown keys remain allowed — this section just canonizes names so they don't
 drift across pattern docs:
 
-- `realms:` and `ingest_sources:` — see `references/patterns/brain.md` (the
+- `realms:` and `ingest_sources:` — see `references/archetypes/brain/pattern.md` (the
   brain pattern formalizes a four-realm split: owner-authored, agent-captured
   immutable, external-authored, derived-regenerable).
-- `epic:` — see `references/patterns/epic-wrapper.md`. Used by an epic
+- `epic:` — see `references/archetypes/epic-wrapper/pattern.md`. Used by an epic
   wrapper repo to declare its sibling leaves. Shape:
 
   ```yaml
@@ -104,6 +104,22 @@ drift across pattern docs:
   directory and `repo/<leaf>` is a symlink that resolves to `../../<leaf>`.
   `scripts/bootstrap.sh` reads the same list to recreate the symlinks after
   clone.
+
+- `core_beliefs:` — see `references/recipes/core-beliefs/pattern.md`. Used to
+  declare adoption of the core-beliefs trio (manifesto + invariants +
+  anti-patterns) for a project with a public API surface. Shape:
+
+  ```yaml
+  core_beliefs:
+    enabled: true
+    path: docs/        # optional; defaults to <docs_root>
+  ```
+
+  `scripts/verify.sh` asserts that `<path>/core-belief.md`,
+  `<path>/invariants.md`, and `<path>/anti-patterns.md` all exist.
+  Existence-only check; structural validation is intentionally absent.
+  The shorthand `core_beliefs: true` is equivalent to `enabled: true`
+  with `path` defaulting to `<docs_root>`.
 
 A pattern doc is the right place to declare a new well-known key. Adding one
 here without a pattern doc to back it is premature.
