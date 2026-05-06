@@ -1,8 +1,6 @@
 # Invariants
 
-These are the facts about `<project>` that must remain true. Each is
-grounded in the current code and verifiable without running the binary.
-Cite by ID in PR review (e.g. "violates INV-4").
+These are the facts about `<project>` that must remain true. Each is grounded in the current code and verifiable without running the binary. Cite by ID in PR review (e.g. "violates INV-4").
 
 For aspirational identity, see [`core-belief.md`](core-belief.md).
 For explicit refusals, see [`anti-patterns.md`](anti-patterns.md).
@@ -11,11 +9,9 @@ For explicit refusals, see [`anti-patterns.md`](anti-patterns.md).
 
 ## INV-1 &nbsp; <Load-bearing claim, one sentence>
 
-<2-3 sentences explaining what would break if this stopped being true,
-and which file(s) the claim is grounded in.>
+<2–3 sentences explaining what would break if this stopped being true, and which file(s) the claim is grounded in.>
 
-**Verify** &nbsp; `<concrete grep / test command>` <returns expected
-result, e.g. "returns exactly one match", "returns no matches">.
+**Verify** &nbsp; `<concrete grep / test command>` <returns expected result, e.g. "returns exactly one match", "returns no matches">.
 
 ---
 
@@ -27,24 +23,20 @@ result, e.g. "returns exactly one match", "returns no matches">.
 
 ---
 
-<!-- Add INV-3 through INV-10 (or however many apply). Aim for 8-12 total. -->
+<!-- Add INV-3 onward as the project warrants. -->
 
 ---
 
-*Companion docs: [`core-belief.md`](core-belief.md) for identity,
-[`anti-patterns.md`](anti-patterns.md) for refusals.*
+*Companion docs: [`core-belief.md`](core-belief.md) for identity, [`anti-patterns.md`](anti-patterns.md) for refusals.*
 
 <!--
 Template usage (delete this block before commit):
-- Aim for 8-12 invariants; below 8 leaves gaps, above 12 turns into noise.
-- Each entry: claim + 2-3 sentences of why + a Verify command that
+- Each entry: claim + a few sentences of why + a Verify command that
   produces an unambiguous result (specific match count, empty result,
   file exists).
-- An invariant you cannot grep is an aspiration; move it to core-belief.md.
+- An invariant you cannot grep is an aspiration; move it to
+  core-belief.md.
 - Name exceptions explicitly. "No subcommand calls the network — except
-  `version --check`, which queries GitHub Releases" is stronger than a
-  half-true blanket claim.
-- See references/recipes/core-beliefs/bootstrap.md Phase 2 for the
-  audit procedure.
-- Worked example: gh-xj/work-cli/docs/invariants.md.
+  X, which queries Y" is stronger than a half-true blanket claim.
+- See `../bootstrap.md` Pass 1 for the audit procedure.
 -->

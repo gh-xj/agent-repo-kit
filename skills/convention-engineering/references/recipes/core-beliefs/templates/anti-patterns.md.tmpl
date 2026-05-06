@@ -1,8 +1,6 @@
 # Anti-Patterns
 
-Categories of feature that look reasonable on a feature request but
-invert one of the invariants or beliefs. They are out of scope without
-an RFC. Cite by ID in PR review (e.g. "matches ANTI-1").
+Categories of feature that look reasonable on a feature request but invert one of the invariants or beliefs. They are out of scope without an RFC. Cite by ID in PR review (e.g. "matches ANTI-1").
 
 For positive identity, see [`core-belief.md`](core-belief.md).
 For verifiable hard constraints, see [`invariants.md`](invariants.md).
@@ -11,14 +9,11 @@ For verifiable hard constraints, see [`invariants.md`](invariants.md).
 
 ## ANTI-1 &nbsp; <Pattern name>
 
-**Looks like:** <concrete examples — feature requests, PR shapes, naming
-hints that signal this category>
+**Looks like:** <concrete examples — feature requests, PR shapes, naming hints that signal this category>
 
-**Why not:** <2-3 sentences of rationale; reference the underlying
-invariant or belief>
+**Why not:** <2–3 sentences of rationale; reference the underlying invariant or belief>
 
-**Instead:** <what to do when the underlying need is real; omit if the
-need does not exist for this project>
+**Instead:** <what to do when the underlying need is real; omit if the need does not exist for this project>
 
 *Inverts INV-N, belief #M.*
 
@@ -30,22 +25,18 @@ need does not exist for this project>
 
 ---
 
-<!-- Add ANTI-3 through ANTI-8 (or however many apply). Aim for 6-10 total. -->
+<!-- Add ANTI-3 onward as the project warrants. -->
 
 ---
 
-*Companion docs: [`core-belief.md`](core-belief.md) for identity,
-[`invariants.md`](invariants.md) for verifiable constraints.*
+*Companion docs: [`core-belief.md`](core-belief.md) for identity, [`invariants.md`](invariants.md) for verifiable constraints.*
 
 <!--
 Template usage (delete this block before commit):
-- Aim for 6-10 anti-patterns. Each names a CATEGORY of feature, not a
-  single feature. "Don't add --no-color" is too specific.
+- Each anti-pattern names a CATEGORY of feature, not a single feature.
 - Cross-link to invariants/beliefs at the end of each entry. The
   trailing "*Inverts INV-N, belief #M.*" makes the rejection auditable.
 - "Instead:" is required when the underlying need is legitimate; omit
   when the answer is "this need does not exist for this project."
-- See references/recipes/core-beliefs/bootstrap.md Phase 4 for the
-  identification procedure.
-- Worked example: gh-xj/work-cli/docs/anti-patterns.md.
+- See `../bootstrap.md` Pass 2 for the identification procedure.
 -->
