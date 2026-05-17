@@ -66,7 +66,8 @@ applies); shape and cadence are the author's call.
 
 - **Active vs completed plans.** Split in-flight from shipped. Tracked repos
   may use `plans/active/` + `plans/completed/` or any equivalent split. The
-  invariant is that stale plans do not shadow in-flight ones.
+  invariant is that stale plans do not shadow in-flight ones. See
+  `exec-plans.md` for execution-plan lifecycle rules.
 
 - **Tech-debt tracker (flat file).** A single checked-in file (e.g.
   `plans/tech-debt-tracker.md`) enumerates known debt items. Use this for

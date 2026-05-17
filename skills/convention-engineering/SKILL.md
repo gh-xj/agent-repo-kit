@@ -43,6 +43,7 @@ A repo declares its archetype + recipes in `.conventions.yaml`, then runs `task 
 | Core beliefs / invariants / anti-patterns trio      | `references/recipes/core-beliefs/pattern.md`       |
 | `CLAUDE.md` / `AGENTS.md` structure                 | `references/recipes/agent-knowledge/pattern.md`    |
 | Docs taxonomy (`docs/{requests,planning,plans,…}`)  | `references/recipes/docs-taxonomy/pattern.md`      |
+| Execution-plan lifecycle                            | `references/recipes/docs-taxonomy/exec-plans.md`   |
 | Repo-local skill placement                          | `references/recipes/project-skill-placement/pattern.md` |
 | `scripts/verify.sh` shape                           | `references/recipes/verify-script/pattern.md`      |
 | `.work/` tracker adoption                           | `references/recipes/work/pattern.md`               |
