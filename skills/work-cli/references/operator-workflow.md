@@ -12,6 +12,7 @@ implementation or convention design.
 .work/inbox/IN-0001.yaml --triage accept--> .work/items/W-0001.yaml
                                                |
                                                `-- optional .work/spaces/W-0001/
+                                                   `-- optional completion.md
 
 .work/leases/W-0001.yaml                       # optional time-bounded claim
 .work/types/<type>/policy.md                   # optional type policy
@@ -23,7 +24,8 @@ implementation or convention design.
 - Work item: accepted canonical record. Use it for planning, status, priority,
   area, labels, and source metadata. Current records use `schema_version: 1`.
 - Work space: optional item-owned directory keyed by work ID. Use it for notes,
-  research captures, plans, small evidence, and other supporting files.
+  research captures, plans, completion summaries, small evidence, and other
+  supporting files.
 - Work type: optional scaffold/template. Typed work items remain normal work
   items, but a type can scaffold `.work/spaces/<W-ID>/`.
 - Work lease: optional coordination record. It says who currently claims a work
@@ -38,6 +40,7 @@ Prefer the repo wrapper if it exists:
 task work -- view ready
 task work -- show W-0001
 task work -- claim W-0001 --actor agent:codex:xj-mac --ttl 1h
+task work -- done W-0001 --summary "Completed" --evidence "task verify passed"
 task work -- migrate --dry-run
 ```
 
@@ -47,6 +50,7 @@ If there is no wrapper, use the binary directly:
 work --store .work view ready
 work --store .work show W-0001
 work --store .work claim W-0001 --actor agent:codex:xj-mac --ttl 1h
+work --store .work done W-0001 --summary "Completed" --evidence "task verify passed"
 work --store .work migrate --dry-run
 ```
 
@@ -130,6 +134,18 @@ work claim W-0001 --actor agent:codex:xj-mac --ttl 1h
 provenance, `acquired_at`, and `expires_at`. A different actor cannot claim an
 unexpired lease. The same actor can renew it. Expired lease files may remain on
 disk; reads treat expiry as derived state.
+
+After the repo verification gate passes, mark completion explicitly:
+
+```bash
+work done W-0001 \
+  --summary "Implemented and verified." \
+  --evidence "task verify passed"
+```
+
+`work done` sets `status: done`, records `completed_at`, releases any active
+lease for the work item, and writes optional completion notes to
+`.work/spaces/W-NNNN/completion.md`.
 
 ## Migration
 
@@ -223,11 +239,17 @@ the type definition, not copied into each work space.
 
 ## Verification
 
-Before claiming completion, run the repo's verification gate. If the repo has
+Before marking completion, run the repo's verification gate. If the repo has
 a Taskfile wrapper, prefer:
 
 ```bash
 task verify
+```
+
+Then record the completed work:
+
+```bash
+work done W-0001 --summary "Completed" --evidence "task verify passed"
 ```
 
 The `work` CLI itself lives in [`gh-xj/work-cli`](https://github.com/gh-xj/work-cli).

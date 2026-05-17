@@ -16,6 +16,7 @@ Use this skill when the task is to:
 - Capture an untriaged request with `work inbox add`.
 - Promote accepted work with `work triage accept`.
 - Claim or renew a time-bounded work item lease with `work claim`.
+- Mark verified work complete with `work done`.
 - Create a direct work item with `work new`.
 - Show work records or scan views with `work show` and `work view`.
 - Use a typed work item with `--type`, including scaffolded item spaces and
@@ -105,7 +106,8 @@ Default flow:
 4. Put item-owned notes and small supporting artifacts under
    `.work/spaces/<W-ID>/` when a work item needs a directory.
 5. Use views as derived read models, not as storage.
-6. Run the repo's verification gate before claiming completion.
+6. Run the repo's verification gate before marking completion.
+7. Use `work done` with a short summary and evidence after verification passes.
 
 ## Storage Model
 
@@ -114,7 +116,8 @@ Default flow:
 - Work item: accepted canonical record under `.work/items/W-NNNN.yaml`,
   currently `schema_version: 1`.
 - Work space: optional item-owned directory under `.work/spaces/W-NNNN/` for
-  notes, research captures, plans, and other supporting files.
+  notes, research captures, plans, completion summaries, and other supporting
+  files.
 - Work lease: optional time-bounded claim under `.work/leases/W-NNNN.yaml`.
 - Work type: optional scaffold/template under `.work/types/<type>/` that can
   create an initial work space for typed items and expose type policy from
@@ -129,6 +132,7 @@ work inbox add "Title" --body "Context" --source "user"
 work triage accept IN-0001 --area cli --priority P1
 work new "Title" --area docs --priority P2
 work claim W-0001 --actor agent:codex:xj-mac --ttl 1h
+work done W-0001 --summary "Completed" --evidence "task verify passed"
 work migrate --dry-run
 work migrate
 work view ready
@@ -143,6 +147,8 @@ work show W-0001 --policy
 - Work items are the durable source of truth.
 - Claims are coordination leases, not lifecycle status. Claiming a work item
   does not change `status`.
+- `work done` sets `status: done`, records `completed_at`, releases an active
+  lease when present, and writes optional completion notes under the work space.
 - Work spaces support a work item, but do not replace the canonical item YAML.
 - Type policies are agent-facing instructions for a work type; they complement
   the work item and workspace but do not replace either.
