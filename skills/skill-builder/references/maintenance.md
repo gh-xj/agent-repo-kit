@@ -44,6 +44,35 @@ If other extra metadata is useful, prefer:
 Do not treat other frontmatter fields as the shared default for portable
 Claude/Codex skills.
 
+## Installable Skill Packaging Checklist
+
+Before publishing a skill that users or agents will install from a repo:
+
+1. Ensure `SKILL.md` starts with YAML frontmatter delimited by `---`.
+2. Include both portable core fields:
+
+```yaml
+---
+name: skill-name
+description: "Use when ..."
+---
+```
+
+3. Quote `description` when it contains `:`, `#`, `{}`, `[]`, or other YAML
+   syntax-sensitive characters.
+4. Ensure the frontmatter `name` exactly matches the installable skill
+   directory name unless the target runtime explicitly documents a different
+   rule.
+5. After publishing, verify the actual install path with the target installer,
+   for example:
+
+```sh
+npx skills add owner/repo -g -s skill-name -a codex -y --copy
+```
+
+6. If a repo manages desired skill state, add or update the profile entry only
+   after the installer succeeds.
+
 ## Versioning Discipline
 
 When a skill carries a `version:`:
