@@ -1,6 +1,8 @@
-# Superpowers Patterns for Skill Engineering
+# Skill Reliability Patterns
 
-Patterns extracted from the superpowers skill library that improve skill quality. Apply these when creating or updating skills.
+Portable patterns for making skills harder to skip, misread, or falsely verify.
+Some were originally distilled from an older external skill library; keep this
+reference vendor-neutral in public routing tables.
 
 ## 1. Skill Testing Protocol (RED-GREEN-REFACTOR)
 

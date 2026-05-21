@@ -44,7 +44,9 @@ Q&A-driven build:
 7. Check procedure, heuristics, and constraints with `skill-quality.md`.
 8. Add only the references needed for the request.
 9. Validate activation with 3-5 should-trigger and 3-5 should-not-trigger prompts.
-10. If the skill owns a stable command surface, bootstrap `cli/` with your repo's Go scaffolder and keep root Task wrappers thin.
+10. If the skill owns a stable command surface, use `skill-cli-authoring` to
+    design command examples, JSON contracts, safety classes, and smoke checks
+    before bootstrapping `cli/` with your repo's Go scaffolder.
 
 ## Update
 

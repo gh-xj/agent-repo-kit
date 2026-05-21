@@ -22,6 +22,8 @@ of all harness evolution, memory, conventions, or eval infrastructure.
 - `references/repo-owned-clis.md`: when stable logic should become a CLI.
 - `references/multi-skill-architecture.md`: skill dependency and composition
   safety.
+- `references/self-evolution.md`: decay-protection checklist for mature skills,
+  including maintenance logs and known-failure registries.
 - `references/maintenance.md`: runtime troubleshooting and health indicators.
 - `MAINTENANCE.md`: maintainer process and changelog.
 
@@ -60,6 +62,7 @@ item or research space before patching.
 - script extraction -> `references/pattern-to-script.md`
 - CLI promotion -> `references/repo-owned-clis.md`
 - dependency or composition safety -> `references/multi-skill-architecture.md`
+- decay protection for mature skills -> `references/self-evolution.md`
 - troubleshooting and health indicators -> `references/maintenance.md`
 
 Prefer the narrow owner over adding a new file.
@@ -82,5 +85,8 @@ repo's `task ci` before landing CLI changes there.
 
 ## Changelog
 
+- `2026-05-17`: Merged the standalone `skill-evolution` entrypoint into
+  `references/self-evolution.md` so skill maintenance remains under
+  `skill-builder`.
 - `2026-05-02`: Added evidence/risk-first skill packaging, lightweight skill
   eval guidance, and this self-evolution maintenance file.

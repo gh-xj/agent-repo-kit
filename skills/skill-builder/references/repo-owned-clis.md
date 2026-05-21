@@ -14,6 +14,10 @@ Use this file when a workflow is too deterministic, too important, or too reusab
 
 Bootstrap skill-local CLIs with whatever Go scaffolder your repo already uses. Keep the root `Taskfile.yml` as a thin wrapper over `go run ./...` or `task -d ... run -- ...`; do not reimplement command semantics in shell blocks.
 
+For skill-local CLIs, `skill-builder` owns the decision to extract, but
+`skill-cli-authoring` owns the command contract: examples, JSON/NDJSON shape,
+exit codes, safety classes, dry-run/apply rules, and smoke verification.
+
 Use `cli/` when most of these are true:
 
 - the logic belongs to one skill boundary
