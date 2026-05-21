@@ -29,6 +29,9 @@ Do not use for:
 - CI platform configs (`.github/workflows/*.yml`) — that is not go-task.
 - Makefiles, `just` recipes, or npm scripts — different tooling, different semantics.
 - Pure shell scripts with no task runner — use a `scripts/` directory instead.
+- Designing the command contract for a skill-local CLI — use
+  `skill-cli-authoring`, then return here to wire build, smoke, `ci`, and
+  `verify`.
 
 ## Core Premise
 
@@ -105,3 +108,6 @@ path-resolution rules in `references/composition.md`.
 
 - Stack guidance (Go, uv) is advisory.
 - The skill does not opinionate on CI platform (`.github/workflows/*.yml`).
+- For skill-local CLIs, this skill owns Taskfile wiring only. Command grammar,
+  safety classes, JSON contracts, and plan/apply semantics belong to
+  `skill-cli-authoring`.

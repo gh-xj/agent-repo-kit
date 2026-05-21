@@ -28,8 +28,12 @@ Design and maintain Claude/Codex skills as small, portable routers with clear tr
    - skill-local script
    - skill-local CLI in `cli/`
    - repo-owned CLI under `tools/`
-6. Add lightweight eval cases from `references/skill-evals.md` when risk or
+6. If the surface is a skill-local CLI, hand off command contract, safety, and
+   verification design to `skill-cli-authoring`.
+7. Add lightweight eval cases from `references/skill-evals.md` when risk or
    behavior warrants it.
+8. For mature or drifting skills, run the self-evolution checklist in
+   `references/self-evolution.md`.
 
 ## Router Rule
 
@@ -73,14 +77,17 @@ If the domain is only partially understood, prefer the Q&A-driven path in `refer
   before promotion.
 - If capability moves into a skill layer, remove stale docs, workflows, or Task targets in the same change.
 - If repo behavior changes, name the verification gate explicitly.
-- If a skill-local CLI is warranted, bootstrap it with your Go CLI scaffolder of choice and keep Task wrappers thin.
+- If a skill-local CLI is warranted, first use `skill-cli-authoring` to design
+  the command contract, safety model, and verification loop; then bootstrap it
+  with your Go CLI scaffolder of choice and keep Task wrappers thin.
 
 ## Choosing Code Instead Of Prose
 
 Use prose when judgment is required. Use code when the pattern is deterministic and repeated.
 
 - Repeated logic inside a skill: see `references/pattern-to-script.md`
-- Skill-local operations with one skill boundary and a small command surface: see `references/repo-owned-clis.md`
+- Skill-local operations with one skill boundary and a small command surface:
+  see `references/repo-owned-clis.md`, then use `skill-cli-authoring`
 - Shared repo operations with policy or verification requirements: see `references/repo-owned-clis.md`
 
 ## References
@@ -94,7 +101,8 @@ Use prose when judgment is required. Use code when the pattern is deterministic 
 | `references/repo-owned-clis.md`          | When stable logic should move into `cli/` or `tools/<name>/`     |
 | `references/pattern-to-script.md`        | When stable logic should move into skill-local scripts           |
 | `references/multi-skill-architecture.md` | Cross-skill systems and shared-core patterns                     |
-| `references/superpowers-patterns.md`     | Hard gates, evidence-before-claims, and agent-drift controls     |
+| `references/skill-reliability-patterns.md` | Hard gates, evidence-before-claims, and agent-drift controls   |
+| `references/self-evolution.md`           | Maintenance logs, known failures, and decay-protection checklist |
 | `references/maintenance.md`              | Troubleshooting, parity checks, and health indicators            |
 | `MAINTENANCE.md`                         | Maintainer self-evolution loop and validation checklist          |
 

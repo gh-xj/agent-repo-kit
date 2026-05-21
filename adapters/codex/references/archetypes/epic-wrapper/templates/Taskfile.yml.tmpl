@@ -1,0 +1,38 @@
+version: "3"
+
+tasks:
+  default:
+    cmds:
+      - task --list
+
+  bootstrap:
+    desc: Recreate repo/<leaf> symlinks from .conventions.yaml epic.leaves.
+    cmds:
+      - bash scripts/bootstrap.sh
+
+  verify:
+    desc: Run the canonical verification gate (declared opt-ins).
+    cmds:
+      - bash scripts/verify.sh
+
+  work:
+    desc: Run the work CLI against this repo's .work store.
+    preconditions:
+      - sh: command -v work >/dev/null 2>&1
+        msg: "`work` not on PATH; install the `work` CLI before using these tasks"
+    cmds:
+      - work --store .work {{.CLI_ARGS}}
+
+  triage:
+    desc: List the inbox to drive the weekly triage pass.
+    preconditions:
+      - sh: command -v work >/dev/null 2>&1
+        msg: "`work` not on PATH; install the `work` CLI before using these tasks"
+    cmds:
+      - work --store .work inbox
+      - echo
+      - echo "Inspect    -- task work -- show IN-NNNN"
+      - echo "Accept     -- task work -- triage accept IN-NNNN --area <area> --priority P[0-3]"
+      - echo "Direct     -- task work -- new \"title\" --area <area> --priority P[0-3]"
+
+  # Stack-specific tasks (build / up / e2e) live below; shape varies by product.

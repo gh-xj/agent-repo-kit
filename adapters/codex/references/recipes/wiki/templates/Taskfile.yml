@@ -1,0 +1,25 @@
+version: "3"
+
+# Minimal LLM-maintained wiki. Two page types (S-### sources, N-### notes).
+# Run from repo root: `task -d .wiki <cmd>`.
+
+vars:
+  RAW_DIR: raw
+  PAGES_DIR: pages
+
+tasks:
+  default:
+    cmds: [{ task: lint }]
+
+  init:
+    desc: Scaffold empty wiki directories (idempotent)
+    cmds:
+      - mkdir -p {{.RAW_DIR}} {{.PAGES_DIR}}
+      - test -f {{.RAW_DIR}}/.gitkeep || touch {{.RAW_DIR}}/.gitkeep
+      - test -f {{.PAGES_DIR}}/.gitkeep || touch {{.PAGES_DIR}}/.gitkeep
+
+  lint:
+    desc: Verify wiki health (IDs, filenames, source refs, wikilinks)
+    silent: true
+    cmds:
+      - bash scripts/lint.sh

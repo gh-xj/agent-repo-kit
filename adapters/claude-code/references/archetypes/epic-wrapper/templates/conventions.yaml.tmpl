@@ -1,0 +1,36 @@
+# <product>-epic: dev wrapper + cross-repo orchestration for <product>.
+# Wraps N sibling target repos. Read by the convention-engineering skill.
+# Schema: ../agent-repo-kit/skills/convention-engineering/schemas/conventions.schema.json
+
+agent_docs:
+  - CLAUDE.md
+
+docs_root: docs
+
+taskfile: true
+
+pre_commit: false
+
+operations:
+  - work
+
+# min_work_version intentionally omitted: this repo IS the dev environment.
+# Maintainer often runs unreleased work CLI builds; release-floor would
+# gate legitimate dev work.
+
+epic:
+  leaves:
+    - <leaf-1>
+    - <leaf-2>
+    - <leaf-3>
+
+checks:
+  - "CLAUDE.md exists; mirror to AGENTS.md by hand if both files are active in this repo."
+  - "docs/{requests,planning,plans,implementation,taxonomy} directories exist."
+  - "task verify exits 0 from a clean checkout (delegates to scripts/verify.sh)."
+  - "scripts/verify.sh asserts declared opt-ins, including epic.leaves."
+  - "repo/<leaf> symlinks exist for every epic.leaves entry and resolve to sibling checkouts."
+  - ".work/ exists with config.yaml; task work -- view ready --json succeeds."
+  - "Inbox is triaged regularly; entries older than 30 days without an action plan get closed."
+  - "scripts/bootstrap.sh exists; recreates symlinks from epic.leaves."
+  - "versions.yaml lists every entry under epic.leaves."

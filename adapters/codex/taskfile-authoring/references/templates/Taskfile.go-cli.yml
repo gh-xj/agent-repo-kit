@@ -1,0 +1,78 @@
+version: "3"
+
+# Canonical Go CLI Taskfile.
+# - `fmt:check` gates mutating tasks (lint, test, build) via `deps:`.
+# - `build` uses sources/generates/method:checksum so CI does not recompile
+#   when inputs are unchanged.
+# - `smoke` runs the built binary in --json mode and validates output against
+#   a schema with a small smokecheck tool.
+# - `ci` is the single aggregate CI runs verbatim; `verify` wraps it for
+#   local checks.
+
+vars:
+  BIN: bin/app # rename in one place; change ./cmd path below if needed
+
+tasks:
+  default:
+    desc: List available tasks
+    cmds:
+      - task --list
+
+  deps:
+    desc: Sync module dependencies
+    cmds:
+      - go mod tidy
+
+  fmt:
+    desc: Format Go files in place
+    cmds:
+      - gofmt -w .
+
+  fmt:check:
+    desc: Fail when gofmt would change files
+    cmds:
+      - test -z "$(gofmt -l .)"
+
+  lint:
+    desc: Run static checks
+    deps: [deps, fmt:check]
+    cmds:
+      - go vet ./...
+
+  test:
+    desc: Run tests
+    deps: [deps, fmt:check]
+    cmds:
+      - go test ./...
+
+  build:
+    desc: Build the CLI binary
+    deps: [deps, fmt:check]
+    sources: ["**/*.go", "go.mod", "go.sum"]
+    generates: ["{{.BIN}}"]
+    method: checksum
+    cmds:
+      - mkdir -p "$(dirname {{.BIN}})"
+      - go build -o {{.BIN}} .
+
+  run:
+    desc: Run the CLI without building (dev loop)
+    cmds:
+      - go run . {{.CLI_ARGS}}
+
+  smoke:
+    desc: Deterministic smoke checks against the built binary
+    deps: [build]
+    cmds:
+      - mkdir -p test/smoke
+      - rm -f test/smoke/version.output.json
+      - ./{{.BIN}} --json version > test/smoke/version.output.json
+      - go run ./internal/tools/smokecheck --schema test/smoke/version.schema.json --input test/smoke/version.output.json
+
+  ci:
+    desc: Canonical CI target — what CI runs verbatim
+    deps: [lint, test, build, smoke]
+
+  verify:
+    desc: Local verification gate (CI plus any repo-specific extras)
+    deps: [ci]

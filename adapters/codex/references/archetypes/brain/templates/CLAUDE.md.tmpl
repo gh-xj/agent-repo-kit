@@ -1,0 +1,35 @@
+# CLAUDE.md — <brain>
+
+Personal knowledge-base brain repo. Mixed-authorship: owner writes high-signal content, agents append captures from external sources, an external library holds collected sources, and regenerable derivations live alongside.
+
+## Realms — read carefully before writing
+
+| Realm        | Path              | Who writes           | Rule                                                           |
+| ------------ | ----------------- | -------------------- | -------------------------------------------------------------- |
+| **owner**    | <owner-realm>/    | owner only           | Agents may **read**, must not write.                           |
+| **captured** | <captured-realm>/ | agents (append-only) | Files are **immutable** after first commit.                    |
+| **external** | <external-realm>/ | owner + agents       | Prefer extracted markdown + SOURCES.md pointers over binaries. |
+| **derived**  | <derived-realm>/  | agents               | Regenerable. Safe to delete and rebuild.                       |
+
+## Non-Negotiable Rules
+
+- Realm boundaries are enforced by `task verify`; do not bypass.
+- Captured realm is append-only; never edit existing files there.
+- Privacy posture: secret scan + banned-string scan run pre-commit.
+- This document is intentionally mirrored in `AGENTS.md` and `CLAUDE.md`.
+
+## Verification Gate
+
+```bash
+task verify
+```
+
+Pre-commit hook runs the cheap subset (secrets, mirror, immutability, source-READMEs).
+
+## Pointers
+
+- `docs/` — convention docs (requests/planning/plans/implementation).
+- `<owner-realm>/` — your authored content. Agents do not write here without explicit ask.
+- `<captured-realm>/` — raw exports. Each source has a README declaring producer/cadence/schema.
+- `<derived-realm>/` — agent-generated. Safe to delete and regenerate.
+- `<external-realm>/` — collected external content. Use `SOURCES.md` pointers for large binaries.

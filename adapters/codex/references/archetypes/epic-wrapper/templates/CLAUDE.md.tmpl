@@ -1,0 +1,24 @@
+# CLAUDE.md — <product>-epic
+
+Dev wrapper + cross-repo orchestration workspace for <product>. Holds intake (`.work/`), design docs, deployment artifacts, the E2E harness, and ops glue. Does **not** contain <product> source — that lives in sibling checkouts exposed through the wrapper-local repo namespace:
+
+`repo/<leaf-1>/`, `repo/<leaf-2>/`, `repo/<leaf-3>/`
+
+After clone, run `task bootstrap` to recreate the `repo/<leaf>` symlinks.
+
+## Architecture
+
+- `.work/` — gitignored. Cross-repo + per-leaf work items. Per-leaf items name the target in the title (e.g. `[<leaf-2>] M0 — dial server …`).
+- `docs/` — requests/planning/plans/implementation/taxonomy.
+- `versions.yaml` — pinned commit/tag per leaf.
+- `compose.yaml` — local composed stack for `task up`.
+- `e2e/` — black-box scenarios that exercise the whole system.
+- `repo/<leaf-N>` — symlinks to sibling `../<leaf-N>`; gitignored, recreated by `task bootstrap`.
+
+## Non-Negotiable Rules
+
+- `.work/` is gitignored; intake is local maintainer state.
+- `repo/<leaf>` symlinks are gitignored; recreate via `task bootstrap` after clone.
+- Per-leaf `-dev` wrappers are FORBIDDEN — this epic absorbs them.
+- This repo MUST NOT contain <product> source; edit via `repo/` symlinks.
+- `epic.leaves` and `versions.yaml` must list the same leaves; verify.sh enforces this.

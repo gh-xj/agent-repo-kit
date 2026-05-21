@@ -1,0 +1,42 @@
+# Invariants
+
+These are the facts about `<project>` that must remain true. Each is grounded in the current code and verifiable without running the binary. Cite by ID in PR review (e.g. "violates INV-4").
+
+For aspirational identity, see [`core-belief.md`](core-belief.md).
+For explicit refusals, see [`anti-patterns.md`](anti-patterns.md).
+
+---
+
+## INV-1 &nbsp; <Load-bearing claim, one sentence>
+
+<2–3 sentences explaining what would break if this stopped being true, and which file(s) the claim is grounded in.>
+
+**Verify** &nbsp; `<concrete grep / test command>` <returns expected result, e.g. "returns exactly one match", "returns no matches">.
+
+---
+
+## INV-2 &nbsp; <...>
+
+<...>
+
+**Verify** &nbsp; `<...>`.
+
+---
+
+<!-- Add INV-3 onward as the project warrants. -->
+
+---
+
+*Companion docs: [`core-belief.md`](core-belief.md) for identity, [`anti-patterns.md`](anti-patterns.md) for refusals.*
+
+<!--
+Template usage (delete this block before commit):
+- Each entry: claim + a few sentences of why + a Verify command that
+  produces an unambiguous result (specific match count, empty result,
+  file exists).
+- An invariant you cannot grep is an aspiration; move it to
+  core-belief.md.
+- Name exceptions explicitly. "No subcommand calls the network — except
+  X, which queries Y" is stronger than a half-true blanket claim.
+- See `../bootstrap.md` Pass 1 for the audit procedure.
+-->
