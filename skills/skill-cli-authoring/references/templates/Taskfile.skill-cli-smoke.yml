@@ -1,0 +1,40 @@
+version: "3"
+
+vars:
+  TOOL: go run .
+  FIXTURE_ID: fixture
+  FIXTURE_INPUT: testdata/input.json
+
+tasks:
+  default:
+    desc: List available tasks
+    cmds:
+      - task --list
+
+  fmt:
+    desc: Format CLI source
+    cmds:
+      - gofmt -w .
+
+  fmt:check:
+    desc: Fail when gofmt would change files
+    cmds:
+      - test -z "$(gofmt -l .)"
+
+  test:
+    desc: Run CLI tests
+    deps: [fmt:check]
+    cmds:
+      - go test ./...
+
+  smoke:
+    desc: Smoke test agent-facing command contracts
+    deps: [test]
+    cmds:
+      - '{{.TOOL}} --help >/dev/null'
+      - '{{.TOOL}} show {{.FIXTURE_ID}} --json | jq -e . >/dev/null'
+      - '{{.TOOL}} plan --input {{.FIXTURE_INPUT}} --json | jq -e . >/dev/null'
+
+  verify:
+    desc: Verify the skill-local CLI
+    deps: [test, smoke]
