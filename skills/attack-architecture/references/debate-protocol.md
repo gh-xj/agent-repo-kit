@@ -2,12 +2,12 @@
 
 Used in Phase 5 of `attack-architecture` (only when depth = `thorough`). Three agents per contested finding:
 
-1. **Attacker** and **Defender** dispatched in parallel (single message, two `Agent` calls, both `subagent_type: Explore`).
+1. **Attacker** and **Defender** dispatched in parallel (single message, two read-only exploration agents).
 2. **Judge** dispatched after both return.
 
 All three templates use these placeholders, filled before dispatch:
 
-- `{FINDING}` — the finding JSON from Phase 3 (title, lens, evidence, severity, confidence, blast_radius, why_it_hurts).
+- `{FINDING}` — the finding JSON from Phase 3 (title, lens, evidence, severity, confidence, blast_radius, principle_tags, why_it_hurts).
 - `{BASELINE_MAP}` — the Phase 2 map.
 - `{SCOPE}` — the scope path.
 
@@ -25,7 +25,7 @@ Baseline map:
 The finding to maximize:
 {FINDING}
 
-Your task — make the strongest possible case that this finding is real, serious, and must be addressed. You may Read and Grep within {SCOPE} to gather more evidence, but do not leave {SCOPE}.
+Your task — make the strongest possible case that this finding is real, serious, and must be addressed. You may use search/read tools within {SCOPE} to gather more evidence, but do not leave {SCOPE}.
 
 Argue:
 - Concrete failure paths — what sequence of events turns this into a real incident?
@@ -56,7 +56,7 @@ Your task — steel-man the current design. The accused pattern may be:
 - Already isolated — the blast radius is narrower than the finding claims.
 - Justified by the domain — what looks like overengineering in general code may be warranted in this domain.
 
-You may Read and Grep within {SCOPE} to find the constraint. Do not leave {SCOPE}.
+You may use search/read tools within {SCOPE} to find the constraint. Do not leave {SCOPE}.
 
 Output: markdown, ≤400 words, headed by "## Defender". Do not propose fixes; only make the case that the current design has a reasonable basis.
 ```
@@ -83,6 +83,7 @@ Defender's argument:
 
 Judge the debate. Important rules:
 - If the attacker's evidence is only speculative, downgrade to "dismissed".
+- If principle tags are present but the cited evidence does not support the claimed architectural pressure, ignore the tags and judge the finding on evidence.
 - If the defender's steel-man actually strengthens the attacker's case (the "intentional" design depends on a brittle hidden assumption), upgrade `final_confidence`.
 - If the defender identifies a real, documented constraint the attacker missed, downgrade or dismiss.
 - If both sides are partly right (real smell, narrower blast radius than claimed), use "exaggerated".

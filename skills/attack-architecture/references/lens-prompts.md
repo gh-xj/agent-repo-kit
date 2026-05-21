@@ -1,6 +1,6 @@
 # Lens Prompts
 
-Each section is a template dispatched as the prompt to an `Explore` subagent during Phase 3 of `attack-architecture`. Replace placeholders before dispatch:
+Each section is a template dispatched as the prompt to a read-only exploration agent during Phase 3 of `attack-architecture`. Replace placeholders before dispatch:
 
 - `{SCOPE}` — absolute path or glob for the scope under attack.
 - `{BASELINE_MAP}` — the ≤60-line baseline map produced in Phase 2.
@@ -28,9 +28,21 @@ Output contract — a JSON array of findings. Every finding MUST have:
 - severity: "low" | "med" | "high"
 - confidence: integer 0–100
 - blast_radius: "narrow" | "module" | "cross-cutting"
+- principle_tags: array of 0–3 strings. Use only when the principle clarifies the accusation; allowed tags include DRY, KISS, YAGNI, SoC, SRP, OCP, LSP, ISP, DIP, Abstraction, Encapsulation, Cohesion, Coupling, Modularity, DesignForFailure, Observability, BoundedContext, ExplicitDependency, OperationalExcellence, Security, Reliability, PerformanceEfficiency, CostOptimization, Sustainability.
 - why_it_hurts: ≤40 words. Describe the failure mode, not the fix.
 
 Findings with only speculative evidence MUST be omitted. If the lens has nothing to say about this scope, return [].
+
+Principle calibration:
+- Principles calibrate the attack; they are not evidence. Never return a finding whose only rationale is "violates SOLID", "not DRY", or similar.
+- DRY points to duplicate knowledge, copy-paste families, parallel hierarchies, and multiple sources of truth.
+- KISS and YAGNI point to speculative abstraction, unused flexibility, clever indirection, and premature async/cache/batch machinery.
+- SoC, SRP, cohesion, coupling, and modularity point to mixed responsibilities, god modules, boundary leaks, and scattered features.
+- Abstraction, encapsulation, OCP, LSP, ISP, and DIP point to leaky contracts, caller-visible internals, interface/subclass traps, and high-level code bound to low-level details.
+- Design for failure and observability point to hidden failures, weak failure-domain boundaries, missing context, and critical paths that cannot be diagnosed.
+- Bounded contexts and explicit dependencies point to ownership confusion, vocabulary drift, hidden globals, and framework/vendor coupling across domain boundaries.
+- TDD, CI/CD, and documentation are attackable only when the code depends on tests/docs/process as the load-bearing source of architectural truth.
+- For cloud/platform workloads, use Well-Architected-style pillars as calibration: operational excellence, security, reliability, performance efficiency, cost optimization, and sustainability. Dedicated security review remains out of scope; only flag architecture-level boundary or design issues with concrete code evidence.
 ```
 
 ---
@@ -49,6 +61,7 @@ Target smells (non-exhaustive):
 - Defensive coding at trusted boundaries — input validation deep inside a module for data already validated at the edge; redundant null checks after a non-null contract.
 - Test scaffolding for cases that cannot occur.
 - Premature async / batching / caching introduced without measurement.
+- Cloud/platform machinery whose operational, cost, or sustainability burden is disproportionate to the current workload.
 
 Accuse the design. Every finding must cite real file:line evidence and quote the offending construct. Do not propose fixes.
 ```
@@ -70,6 +83,7 @@ Target smells:
 - Invariants enforced only at call sites rather than in the type — every caller must remember to validate.
 - Contract rot between serialization layers — DTO, domain, and persistence shapes drift out of sync; nullable/required mismatches.
 - Naming and shape drift between API versions or between producer and consumer.
+- Bounded-context bleed — one context reads, writes, or reuses another context's internal shape instead of translating through an owned contract.
 
 Accuse the design. Every finding must cite real file:line evidence, quote the offending type or field, and briefly describe the illegal state or invariant that leaks. Do not propose fixes.
 ```
@@ -91,6 +105,8 @@ Target smells:
 - Features scattered across three or more places — a single user-visible change requires edits to a handler, a service, and a utility file in unrelated folders.
 - Hidden shared state — globals, module-level mutable state, singletons consumed implicitly.
 - Cross-module invariants with no owner — two modules must stay in sync but neither enforces it.
+- Hidden dependencies — environment, global registries, framework context, or import side effects that decide behavior without appearing in the function/module contract.
+- Dependency inversion failures — high-level policy modules importing low-level adapters directly where a domain-facing interface should own the boundary.
 
 Accuse the coupling topology. Every finding must cite real file:line evidence; when flagging cycles or god modules, list the concrete importers/imports. Do not propose fixes.
 ```
@@ -108,6 +124,7 @@ Target smells:
 - Retries that mask a bug instead of fixing it — tight retry loops, retries without backoff, retries without a real recovery plan.
 - Errors logged but not propagated — log-and-continue where the caller needed to know.
 - Missing observability — hot paths with no metrics, no structured logs, no traces, no spans at boundaries.
+- Weak failure-domain boundaries — no timeout, cancellation, idempotency, circuit breaker, or explicit recovery behavior where external IO or long-lived resources can fail.
 - Nullable / `Optional` at a layer where nothing can actually be null — callers forced to handle impossible cases, masking the real contract.
 - Assertions used as flow control — `assert` that is compiled out in production but carries a business rule.
 - `panic` / `unwrap` / `!` on values that depend on user input or external IO.
@@ -135,6 +152,7 @@ Target smells:
 - Names that rot — type, variable, or module names that no longer match what the code does (e.g. `UserService` that now handles billing).
 - Comments that contradict the code — a reader can't tell which is authoritative.
 - Test code as a load-bearing architectural document — test fixtures that encode invariants that the production code does not.
+- Documentation or CI as the only enforcement of an architectural invariant — process catches what the code structure should make hard to violate.
 
 Accuse the change-cost profile. Every finding must cite real file:line evidence and name the concrete change that would hurt. Do not propose fixes.
 ```
@@ -155,6 +173,7 @@ Target smells:
 - Missing cancellation propagation — async work that continues after its caller has given up.
 - Cross-goroutine / cross-task channels without clear ownership — who closes, who reads, who errors.
 - Time-of-check-to-time-of-use gaps in guarded sections.
+- Long-lived state with unclear ownership across request, job, process, or deployment lifecycles.
 
 Accuse the concurrency design. Every finding must cite real file:line evidence and describe the concrete interleaving or lifecycle that fails. Do not propose fixes.
 ```
@@ -175,6 +194,8 @@ Target smells:
 - Misplaced memoization — caching pure cheap work while leaving expensive IO uncached.
 - Data copies that could be slices / views.
 - Inefficient data structures for the operation (e.g. linear scan in a loop that could be an index).
+- Resource cost built into the API shape — callers cannot batch, page, cache, or choose a cheaper path without changing the abstraction.
+- Wasteful compute/storage/network patterns that would also hurt cost optimization or sustainability in a cloud/platform workload.
 
 Accuse the hot-path design. Every finding must cite real file:line evidence, identify the hot path (caller chain), and describe the cost shape. Do not propose fixes.
 ```

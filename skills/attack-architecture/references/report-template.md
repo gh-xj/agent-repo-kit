@@ -47,6 +47,7 @@ If no hotspots: `_No module was flagged by more than one lens. The findings belo
 - **Evidence:**
   - `{file}:{line}` — `{quoted snippet}`
   - ...
+- **Principle tags:** {principle_tags, comma-separated — or "None"}
 - **Severity:** {low/med/high} · **Confidence:** {0–100} · **Blast radius:** {narrow/module/cross-cutting}
 - **Why it hurts:** {≤40 words}
 - **Minimal fix:** {from Phase 4, if present — else "Not expanded"}
@@ -94,13 +95,14 @@ Explicit out-of-scope list — so readers do not mistake silence for reassurance
 - **Out of scope paths:** paths not touched by this run.
 - **Opted-out lenses:** {e.g. "L6 Concurrency was not selected — async / thread-safety issues are not reflected here."}
 - **Lenses that returned zero findings:** {list — absence of findings is not proof of absence of smells; it means these specific patterns did not surface in the evidence read}.
+- **Principle calibration limits:** {e.g. "Principle tags are interpretive aids, not proof; every finding still depends on cited evidence."}
 - **Known limitations of this run:** {e.g. "generated files skipped", "tests not attacked"}.
 
 ## Handoff
 
 Choose one:
 
-1. Brainstorm a restructure for the top finding → invoke `superpowers:brainstorming`.
-2. Plan concrete fixes across the mitigation plan → invoke `superpowers:writing-plans`.
+1. Brainstorm a restructure for the top finding.
+2. Plan concrete fixes across the mitigation plan.
 3. Stop here.
 ```
