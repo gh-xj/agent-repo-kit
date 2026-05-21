@@ -89,8 +89,14 @@ harness-specific delta).
 
 The repo enforces this with `scripts/sync-adapters.sh`:
 
-- No flag — overwrites adapter copies to match canonical.
-- `--check` — exits non-zero on drift.
+- No flag — overwrites or creates adapter entrypoints and supported sidecars to
+  match canonical.
+- `--check` — exits non-zero when a canonical entrypoint or supported sidecar
+  differs from, or is missing in, the adapter.
+
+The sync script does not currently prune extra adapter files whose canonical
+source was removed. Treat such stale files as cleanup work for a maintainer,
+not as a second source of truth.
 
 Wired into `task verify` (drift fails verification) and into
 `task sync:adapters` / `task sync:adapters:check`.

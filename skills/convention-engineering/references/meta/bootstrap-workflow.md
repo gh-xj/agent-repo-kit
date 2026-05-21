@@ -163,3 +163,34 @@ If `skill_roots:` is declared, every listed root must exist. Repos with no
 project-local skills should omit the key entirely (commented-out is fine)
 rather than declare empty roots. Otherwise verify reports
 `skill_roots: <root> missing` for each absent path.
+
+### Global `core.hooksPath` overrides repo-local hooks
+
+A `core.hooksPath` set in `~/.gitconfig` (or any include) overrides the
+repo-local `.githooks/` convention silently — your `.githooks/pre-commit`
+exists but never fires, because git is looking elsewhere. Common sources:
+corporate dev environments that ship a vendored hooks dir.
+
+After `git init`, check and override locally if needed:
+
+```bash
+git config --global --get core.hooksPath   # is it set unexpectedly?
+git config --local  core.hooksPath .githooks   # repo-local override
+```
+
+The `task bootstrap` target in the scaffold should run the local-set
+command unconditionally so the override survives re-clones.
+
+### `gitleaks` v8.30+ rejects empty `[allowlist]` blocks
+
+If `.gitleaks.toml` declares `[allowlist]` (singular) or `[[allowlists]]`
+(plural) with only commented-out paths/regexes, gitleaks v8.30 errors:
+
+```
+[allowlists]] must contain at least one check for: commits, paths, regexes, or stopwords
+```
+
+Either omit the block entirely (the `[extend] useDefault = true` line keeps
+the default ruleset active) or seed with one real entry. Inline-comment
+examples that show *how* to add entries when needed are fine — they just
+mustn't be inside an empty block.
