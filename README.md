@@ -107,6 +107,8 @@ Prerequisites:
     skeptical scoring (in `references/meta/`).
   - `skills/skill-builder/` — skill for creating, refactoring, and auditing
     agent skills.
+  - `skills/skill-cli-authoring/` — skill for designing skill-local CLIs with
+    agent-friendly command, output, safety, and verification contracts.
   - `skills/taskfile-authoring/` — skill for writing canonical Taskfiles.
   - `skills/attack-architecture/` — adversarial architecture-review skill.
   - `skills/harness-router/` — proposal-only router for deciding where
