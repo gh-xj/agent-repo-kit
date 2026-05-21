@@ -1,6 +1,12 @@
 ---
 name: slock-epic-protocol
-description: Use when designing, bootstrapping, auditing, repairing, or evolving a Slock-agent-to-epic-repo protocol: Slock agents mapped by slock_agent_registry to concrete leaf repos, generated pointer-only MEMORY.md files, generated repo symlinks, per-leaf tracked .work stores, repo-local skill mirrors, and cross-repo handoffs. Do not use for ordinary Slock chat/task commands or generic repo conventions without Slock agent mapping.
+description: >-
+  Use when designing, bootstrapping, auditing, repairing, or evolving a
+  Slock-agent-to-epic-repo protocol: Slock agents mapped by
+  slock_agent_registry to concrete leaf repos, generated pointer-only MEMORY.md
+  files, generated repo symlinks, per-leaf tracked .work stores, repo-local
+  skill mirrors, and cross-repo handoffs. Do not use for ordinary Slock
+  chat/task commands or generic repo conventions without Slock agent mapping.
 ---
 
 # Slock Epic Protocol
@@ -12,7 +18,9 @@ protocol is repo-owned; Slock is the wake-up, social, and task surface.
 
 - Creating or changing `slock_agent_registry`.
 - Mapping one Slock agent to one concrete leaf repo.
-- Installing or checking generated Slock `repo` symlinks.
+- Installing or checking generated Slock `repo` symlinks (always) and `epic`
+  symlinks (when `epic_symlink_name` is set on the registry — see
+  references/protocol.md).
 - Keeping Slock `MEMORY.md` pointer-only.
 - Migrating durable Slock notes into repo docs, skills, or `.work`.
 - Adding repo-local Claude/Codex skill discovery for mapped agents.
