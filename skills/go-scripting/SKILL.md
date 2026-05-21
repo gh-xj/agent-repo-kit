@@ -20,6 +20,8 @@ modern stack so you don't re-litigate the same choices on every new tool.
 - Go library code — this guide is for CLIs and scripts.
 - Go web services — framework-specific guides fit better.
 - Shell territory (one grep, one curl): write a shell script.
+- Agent-facing command contracts for CLIs inside skills — use
+  `skill-cli-authoring` first, then return here for Go implementation details.
 
 ## Stack (at a glance)
 
@@ -88,6 +90,9 @@ operations.
 - Emitting a table when `--json` was passed. Respect the flag.
 - Keeping timestamps in CLI output. Strip them — the shell prefix is
   enough.
+- Designing the command surface only after coding structs. For skill-local
+  CLIs, settle examples, JSON shape, safety class, and smoke checks with
+  `skill-cli-authoring` first.
 
 ## References
 
