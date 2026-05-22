@@ -71,7 +71,8 @@ MCP is out of scope as a durable destination for this skill.
 
 ## Output
 
-Default output is a reviewable proposal:
+Default output is a reviewable proposal in a hybrid layout — a narrow
+Recommendations index table followed by one section per recommendation:
 
 - short summary of the durable lesson
 - recommended destination(s)
@@ -80,9 +81,9 @@ Default output is a reviewable proposal:
 - compact evidence and reasoning tied to routing dimensions
 - confidence and risks
 
-For multi-item proposals, include a structured block using the schema in
-`references/proposal-format.md` only when another tool or agent will parse the
-result. Use readable markdown sections for human review.
+Use the full layout (index table + per-recommendation sections + Not Promoted
+table) from `references/proposal-format.md`. Add the structured YAML block
+only when another tool or agent will parse the result.
 
 ## Gaps
 

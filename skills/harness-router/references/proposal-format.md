@@ -1,10 +1,11 @@
 # Proposal Format
 
-The default deliverable is a human-reviewable proposal. Use compact markdown
-sections instead of tables; proposal rows get too wide once destinations,
-verification, and risks are included. Use a short index for scanning and one
-small section per recommendation. Put the destination first so reviewers can
-decide quickly whether the proposed home is even plausible.
+The default deliverable is a human-reviewable proposal in a **hybrid layout**:
+a narrow index table for scanning, then one section per recommendation for the
+detail. Tables are used where each row has the same short fields (the index,
+enum quick references, the Not Promoted list); sections are used where any
+cell would expand into a path, paragraph, or rationale (the per-recommendation
+detail). Destination always comes first.
 
 ## Markdown Shape
 
@@ -15,16 +16,18 @@ Summary: <one or two sentences>
 
 ### Recommendations
 
-- R1 — <short title>: <approve, reject, defer, or needs decision>
-- R2 — <short title>: <approve, reject, defer, or needs decision>
+| #  | Title         | Decision                                  | Destination (kind) |
+|----|---------------|-------------------------------------------|--------------------|
+| R1 | <short title> | approve / reject / defer / needs decision | skill_reference    |
+| R2 | <short title> | ...                                       | docs               |
 
 ### R1 — <Short Title>
 
 **Destination:** <target surface and path>
 
-**Externalized Burden:** <continuity, procedure, interaction, governance, observability, planning, or evaluation>
+**Externalized Burden:** <continuity | procedure | interaction | governance | observability | planning | evaluation>
 
-**Artifact Class:** <instruction, skill, skill_reference, protocol, docs, work, memory, check, or structured_store>
+**Artifact Class:** <instruction | skill | skill_reference | protocol | docs | work | memory | check | structured_store>
 
 **Proposed Change:** <compact durable action or update>
 
@@ -32,14 +35,47 @@ Summary: <one or two sentences>
 
 **Why This Fits:** <routing rationale>
 
-**Confidence:** high|medium|low
+**Confidence:** high | medium | low
 
-**Risks:** <duplication, bloat, staleness, privacy, injection, enforcement gap>
+**Risks:** <duplication | bloat | staleness | privacy | injection | enforcement gap>
 
 ### Not Promoted
 
-- **<candidate learning>** — <reason it should stay temporary or private>
+| Candidate Learning | Reason it stays temporary or private |
+|--------------------|--------------------------------------|
+| <learning>         | <reason>                             |
 ```
+
+Use the index table even for a single recommendation; it forces destination-kind
+up front and keeps multi-item proposals scannable.
+
+## When to Use a Table vs. a Section
+
+| Surface                 | Form    | Why |
+|-------------------------|---------|-----|
+| Recommendations index   | table   | Same short fields per row; reviewer scans Title + Decision + kind. |
+| Per-R<N> detail block   | section | Destination paths, Evidence prose, Why-This-Fits paragraphs overflow cells. |
+| Not Promoted            | table   | Two columns, short reason text. |
+| Enum / field reference  | table   | Repeated label/value records. |
+
+A row with multi-line cells, code, paths longer than ~40 chars, or a paragraph
+is the signal to leave the table and go back to a section.
+
+## Field Quick Reference
+
+| Field                 | Required | Values / Notes |
+|-----------------------|----------|----------------|
+| Summary               | yes      | One or two sentences. |
+| Recommendations index | yes      | Narrow table; one row per R<N>. |
+| Destination           | yes      | Target surface + path; **first** in each per-R<N> block. |
+| Externalized Burden   | yes      | continuity / procedure / interaction / governance / observability / planning / evaluation |
+| Artifact Class        | yes      | instruction / skill / skill_reference / protocol / docs / work / memory / check / structured_store |
+| Proposed Change       | yes      | Action verb form; not a description. |
+| Evidence              | yes      | Source, date, file, work item, test, or user correction. |
+| Why This Fits         | yes      | Routing rationale tying destination to scope, durability, load policy, enforcement. |
+| Confidence            | yes      | high / medium / low |
+| Risks                 | yes      | duplication / bloat / staleness / privacy / injection / enforcement gap |
+| Not Promoted          | yes      | Separate section; explicit list of candidates that stayed temporary/private. |
 
 ## Structured Block
 
@@ -74,5 +110,6 @@ recommendations:
 A good human-facing recommendation starts with the destination, names the
 burden and artifact class, states the proposed change as an action, and explains
 why that destination is narrow enough, durable enough, and enforceable enough.
-It also names what should not be promoted. Keep `learning` in the structured
-block for machine parsing.
+It also names what should not be promoted. The index table must show Decision
+and Destination kind so a reviewer can triage without reading every block.
+Keep `learning` in the structured block for machine parsing.
