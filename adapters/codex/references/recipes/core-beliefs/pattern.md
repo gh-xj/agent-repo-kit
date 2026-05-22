@@ -15,13 +15,16 @@ Apply when:
 - Identity-defending decisions recur ("should we add X?", "is feature Y in scope?"). The trio gives PR review a written compass.
 - The audience includes maintainers AND outside contributors / agents who need to understand what the project is and isn't.
 - The maintainer cares enough to write down "what we will not become."
+- **Discipline-mode variant**: the maintainer wants the trio as a thinking-discipline forcing function, even before any external citers exist. Writing invariants and anti-patterns down at bootstrap surfaces scope contradictions early and sharpens the project's stance before its first contentious debate. Adopt only if the discipline is itself the goal — the payoff is internal (clearer thinking, sharper rejection rule) rather than external (PR-review compass). See worked example below.
 
 Skip when:
 
-- The project is internal-only with no public contributors or agent consumers.
-- The project is too young to have stable identity. Adopt the trio after the first contentious feature debate, not before it.
-- The project's audience is a single private owner (the manifesto and refusals don't have a reader).
+- The project is internal-only with no public contributors or agent consumers AND the maintainer does not want the discipline-mode payoff.
+- The project is too young to have stable identity AND the maintainer is unwilling to revise invariants/anti-patterns as the stance evolves. (Discipline-mode requires *willingness to revise*; otherwise the trio fossilizes prematurely.)
+- The project's audience is a single private owner who has no internal use for the discipline.
 - The project is a single-file utility or one-off script.
+
+**Discipline-mode worked example.** `agentsec-research` 2026-05-17 adopted the full trio at bootstrap despite having no public surface (private brain repo, single maintainer). The trio served as scope-pinning: writing INV-1..5 and ANTI-1..3 at bootstrap surfaced the narrow-scope decision (runtime agent security, detection+response wedge) in a way the charter alone did not, and gave the maintainer concrete refusal categories to test future research candidates against. The payoff is internal — there's no PR review citing INV-N — but the discipline shaped the bootstrap itself.
 
 ## Three Load-Bearing Decisions
 

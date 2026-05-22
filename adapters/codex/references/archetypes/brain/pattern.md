@@ -58,6 +58,10 @@ Inside the agent-captured realm, every external data source is a subdir with its
 
 The archetype does not enumerate sources. Each brain owner picks their own (Gmail, calendar, transcripts, scrapers, dumps, etc.). The contract is the registry shape; the membership is local.
 
+**Variant — pre-seeded sources with `PROPOSED` markers.** Owners who prefer structure-up-front may pre-seed source subdirs with stub READMEs marked `PROPOSED — producer not built yet`, rather than waiting for each producer to exist before creating its dir. The marker is load-bearing: without it, an empty source dir impersonates an active pipeline (exactly the registry-as-junk-drawer anti-pattern). With it, the roadmap is visible AND the gates stay honest. Default remains contract-only; this is the permitted variant for owners whose preference for visible structure outweighs the "no empty dirs" minimalism.
+
+*Worked example: `agentsec-research` 2026-05-17 — one active source (`manual-transcripts/`) alongside four `PROPOSED` sources (`model-outputs/`, `jailbreak-runs/`, `cve-feed/`, `vendor-captures/`). The Producer-line gate (`verify-evidence-readmes.sh` in that instance) accepts either an active producer or the `PROPOSED` literal, so the gate passes from day one while the dirs honestly declare their state.*
+
 If the captured realm is skipped (decision #1), this entire section is inapplicable — pre-processed content lands directly in `human/` (curated) or `derived/` (regenerable) instead of going through a per-source registry.
 
 ### 3. Privacy is a posture, not a feature

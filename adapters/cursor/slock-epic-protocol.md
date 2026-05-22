@@ -18,7 +18,9 @@ protocol is repo-owned; Slock is the wake-up, social, and task surface.
 
 - Creating or changing `slock_agent_registry`.
 - Mapping one Slock agent to one concrete leaf repo.
-- Installing or checking generated Slock `repo` symlinks.
+- Installing or checking generated Slock `repo` symlinks (always) and `epic`
+  symlinks (when `epic_symlink_name` is set on the registry — see
+  references/protocol.md).
 - Keeping Slock `MEMORY.md` pointer-only.
 - Migrating durable Slock notes into repo docs, skills, or `.work`.
 - Adding repo-local Claude/Codex skill discovery for mapped agents.
