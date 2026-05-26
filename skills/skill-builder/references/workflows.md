@@ -73,6 +73,11 @@ Focus on findings first:
 
 Then propose the smallest full refactor.
 
+For collection-level audits (multiple skills in one repo or the global home), see
+`audit-workflow.md` for the three-phase recipe (doc hygiene → per-skill refactor
+→ scope-mismatch lift) — applies when the catalog has grown past ~5 skills and
+shows multiple drift signals at once.
+
 ## Migrate
 
 Use this when capability is moving between README, docs, skills, scripts, Taskfiles, or repo CLIs.
