@@ -115,6 +115,9 @@ Default flow:
   currently `schema_version: 1`.
 - Work space: optional item-owned directory under `.work/spaces/W-NNNN/` for
   notes, research captures, plans, and other supporting files.
+- Work attempt: append-only action record under
+  `.work/spaces/W-NNNN/attempts/*.yaml` for mutating commands such as `new`,
+  `triage accept`, `claim`, and `done`.
 - Work lease: optional time-bounded claim under `.work/leases/W-NNNN.yaml`.
 - Work type: optional scaffold/template under `.work/types/<type>/` that can
   create an initial work space for typed items and expose type policy from
@@ -134,7 +137,31 @@ work migrate
 work view ready
 work show W-0001
 work show W-0001 --policy
+work done W-0001 --summary "Shipped" --evidence "task verify"
 ```
+
+## Closing or Editing an Existing Work Item
+
+`work` exposes `done` for the common close path:
+
+```bash
+work done W-0001 --summary "Implemented and verified" --evidence "task ci"
+```
+
+That command marks the work item `done`, releases any active lease, optionally
+writes `completion.md`, and appends an attempt record under
+`.work/spaces/W-NNNN/attempts/`.
+
+There is still no general `update` / `status` verb for arbitrary lifecycle
+edits. For unsupported mutations such as `blocked -> ready`, edit the canonical
+YAML file directly:
+
+```yaml
+status: ready
+updated_at: 2026-05-28T05:00:00Z
+```
+
+`work view ...` / `work show ...` read the updated state immediately.
 
 ## Boundaries
 
@@ -143,6 +170,8 @@ work show W-0001 --policy
 - Work items are the durable source of truth.
 - Claims are coordination leases, not lifecycle status. Claiming a work item
   does not change `status`.
+- Mutation history belongs in `.work/spaces/W-NNNN/attempts/`; do not overload
+  `status` or leases to represent action history.
 - Work spaces support a work item, but do not replace the canonical item YAML.
 - Type policies are agent-facing instructions for a work type; they complement
   the work item and workspace but do not replace either.

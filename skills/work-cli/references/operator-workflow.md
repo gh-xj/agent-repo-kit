@@ -12,6 +12,7 @@ implementation or convention design.
 .work/inbox/IN-0001.yaml --triage accept--> .work/items/W-0001.yaml
                                                |
                                                `-- optional .work/spaces/W-0001/
+                                                    `-- attempts/*.yaml
 
 .work/leases/W-0001.yaml                       # optional time-bounded claim
 .work/types/<type>/policy.md                   # optional type policy
@@ -24,6 +25,9 @@ implementation or convention design.
   area, labels, and source metadata. Current records use `schema_version: 1`.
 - Work space: optional item-owned directory keyed by work ID. Use it for notes,
   research captures, plans, small evidence, and other supporting files.
+- Work attempt: append-only action record under
+  `.work/spaces/W-NNNN/attempts/*.yaml`. Use it to answer "what mutation ran,
+  when, and with what compact inputs/results?"
 - Work type: optional scaffold/template. Typed work items remain normal work
   items, but a type can scaffold `.work/spaces/<W-ID>/`.
 - Work lease: optional coordination record. It says who currently claims a work
@@ -112,6 +116,10 @@ Create directly when the work is already understood:
 work new "Document migration path" --area docs --priority P2
 ```
 
+Successful `work new`, `work triage accept`, `work claim`, and `work done`
+append an action record under `.work/spaces/W-NNNN/attempts/`. In JSON mode,
+those commands also return the attempt path directly.
+
 Use a work space when the work item needs files:
 
 ```text
@@ -130,6 +138,15 @@ work claim W-0001 --actor agent:codex:xj-mac --ttl 1h
 provenance, `acquired_at`, and `expires_at`. A different actor cannot claim an
 unexpired lease. The same actor can renew it. Expired lease files may remain on
 disk; reads treat expiry as derived state.
+
+Mark work complete with:
+
+```bash
+work done W-0001 --summary "Implemented and verified" --evidence "task ci"
+```
+
+That updates the work item to `done`, releases any active lease, optionally
+writes `completion.md`, and appends a `done` attempt record.
 
 ## Migration
 
