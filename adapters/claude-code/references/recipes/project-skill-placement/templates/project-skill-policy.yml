@@ -1,0 +1,32 @@
+version: 1
+canonicalRoot: .agents/skills
+mirrorRoot: .runtime/skills
+mirrorRule: symlink-to-canonical
+
+# Project-level skill allowlist.
+# Keep this file in sync with `.conventions.yaml skill_policy`.
+skills:
+  project-router:
+    placement: wrapper-local
+    sourceKind: local
+    reason: Router behavior belongs to this repo and chooses the correct local project surface.
+
+  account-tool-example:
+    placement: project-exception
+    sourceKind: local
+    reason: This account/tooling workflow needs project-local routing context rather than a global skill.
+
+  official-tool-example:
+    placement: project-exception
+    sourceKind: external
+    reason: This external skill must stay aligned with its upstream skill and paired CLI package.
+    upstream:
+      source: owner/repository
+      sourceType: github
+      skillPath: SKILL.md
+    retainedPaths:
+      - SKILL.md
+    cliPackages:
+      - manager: npm-global
+        name: "@scope/package"
+        latestCheck: npm-view
