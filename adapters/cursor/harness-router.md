@@ -40,7 +40,9 @@ MCP is out of scope as a durable destination for this skill.
    - related or used skills
 3. Read `references/externalization-model.md`, then
    `references/routing-taxonomy.md`.
-4. Produce a proposal before making durable edits.
+4. If the request mines agent session history for reusable value, read
+   `references/session-workflow-packaging.md`.
+5. Produce a proposal before making durable edits.
 
 ## Operating Loop
 
