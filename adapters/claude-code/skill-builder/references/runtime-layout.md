@@ -62,6 +62,37 @@ Implications:
 | Runtime-specific UI metadata | `agents/openai.yaml` or runtime-only sibling files |
 | Repo automation logic | `tools/` or `scripts/`, not the portable skill core |
 
+### Project-local vs global — promotion criteria
+
+A skill should live at the global home (`~/.claude/skills/` and/or
+`~/.agents/skills/`) instead of a project's `.claude/skills/` when **any one**
+of these holds:
+
+1. **Data scope is broader than the host repo**: the skill reads or writes
+   files that live outside the hosting leaf (e.g., a search skill that
+   targets `xj-private-finance` + `xj-private-info` + `dropbox-inbox` +
+   `private-config`). The project where it was first written is incidental.
+2. **The skill is stack-generic**: it wraps a tool bound to a local account
+   or external service (Gmail, WeChat, browser), not to a specific repo's
+   data shape.
+3. **Multiple leaves want to invoke it**: even if only one currently does,
+   anticipating cross-leaf use justifies promotion.
+
+Worked example: `rga` (ripgrep-all over PDFs/JSONL/SQLite/docx across the
+whole personal-data footprint) and `singlefile-clipper` (reads SingleFile
+captures from `~/Dropbox/dropbox-inbox/evidence/`) were promoted out of
+`xj-private-finance/.claude/skills/` to `~/.claude/skills/` in 2026-05-25
+because both fail criterion 1: their target data is not finance-bound.
+
+Don't promote prematurely. A skill that **could** be reused but currently
+serves one project is fine project-local. Promote when the second project
+asks for it, or when the data scope makes the leaf-local placement
+actively misleading.
+
+When promoting, update both source-repo and brain CLAUDE.md cross-references
+so future readers know where the skill lives. See `audit-workflow.md`
+Phase 3 for the mechanics.
+
 ## Dual-Runtime Mirrors
 
 When a project-local skill must be discoverable by both Claude Code and Codex,
