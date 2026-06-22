@@ -68,8 +68,10 @@ An agent or `task verify` consuming this file:
    - `docs_root` → directory exists; `requests/`, `planning/`, `plans/`
      subfolders exist.
    - `taskfile` → root `Taskfile.yml` exists; `task verify` is defined.
-   - `pre_commit` → `.githooks/pre-commit` exists and is executable, or
-     `core.hooksPath` points to one.
+   - `pre_commit` → Git will actually run an executable hook: either
+     `core.hooksPath` resolves to one, or `.git/hooks/pre-commit` is installed.
+     A repo-local `.githooks/pre-commit` file is not enough unless the clone is
+     wired to it.
    - `skill_roots` → each listed root exists if declared.
    - `operations` → for each adopted op, the corresponding directory exists
      (`.work/`, `.wiki/`), the agent contract files contain the op's pointer

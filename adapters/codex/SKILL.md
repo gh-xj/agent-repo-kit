@@ -1,7 +1,7 @@
 ---
 name: convention-engineering
-version: 2.1.0
-description: "Use when designing or auditing repo conventions: `.conventions.yaml` descriptor, agent contract files (CLAUDE.md / AGENTS.md), docs taxonomy, verification gates, repo-local skill placement, `.work/` layout, `.wiki/` rules. Pick an archetype (whole-repo shape: epic-wrapper for multi-repo products, brain for personal/knowledge-base repos) and stack recipes (core-beliefs, docs-taxonomy, agent-knowledge, work, wiki, project-skill-placement, verify-script). Stack-agnostic. Skip for one-off product naming or domain architecture questions where no convention surface is being changed."
+version: 2.2.0
+description: "Use when designing or auditing repo conventions: `.conventions.yaml` descriptor, agent contract files (CLAUDE.md / AGENTS.md), docs taxonomy, verification gates, Git workflow, repo-local skill placement, `.work` layout, `.wiki` rules. Pick an archetype (whole-repo shape: epic-wrapper for multi-repo products, brain for personal/knowledge-base repos) and stack recipes (core-beliefs, docs-taxonomy, agent-knowledge, git-workflow, work, wiki, project-skill-placement, verify-script). Stack-agnostic. Skip for one-off product naming or domain architecture questions where no convention surface is being changed."
 ---
 
 # Convention Engineering
@@ -14,7 +14,7 @@ The pattern: a single `.conventions.yaml` at the repo root declares which conven
 
 - **Concepts** — principles and the descriptor reference. Always-on.
 - **Archetypes** — whole-repo shapes; pick one. (`epic-wrapper`, `brain`.)
-- **Recipes** — stackable conventions; layer many. (`core-beliefs`, `agent-knowledge`, `docs-taxonomy`, `project-skill-placement`, `verify-script`, `work`, `wiki`.)
+- **Recipes** — stackable conventions; layer many. (`core-beliefs`, `agent-knowledge`, `docs-taxonomy`, `git-workflow`, `project-skill-placement`, `verify-script`, `work`, `wiki`.)
 
 A repo declares its archetype + recipes in `.conventions.yaml`, then runs `task verify` against the resulting opt-ins.
 
@@ -44,6 +44,7 @@ A repo declares its archetype + recipes in `.conventions.yaml`, then runs `task 
 | `CLAUDE.md` / `AGENTS.md` structure                 | `references/recipes/agent-knowledge/pattern.md`    |
 | Docs taxonomy (`docs/{requests,planning,plans,…}`)  | `references/recipes/docs-taxonomy/pattern.md`      |
 | Execution-plan lifecycle                            | `references/recipes/docs-taxonomy/exec-plans.md`   |
+| Git commit, verify, push, and dirty-tree workflow    | `references/recipes/git-workflow/pattern.md`       |
 | Repo-local skill placement                          | `references/recipes/project-skill-placement/pattern.md` |
 | `scripts/verify.sh` shape                           | `references/recipes/verify-script/pattern.md`      |
 | `.work/` tracker adoption                           | `references/recipes/work/pattern.md`               |

@@ -2,6 +2,15 @@
 
 Semantic versioning. Major bumps land breaking trigger / schema / routing changes; minor bumps add capability without breaking adopters; patch bumps clarify wording or fix references.
 
+## 2.2.0 — 2026-06-22
+
+- Add the experimental `git-workflow` recipe for agent-operated commit, verify,
+  push, bundle, and dirty-tree discipline.
+- Add eval cases for local-only leaves, hook wiring drift, post-verify dirty
+  generated output, upstream/ahead reporting, and legacy branch exceptions.
+- Tighten the reference verifier's `pre_commit` check so a missing configured
+  `core.hooksPath` cannot be masked by an unused `.githooks/pre-commit` file.
+
 ## 2.1.0 — 2026-05-06
 
 - Fold the `convention-evaluator` sibling skill into this one. Its rubric and report template now live at `references/meta/evaluation-rubric.md` and `references/meta/evaluation-report-template.md`. The "fresh-context skeptical scoring" posture is preserved as a meta concern of the same skill rather than a separate publishing artifact. Two routing rows added to SKILL.md under Meta.

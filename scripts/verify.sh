@@ -43,10 +43,17 @@ fi
 # pre_commit: a hook script is wired up.
 if [ "$(yq -r '.pre_commit // false' .conventions.yaml)" = "true" ]; then
   hooks_path=$(git config --get core.hooksPath || true)
-  if [ -n "$hooks_path" ] && [ -x "$hooks_path/pre-commit" ]; then
+  if [ -n "$hooks_path" ]; then
+    case "$hooks_path" in
+      /*) resolved_hooks_path="$hooks_path" ;;
+      *) resolved_hooks_path="$PWD/$hooks_path" ;;
+    esac
+    [ -x "$resolved_hooks_path/pre-commit" ] \
+      || fail "pre_commit: core.hooksPath=$hooks_path does not contain an executable pre-commit"
+  elif [ -x .git/hooks/pre-commit ]; then
     :
   elif [ -x .githooks/pre-commit ]; then
-    :
+    fail "pre_commit: .githooks/pre-commit exists but core.hooksPath is not wired"
   else
     fail "pre_commit: no executable pre-commit hook found"
   fi
